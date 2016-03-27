@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE muclient>
+<muclient>
+<plugin
+   name="Prompt_Bars_Miniwindow"
+   author="Fumino"
+   id="48062dcd6b968c590df50f32"
+   language="Lua"
+   purpose="Draggable prompt bars"
+   date_written="2010-03-26 09:00"
+   requires="4.40"
+   version="1.1"
+   save_state="y"
+   >
+<description trim="y">
+<![CDATA[
+
+]]>
+</description>
+
+</plugin>
+
+<!--  Triggers  -->
+
+<triggers>
+
+ 
+</triggers>
+
+<!--  Script  -->
+
+
+<script>
+<![CDATA[
+local using_msdp = false
+local colourWhite = ColourNameToRGB("white")
+local colourBlack = ColourNameToRGB("black")
+local bars_window = "bars_image"  -- miniwindow ID
+local bars_border_window = "bars_border"  -- miniwindow ID
+local health_window = "health_bar"  -- miniwindow ID
+local mana_window = "mana_bar"  -- miniwindow ID
+local movement_window = "movement_bar"  -- miniwindow ID
+local exp_window = "exp_bar"  -- miniwindow ID
+local msdp = {}
+local BORDER_COLOUR = ColourNameToRGB("red")
+
+function create_layout ()
+require "movewindow"
+windowinfob = movewindow.install (health_window, 7)
+windowinfoc = movewindow.install (mana_window, 7)
+windowinfod = movewindow.install (movement_window, 7)
+windowinfoe = movewindow.install (exp_window, 7)
+
+ -- make a miniwindow under the text
+  check (WindowCreate (health_window,   -- window ID
+                windowinfob.window_left,            -- left
+                windowinfob.window_top,            -- top
+                100,           -- width
+                20,            -- depth
+                windowinfob.window_mode,            -- center it (ignored anyway) 
+                windowinfob.window_flags,             -- draw underneath (1) + absolute location (2)
+                colourBlack))  -- background colour
+  movewindow.add_drag_handler (health_window, 0, 0, 0, 0)
+  -- show the window
+  WindowShow (health_window, true)
+
+  -- make a miniwindow under the text
+  check (WindowCreate (mana_window,   -- window ID
+                windowinfoc.window_left,            -- left
+                windowinfoc.window_top,           -- top
+                100,           -- width
+                20,            -- depth
+                windowinfoc.window_mode,            -- center it (ignored anyway) 
+                windowinfoc.window_flags,             -- draw underneath (1) + absolute location (2)
+                colourBlack))  -- background colour
+  movewindow.add_drag_handler (mana_window, 0, 0, 0, 0)
+  -- show the window
+  WindowShow (mana_window, true)
+
+  -- make a miniwindow under the text
+  check (WindowCreate (movement_window,   -- window ID
+                windowinfod.window_left,            -- left
+                windowinfod.window_top,           -- top
+                100,           -- width
+                20,            -- depth
+                windowinfod.window_mode,            -- center it (ignored anyway) 
+                windowinfod.window_flags,             -- draw underneath (1) + absolute location (2)
+                colourBlack))  -- background colour
+  movewindow.add_drag_handler (movement_window, 0, 0, 0, 0)
+  -- show the window
+  WindowShow (movement_window, true)
+
+  -- make a miniwindow under the text
+  check (WindowCreate (exp_window,   -- window ID
+                windowinfoe.window_left,            -- left
+                windowinfoe.window_top,           -- top
+                100,           -- width
+                20,            -- depth
+                windowinfoe.window_mode,            -- center it (ignored anyway) 
+                windowinfoe.window_flags,             -- draw underneath (1) + absolute location (2)
+                colourBlack))  -- background colour
+  movewindow.add_drag_handler (exp_window, 0, 0, 0, 0)
+  -- show the window
+  WindowShow (exp_window, true)
+
+  -- draw the energy bars
+  draw_energy_bars ()
+
+end -- create_layout
+
+
+-- fill the three energy bars
+function draw_energy_bars ()
+
+  -- HEALTH
+  current_health = msdp["HEALTH"]
+  max_health = msdp["HEALTH_MAX"]
+
+  -- initialise with empty bars
+  if current_health == nil then
+    current_health = 0
+    max_health = 0
+  end -- if
+
+  if current_health ~= nil and max_health ~= nil then
+    type = "Health"
+    colour = 0x0000CC
+    colour2 = 0x000033
+    draw_energy_bar(type, colour, colour2, health_window, current_health, max_health)
+  end -- if
+
+
+  -- MANA
+  current_mana = msdp["MANA"]
+  max_mana = msdp["MANA_MAX"]
+
+  -- initialise with empty bars
+  if current_mana == nil then
+    current_mana = 0
+    max_mana = 0
+  end -- if
+
+  if current_mana ~= nil and max_mana ~= nil then
+    type = "Mana"
+    colour = 0xCC0000
+    colour2 = 0x330000
+    draw_energy_bar(type, colour, colour2, mana_window, current_mana, max_mana)
+  end -- if
+
+
+  -- MOVEMENT
+  current_movement = msdp["MOVEMENT"]
+  max_movement = msdp["MOVEMENT_MAX"]
+
+  -- initialise with empty bars
+  if current_movement == nil then
+    current_movement = 0
+    max_movement = 0
+  end -- if
+
+  if current_movement ~= nil and max_movement ~= nil then
+    type = "Move"
+    colour = 0x00CC00
+    colour2 = 0x003300
+    draw_energy_bar(type, colour, colour2, movement_window, current_movement, max_movement)
+  end -- if
+
+  -- EXP
+  current_exp = msdp["OPPONENT_HEALTH"]
+  max_exp = 100
+
+  -- initialise with empty bars
+  if current_exp == nil then
+    current_exp = 0
+    max_exp = 0
+  end -- if
+
+  if current_exp ~= nil and max_exp ~= nil then
+    type = "Enemy"
+    colour = 0x00CCCC
+    colour2 = 0x003333
+    draw_energy_bar(type, colour, colour2, exp_window, current_exp, max_exp)
+  end -- if
+
+end -- draw_energy_bars
+
+
+-- fill the bar
+function draw_energy_bar (type, colour, colour2, window, current_value, max_value)
+
+  -- convert the strings to numbers
+  current = tonumber(current_value)
+  max = tonumber(max_value)
+
+  -- Calculate health
+  if current < 0 then
+    current = 0
+  elseif current > max then
+    current = max
+  end -- if
+
+  -- clear the bars
+  WindowGradient (window, 0, -1, 100, 10, colourBlack, colour2, 2)
+  WindowGradient (window, 0, 10, 100, 21, colour2, colourBlack, 2)
+
+  -- calculate the filled part
+  if max > 0 then
+    filled = current * 100 / max
+  else -- avoid division by zero
+    filled = 0
+  end -- if
+
+  -- redraw the bars
+  if current > 0 then
+    WindowGradient (window, 0, -1, filled, 10, colourBlack, colour, 2)
+    WindowGradient (window, 0, 10, filled, 21, colour, colourBlack, 2)
+  end -- if
+
+  -- write the information inside
+  outlined_text (colourWhite, window, type, 9, 3, 3, 0)
+  outlined_text (colourWhite, window, math.ceil(filled)..'%', 9, 55, 3, 0)
+
+end -- draw_energy_bar
+
+function OnPluginWorldOutputResized ()
+  create_layout ()
+end -- function
+
+function outlined_text (colour, window, text, size, x, y, centre_width)
+
+  outlineColour = colourBlack
+
+  -- write the information inside
+  WindowFont(window,'f','Verdana',size,1,0,0,0)
+
+  if centre_width > 0 then
+    width = WindowTextWidth (window, 'f', text)
+    x = x + ((centre_width-width) / 2)
+  end -- if
+
+  -- smear black text around the location to create an outline, so that it's clearer to read
+  WindowText(window,'f',text,x+1,y+1,0,0,outlineColour,0)
+  WindowText(window,'f',text,x+1,y,0,0,outlineColour,0)
+  WindowText(window,'f',text,x+1,y-1,0,0,outlineColour,0)
+  WindowText(window,'f',text,x,y+1,y,0,outlineColour,0)
+  WindowText(window,'f',text,x,y-1,y,0,outlineColour,0)
+  WindowText(window,'f',text,x-1,y+1,0,0,outlineColour,0)
+  WindowText(window,'f',text,x-1,y,0,0,outlineColour,0)
+  WindowText(window,'f',text,x-1,y-1,0,0,outlineColour,0)
+
+  -- display the text
+  WindowText(window,'f',text,x,y,0,0,colour,0)
+
+  return width
+end -- outlined_text
+
+-- MSDP negotiation
+local MSDP = 69
+
+function OnPluginTelnetRequest (type, data)
+  if type == MSDP and data == "WILL" then
+    using_msdp = true
+    return true
+  elseif type == MSDP and data == "SENT_DO" then
+    -- IAC SB MSDP response IAC SE 
+    SendPkt ("\255\250\69\1REPORT\2CHARACTER_NAME\2RACE\2CLASS\2HEALTH_MAX\2HEALTH\2MANA_MAX\2MANA\2MOVEMENT_MAX\2MOVEMENT\2EXPERIENCE_TNL\2BLOOD\2LEVEL\2HITROLL\2DAMROLL\2AC\2STR\2INT\2WIS\2DEX\2CON\2STR_PERM\2INT_PERM\2WIS_PERM\2DEX_PERM\2CON_PERM\2ALIGNMENT\2AFFECTS\2WIMPY\2OPPONENT_HEALTH\2ROOM_EXITS\2\255\240")
+    return true
+  else -- another protocol
+    return false
+  end -- if
+end -- function OnPluginTelnetRequest
+
+function OnPluginTelnetSubnegotiation (type, data)
+  if type == MSDP then
+    endpos = string.len(data)
+    bName = false
+    bValue = false
+    bTable = false
+    bIgnore = false
+    variable = nil
+    value = nil
+
+--Note('Raw data: ['..data..']')
+
+    for i=1,endpos,1 do
+      if string.byte(data,i) == 1 and bTable == false then
+        if variable ~= nil and value ~= nil then
+          StoreVariable(variable, value)
+          variable = nil
+          value = nil
+        end -- if
+        bName = true
+        bValue = false
+      elseif string.byte(data,i) == 2 and bTable == false then
+        if value ~= nil then
+          value = value.." "
+        end -- if
+        bName = false
+        bValue = true
+      elseif string.byte(data,i) == 3 then
+        bTable = true
+        bIgnore = true
+      elseif string.byte(data,i) == 4 then
+        bTable = false
+      elseif bIgnore == true then
+        bIgnore = false -- Just ignore one character.
+      elseif bName == true then
+        if variable == nil then
+          variable = ""
+        end -- if
+        variable = variable..string.sub(data,i,i)
+      elseif bValue == true then
+        if value == nil then
+          value = ""
+        end -- if
+        value = value..string.sub(data,i,i)
+      end -- if
+    end -- for
+
+    if variable ~= nil then
+      if value == nil then
+        value = ""
+      end -- if
+      StoreVariable(variable, value)
+    end -- if
+
+
+    -- redraw the energy bars
+    draw_energy_bars ()
+
+    Redraw()
+
+  end -- if
+end -- function OnPluginTelnetSubnegotiation
+
+function StoreVariable (MSDP_var, MSDP_val)
+--Note('Variable: '..MSDP_var..' = ['..MSDP_val..']')
+  if MSDP_var == "SERVER_ID" then
+    create_layout ()
+    SendPkt ("\255\250\69\1PLUGIN_ID\2Generic MUSHclient plugin (version 1.1)\255\240")
+  else -- store the variable
+    msdp[MSDP_var] = MSDP_val
+  end -- if
+end -- function StoreVariable
+
+function OnPluginSaveState ()
+  -- save window current location for next time  
+  movewindow.save_state (health_window)
+    movewindow.save_state (mana_window)
+	  movewindow.save_state (movement_window)
+	    movewindow.save_state (exp_window)
+end -- function OnPluginSaveState
+
+]]>
+</script>
+
+<!-- timers -->
+
+
+</muclient>

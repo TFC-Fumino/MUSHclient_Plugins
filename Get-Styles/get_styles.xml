@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+
+<muclient>
+<plugin
+   name="Style_Reader"
+   author="Fumino"
+   id="0e24a1ea965f38cf243e5135"
+   language="Lua"
+   purpose="Get the styles of each line"
+   date_written="2016-03-22 00:49:31"
+   requires="4.51"
+   version="1.0"
+   >
+<description trim="y">
+
+Style runs
+  
+</description>
+
+</plugin>
+
+<triggers>
+
+  <trigger
+   enabled="n"
+   keep_evaluating="y"
+   match="^(.+)$"
+   regexp="y"
+   name="read_lines"
+   script="check_lines"
+   sequence="100"
+  >
+  </trigger>
+
+</triggers>
+
+<aliases>
+
+  <alias
+   match="^read styles (on|off)$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+  >
+  <send>
+   if "%1" == "on" then
+    ColourNote ("silver", "", "Read Styles: ", "green", "", "Enabled")
+    EnableTrigger ("read_lines", true)
+   else
+    EnableTrigger ("read_lines", false)
+    ColourNote ("silver", "", "Read Styles: ", "red", "", "Disabled")
+   end -- if
+  </send>
+  </alias>
+
+</aliases>
+
+<script>
+ <![CDATA[
+    require "getstyle"
+    require "tprint"
+
+    function check_lines (name, line, wildcards, styles)
+	tprint (styles)
+    end -- function check_lines
+]]>
+</script>
+
+</muclient>
