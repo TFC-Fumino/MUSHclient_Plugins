@@ -2272,7 +2272,7 @@ function draw_energy_bars ()
 
   -- EXP
   current_exp = msdp["OPPONENT_HEALTH"]
-  max_exp = 200
+  max_exp = 100
 
   -- initialise with empty bars
   if current_exp == nil then
