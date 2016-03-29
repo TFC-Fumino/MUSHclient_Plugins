@@ -10,13 +10,13 @@
    purpose="A graphical user interface for The Final Challenge MUD"
    date_written="2016-03-26 00:49:31"
    requires="4.51"
-   version="2.4"
+   version="2.5"
    save_state="y"
    >
 <description trim="y">
 VERSION:
 
- Alpha 2.4
+ Alpha 2.5
 
  * Pre-release with built in stat workaround
  * Not all spell icons have been created, so some use a generic one. You can still see 
@@ -153,6 +153,7 @@ FEATURES:
    OnPluginInstall()
   </send>
   </trigger>
+ 
 
 -------------------------------
 -- Chat Channel Triggers 
@@ -593,6 +594,19 @@ FEATURES:
    sequence="100"
   >
   </alias>
+  
+  --------------------
+  -- test
+  --------------------
+    <alias
+   match="update plugin"
+   enabled="y"
+   send_to="12"
+   sequence="100"
+  >
+  <send>plugin_updater ()
+</send>
+  </alias>
 
 </aliases>
 
@@ -635,10 +649,10 @@ FEATURES:
   echo = not (GetVariable("echo") == "false")
 
   date_format = GetVariable("date_format")
-  WINDOW_WIDTH = 500
+  WINDOW_WIDTH = 550
   WINDOW_HEIGHT = 93
   
-  WINDOW_WIDTH_MOB = 498
+  WINDOW_WIDTH_MOB = 452
   WINDOW_HEIGHT_MOB = 93
 
   -- offset of text from edge
@@ -795,7 +809,7 @@ function init(firstTime)
       Note( "File '" .. GetInfo (66) .. "Generic/layout/border_top.png' is missing.")
      end -- bottom border image
      WindowShow(chat_border_window, true)
-     WindowCreate(Win, 0, 0, 500, 76, 4, 4, 0x000000)
+     WindowCreate(Win, 0, 0, 550, 76, 4, 4, 0x000000)
      -- catch for right-click menu and line selection
      WindowAddHotspot(Win, "textarea", 0, 0, WINDOW_WIDTH-SCROLL_BAR_WIDTH,0, 
         "", "", "MouseDown", "CancelMouseDown", "MouseUp", "", 
@@ -830,9 +844,9 @@ function init_mob(firstTime)
     WINDOW_COLUMNS_MOB = math.ceil((WINDOW_WIDTH_MOB-SCROLL_BAR_WIDTH)/font_width_mob)
     if firstTime then
      check (WindowCreate (a_room_mob_window,   -- window ID
-        501,         -- left
+        550,         -- left
         0,     -- top
-        498,        -- width
+        452,        -- width
         76,        -- depth
         12,         -- center it (ignored anyway) 
         6,          -- draw underneath (1) + absolute location (2)
@@ -1259,8 +1273,6 @@ function chats (name, line, wildcards, styles)
 end -- function chats 
 
 function draw_a_room_mob (name, line, wildcards, styles)
-  -- clear the background
-  -- WindowRectOp (a_room_mob_window, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
 for k, style in ipairs (styles) do
  if RGBColourToName (style.textcolour) == "purple" then
   if style.text ~= "gp" then
@@ -1900,7 +1912,7 @@ WindowAddHotspot(titlebar_window, "bgbutton", 65, 0, 104, 13,
   -- load the avatar image
  if GetVariable("avatar_checked") == "one" then
   WindowLoadImage (avatar_window, "avatar", GetInfo (66) .. "Generic/avatars/Default.png")
- elseif GetVariable("avatar_checked") == "two" then
+ elseif GetVariable("avatar_checked") == "browse" then
   WindowLoadImage (avatar_window, "avatar", GetVariable("avatar_filename"))
  else
   WindowLoadImage (avatar_window, "avatar", GetInfo (66) .. "Generic/avatars/Default.png")
@@ -1988,48 +2000,53 @@ end -- avatar check
 
 end -- create_layout
   bgColour = tonumber(GetVariable ("bgColour")) or ColourNameToRGB("black")
+  
+  
+function checkItem (which)
+  menu [which] = "+" .. menu [which]
+end -- checkItem
+
 function settings_click_menu ()
--- Redo this sometime. Has got to be a cleaner better way to do this. Investigate menu script from other plugin to see if checks can be added as its much cleaner
+ menu = {
+  [1] = "! >Avatar Image",
+  [2] = "Default",
+  [3] = "-",
+  [4] = "Browse...",
+  [5] = "<",
+  [6] = ">Background Image",
+  [7] = "Castle 1",
+  [8] = "Castle 2",
+  [9] = "Castle 3",
+  [10] = "-",
+  [11] = "Browse...",
+  [12] = "<",
+  [13] = "-",
+  [14] = "Background Color",
+  [15] = "-",
+  [16] = "List equipment stats",
+  }
+  
+ if GetVariable("castle_checked") == "one" or GetVariable("castle_checked") == nil then
+  checkItem (7)
+ elseif GetVariable("castle_checked") == "two" then
+  checkItem (8)
+ elseif GetVariable("castle_checked") == "three" then
+  checkItem (9)
+ elseif GetVariable("castle_checked") == "browse" then
+  checkItem (11)
+ end -- if 
+ 
+ if GetVariable("avatar_checked") == "one" or GetVariable("avatar_checked") == nil then
+   checkItem (2)
+ elseif GetVariable("avatar_checked") == "browse" then
+   checkItem (4)
+ end -- if
 
- if GetVariable("avatar_checked") == "one" and GetVariable("castle_checked") == "two" and GetVariable("bgColour") == nil then
-    menustring_settings ="! >Avatar Image | +Default | - | Browse... | < | >Background Image | Castle 1 | +Castle 2 | Castle 3 | - | Browse... | < | - | Background Color | - | List equipment stats "  
- elseif GetVariable("avatar_checked") == "one" and GetVariable("castle_checked") == "one" and GetVariable("bgColour") == nil then
-    menustring_settings ="! >Avatar Image | +Default | - | Browse... | < | >Background Image | +Castle 1 | Castle 2 | Castle 3 | - | Browse... | < | - | Background Color | - | List equipment stats " 
- elseif GetVariable("avatar_checked") == "one" and GetVariable("castle_checked") == "three" and GetVariable("bgColour") == nil then
-    menustring_settings ="! >Avatar Image | +Default | - | Browse... | < | >Background Image | Castle 1 | Castle 2 | +Castle 3 | - | Browse... | < | - | Background Color | - | List equipment stats "  
- elseif GetVariable("avatar_checked") == "one" and GetVariable("castle_checked") == "browse" and GetVariable("bgColour") == nil then
-    menustring_settings ="! >Avatar Image | +Default | - | Browse... | < | >Background Image | Castle 1 | Castle 2 | Castle 3 | - | +Browse... | < | - | Background Color | - | List equipment stats "  
-
- elseif GetVariable("avatar_checked") == "two" and GetVariable("castle_checked") == "one" and GetVariable("bgColour") == nil then
-    menustring_settings ="! >Avatar Image | Default | - | +Browse... | < | >Background Image | +Castle 1 | Castle 2 | Castle 3 | - | Browse... | < | - | Background Color | - | List equipment stats "  
- elseif GetVariable("avatar_checked") == "two" and GetVariable("castle_checked") == "two" and GetVariable("bgColour") == nil then
-    menustring_settings ="! >Avatar Image | Default | - | +Browse... | < | >Background Image | Castle 1 | +Castle 2 | Castle 3 | - | Browse... | < | - | Background Color | - | List equipment stats "  
- elseif GetVariable("avatar_checked") == "two" and GetVariable("castle_checked") == "three" and GetVariable("bgColour") == nil then
-    menustring_settings ="! >Avatar Image | Default | - | +Browse... | < | >Background Image | Castle 1 | Castle 2 | +Castle 3 | - | Browse... | < | - | Background Color | - | List equipment stats "  
- elseif GetVariable("avatar_checked") == "two" and GetVariable("castle_checked") == "browse" and GetVariable("bgColour") == nil then
-    menustring_settings ="! >Avatar Image | Default | - | +Browse... | < | >Background Image | Castle 1 | Castle 2 | Castle 3 | - | +Browse... | < | - | Background Color | - | List equipment stats "  
-
- elseif GetVariable("castle_checked") == "two" and GetVariable("bgColour") == nil then
-    menustring_settings ="! >Avatar Image | +Default | - | Browse... | < | >Background Image | Castle 1 | +Castle 2 | Castle 3 | - | Browse... | < | - | Background Color | - | List equipment stats "  
- elseif GetVariable("castle_checked") == "three" and GetVariable("bgColour") == nil then
-    menustring_settings ="! >Avatar Image | +Default | - | Browse... | < | >Background Image | Castle 1 | Castle 2 | +Castle 3 | - | Browse... | < | - | Background Color | - | List equipment stats "  
- elseif GetVariable("castle_checked") == "browse" and GetVariable("bgColour") == nil then
-    menustring_settings ="! >Avatar Image | +Default | - | Browse... | < | >Background Image | Castle 1 | Castle 2 | Castle 3 | - | +Browse... | < | - | Background Color | - | List equipment stats "  
-
- elseif GetVariable("avatar_checked") == nil and GetVariable("bgColour") == nil then
-    menustring_settings ="! >Avatar Image | +Default | - | Browse... | < | >Background Image | +Castle 1 | Castle 2 | Castle 3 | - | Browse... | < | - | Background Color | - | List equipment stats "  
- elseif GetVariable("castle_checked") == nil and GetVariable("bgColour") == nil then
-    menustring_settings ="! >Avatar Image | +Default | - | Browse... | < | >Background Image | +Castle 1 | Castle 2 | Castle 3 | - | Browse... | < | - | Background Color | - | List equipment stats "  
- elseif GetVariable("avatar_checked") == nil and GetVariable("bgColour") == nil and GetVariable("castle_checked") == nil then
-    menustring_settings ="! >Avatar Image | +Default | - | Browse... | < | >Background Image | +Castle 1 | Castle 2 | Castle 3 | - | Browse... | < | - | Background Color | - | List equipment stats "  
-
- elseif GetVariable("bgColour") ~= nil and GetVariable("avatar_checked") == "one" then
-     menustring_settings ="! >Avatar Image | +Default | - | Browse... | < | >Background Image | Castle 1 | Castle 2 | Castle 3 | - | Browse... | < | - | +Background Color | - | List equipment stats "  
- elseif GetVariable("bgColour") ~= nil and GetVariable("avatar_checked") == "two" then
-     menustring_settings ="! >Avatar Image | Default | - | +Browse... | < | >Background Image | Castle 1 | Castle 2 | Castle 3 | - | Browse... | < | - | +Background Color | - | List equipment stats "  
-end -- menu check
-
-result = WindowMenu (titlebar_window, 65, 15, menustring_settings)
+ if GetVariable("bgColour") ~= nil then
+  checkItem (14)
+  menu [14] = menu [14] .. " [" .. RGBColourToName(bgColour) .. "]"
+ end -- if
+ result = WindowMenu (titlebar_window, 65, 15, table.concat (menu, "|"))
 
  if result == "1" then
     avatar_filename = nil
@@ -2039,38 +2056,38 @@ result = WindowMenu (titlebar_window, 65, 15, menustring_settings)
     print("Avatar Selected: Default")
 	DeleteVariable("bgColour")
  elseif result == "2" then
-    SetVariable("avatar_checked", "two")
+    SetVariable("avatar_checked", "browse")
     filter = {  bmp = "Bitmap files", png = "Image files" }
     avatar_filename = utils.filepicker (title, name, extension, filter, save)
 	print("Avatar Selected:", avatar_filename)
 	DeleteVariable("bgColour")
  elseif result == "3" then
     filename = nil
+	DeleteVariable("bgColour")
     SetVariable("castle_checked", "one")
     print("Background Selected: Castle 1")
     SetBackgroundImage(GetInfo (66) .. "Generic/layout/outer_background.png", 0)
-	DeleteVariable("bgColour")
  elseif result == "4" then
     filename = nil
     SetVariable("castle_checked", "two")
+	DeleteVariable("bgColour")
     print("Background Selected: Castle 2")
     SetBackgroundImage(GetInfo (66) .. "Generic/layout/outer_background_two.png", 0)
-	DeleteVariable("bgColour")
  elseif result == "5" then
     filename = nil
     SetVariable("castle_checked", "three")
+	DeleteVariable("bgColour")
     print("Background Selected: Castle 3")
     SetBackgroundImage(GetInfo (66) .. "Generic/layout/outer_background_three.png", 0)
-	DeleteVariable("bgColour")
  elseif result == "6" then
+    DeleteVariable("bgColour")
     filter = {  bmp = "Bitmap files", png = "Image files" }
     filename = utils.filepicker (title, name, extension, filter, save)
 	print("Background Selected:", filename)
-	DeleteVariable("bgColour")
  elseif result == "7" then
     bgColour=getColour(bgColour)
 	SetVariable("bgColour", bgColour) -- save it for next time they play
-	DeleteVariable("castle_checked") -- so its nil
+	SetVariable("castle_checked", "none") -- so it doesnt mess with first time default 
 	SetBackgroundImage("", 0)
     SetBackgroundColour(tonumber(GetVariable ("bgColour")))
 	print("Background Selected:", "[Color name/code]:", RGBColourToName(bgColour), "[Red Green Blue]:", bgColour)
@@ -2087,7 +2104,7 @@ if filename ~= nil then
  end -- filename
 if avatar_filename ~= nil then
     SetVariable("avatar_filename", avatar_filename)
-    SetVariable("avatar_checked", "two")
+    SetVariable("avatar_checked", "browse")
     WindowLoadImage (avatar_window, "avatar", avatar_filename)
     WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)
  end -- filename
@@ -2255,7 +2272,7 @@ function draw_energy_bars ()
 
   -- EXP
   current_exp = msdp["OPPONENT_HEALTH"]
-  max_exp = 100
+  max_exp = 200
 
   -- initialise with empty bars
   if current_exp == nil then
@@ -2287,9 +2304,20 @@ function draw_energy_bar (type_bar, colour, colour2, window, current_value, max_
     current = max
   end -- if
 
+  custom_bar_color_highlight_top = GetVariable("custom_bars_highlight_top")
+  custom_bar_color_highlight_bottom = GetVariable("custom_bars_highlight_bottom")
+  
+  if custom_bar_color_highlight_top == nil then
+   custom_bar_color_highlight_top = ColourNameToRGB("black")
+  end -- custom color check
+   
+  if custom_bar_color_highlight_bottom == nil then
+   custom_bar_color_highlight_bottom = ColourNameToRGB("black")
+  end -- custom color check
+  
   -- clear the bars
-  WindowGradient (window, 0, -1, 100, 10, colourBlack, colour2, 2)
-  WindowGradient (window, 0, 10, 100, 21, colour2, colourBlack, 2)
+  WindowGradient (window, 0, -1, 100, 10, custom_bar_color_highlight_top, colour2, 2)
+  WindowGradient (window, 0, 10, 100, 21, colour2, custom_bar_color_highlight_bottom, 2)
 
   -- calculate the filled part
   if max > 0 then
@@ -2758,6 +2786,64 @@ function StoreVariable (MSDP_var, MSDP_val)
     msdp[MSDP_var] = MSDP_val
   end -- if
 end -- function StoreVariable
+
+function update_plugin (pid, pfile, pversion, raw)
+  async_ok, async = pcall (require, "async")
+
+  if async_ok then
+    plugin_page = async.request(raw, "HTTPS")
+  end
+
+  retval, page, status, headers, full_status = plugin_page:join()
+  plugin_page = nil
+
+  if status == 200 then
+    raw_version = tonumber(string.match(page, '%s%s+version="([0-9%.]+)"')) -- Pulls version number
+  end
+
+  if raw_version == pversion then
+    ColourNote("white", "blue", GetPluginInfo(pid, 1) .. " is up-to-date.")
+  elseif raw_version > pversion then
+    ColourNote("white", "blue", "Updating from version " .. pversion .. " to " .. raw_version .. ". Do not touch anything.")
+    local file = io.open(pfile, "w")
+    file:write(page)
+    file:close()
+  end
+
+  raw_version = nil
+if "" == GetAlphaOption("script_prefix") then
+   SetAlphaOption("script_prefix", "\\\\\\")
+end
+
+Execute(GetAlphaOption("script_prefix").."DoAfterSpecial(1, \"ReloadPlugin('"..GetPluginID().."')\", sendto.script)")
+end
+
+function plugin_updater ()
+ PLUGIN_VERSION = GetPluginInfo(GetPluginID(), 19)
+ PLUGIN_NAME = GetPluginInfo(GetPluginID(), 1)
+ if not http then http = require ('socket.http') end
+ page = http.request("https://raw.githubusercontent.com/TFC-Fumino/MUSHclient_Plugins/master/MSDP-GUI/Generic/worlds/plugins/TFC_Msdp.xml")
+ raw_version = tonumber(string.match(page, '%s%s%s+version="([0-9%.]+)"'))
+Note(raw_version)
+-- if raw_version == PLUGIN_VERSION then
+--  ColourNote("white", "blue", PLUGIN_NAME .. " is up-to-date.")
+-- elseif raw_version > PLUGIN_VERSION then
+--  ColourNote("white", "blue", "Updating from version " .. 
+--  PLUGIN_VERSION .. " to " .. raw_version .. ". Do not touch anything!")
+--  local file = io.open(GetPluginInfo(GetPluginID(), 6), "w")
+--  file:write(page)
+--  file:close()
+-- end
+ 
+-- raw_version = nil
+
+-- if "" == GetAlphaOption("script_prefix") then
+--  SetAlphaOption("script_prefix", "\\\\\\")
+-- end
+
+-- Execute(GetAlphaOption("script_prefix") .. "DoAfterSpecial(1, \"ReloadPlugin('" .. GetPluginID() .. "')\", sendto.script)")
+
+end -- function plugin_updater
 
 ]]>
 </script>
