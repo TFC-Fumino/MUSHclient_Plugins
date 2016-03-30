@@ -2856,6 +2856,7 @@ function raw_get(retval, page, status, headers, full_status, request_url)
  elseif raw_version > PLUGIN_VERSION then
   ColourNote("white", "blue", "Updating from version " .. 
   PLUGIN_VERSION .. " to " .. raw_version .. ". Do not touch anything!")
+  ColourNote("white", "blue", "Plugin is updated when Chat and Mob windows clear.")
   local file = io.open(GetPluginInfo(GetPluginID(), 6), "w")
   file:write(page)
   file:close()
@@ -2868,7 +2869,6 @@ function raw_get(retval, page, status, headers, full_status, request_url)
  end
   local file = io.open(GetPluginInfo(GetPluginID(), 6), "w")
  Execute(GetAlphaOption("script_prefix") .. "DoAfterSpecial(1, \"ReloadPlugin('" .. GetPluginID() .. "')\", sendto.script)")
-ColourNote("white", "blue", "Plugin version is " .. PLUGIN_VERSION)
 end -- function raw_get
 
 ]]>
