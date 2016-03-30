@@ -10,13 +10,13 @@
    purpose="A graphical user interface for The Final Challenge MUD"
    date_written="2016-03-26 00:49:31"
    requires="4.51"
-   version="2.5"
+   version="2.6"
    save_state="y"
    >
 <description trim="y">
 VERSION:
 
- Alpha 2.5
+ Alpha 2.6
 
  * Pre-release with built in stat workaround
  * Not all spell icons have been created, so some use a generic one. You can still see 
@@ -1792,7 +1792,6 @@ function create_layout ()
   ----------------------------------------------------------------------------
   -- Set the main text area.
   ----------------------------------------------------------------------------
-
   -- tell the client where to draw the text
   if GetVariable("bgColour") ~= nil then
     TextRectangle(left+4,  
@@ -1819,7 +1818,6 @@ function create_layout ()
   ----------------------------------------------------------------------------
   -- Create the Generic title at the top of the screen.
   ----------------------------------------------------------------------------
-
   width_of_title_image = 58
 
   title_x = (GetInfo (281) - width_of_title_image) / 2
@@ -1853,8 +1851,6 @@ WindowAddHotspot(titlebar_window, "bgbutton", 65, 0, 104, 13,
   ----------------------------------------------------------------------------
   -- Create the minimap window to the left of the text.
   ----------------------------------------------------------------------------
-
-
   -- make a miniwindow for the map
   check (WindowCreate (minimap_window,   -- window ID
                 28,         -- left
@@ -1878,8 +1874,6 @@ WindowAddHotspot(titlebar_window, "bgbutton", 65, 0, 104, 13,
   ----------------------------------------------------------------------------
   -- Create the score window to the right of the text.
   ----------------------------------------------------------------------------
-
-
   -- make a miniwindow for the inner area
   check (WindowCreate (score_window,   -- window ID
                 right+107,   -- left
@@ -1943,7 +1937,6 @@ end -- avatar check
     Note( "File '" .. GetInfo (66) .. "Generic/layout/border_top.png' is missing.")
   end -- if
     WindowShow(bars_border_window, true)
-
 
   -- make a miniwindow under the text
   check (WindowCreate (health_window,   -- window ID
@@ -2085,13 +2078,11 @@ function settings_click_menu ()
     WindowLoadImage (avatar_window, "avatar", GetInfo (66) .. "Generic/avatars/Default.png")
     WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)
     print("Avatar Selected: Default")
-	DeleteVariable("bgColour")
  elseif result == "2" then
     SetVariable("avatar_checked", "browse")
     filter = {  bmp = "Bitmap files", png = "Image files" }
     avatar_filename = utils.filepicker (title, name, extension, filter, save)
 	print("Avatar Selected:", avatar_filename)
-	DeleteVariable("bgColour")
  elseif result == "3" then
     filename = nil
 	DeleteVariable("bgColour")
@@ -2245,12 +2236,7 @@ function draw_room (x, y, type_room)
   if type_room == "O" then
     terrain_image = "terrain_city"
   end -- if
- -- WindowCircleOp (minimap_window, 1, x-1, y-1, x+21, y+21, colourBlack, 0, 1, 0, 1)
- -- WindowCircleOp (minimap_window, 1, x-1, y-1, x+22, y+22, colourWhite, 0, 2, 0, 1)
   WindowDrawImage (minimap_window, terrain_image, x-12, y-6, x+20, y+20, 3)  -- draw the terrain
--- WindowImageOp (minimap_window, 1, x-1, y-1, x+22, y+22,    -- circle
-          --    ColourNameToRGB("white"), 0, 0, 
-           --   ColourNameToRGB("white"), terrain_image)
 end -- draw_room
 
 -- draw the minimap
@@ -2359,7 +2345,6 @@ function draw_energy_bars ()
 
 end -- draw_energy_bars
 
-
 -- fill the bar
 function draw_energy_bar (type_bar, colour, colour2, window, current_value, max_value)
 
@@ -2409,14 +2394,12 @@ function draw_energy_bar (type_bar, colour, colour2, window, current_value, max_
 
 end -- draw_energy_bar
 
-
 -- fill the score
 function draw_score ()
 
   -- clear the background
   -- check (WindowDrawImage (score_window, "score_background", 0, 0, 0, 0, 1))  -- redraw the background
  WindowRectOp (score_window, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
-
 
   x_offset = score_width/2-10
   y_offset = 6
@@ -2729,11 +2712,8 @@ elseif timer == 0 then
 
 end -- draw_affects
 
-
 function outlined_text (colour, window, text, size, x, y, centre_width)
-
   outlineColour = colourBlack
-
   -- write the information inside
   WindowFont(window,'f','Verdana',size,1,0,0,0)
 
@@ -2757,10 +2737,6 @@ function outlined_text (colour, window, text, size, x, y, centre_width)
 
   return width
 end -- outlined_text
-
-
-
-
 
 -- MSDP negotiation
 local MSDP = 69
