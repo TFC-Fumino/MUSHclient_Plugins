@@ -2152,8 +2152,7 @@ function settings_click_menu ()
  elseif result == "14" then
     print("")
     print("Checking for Updates")
-	print("Client may freeze up for a couple seconds, this is normal.")
-	print("Chat and Mob window will clear after check, this is also normal")
+	print("Chat and Mob window will clear after check, this is normal as the plugin reloads")
 	print("Please wait...")
     update_plugin ()
 end -- result
