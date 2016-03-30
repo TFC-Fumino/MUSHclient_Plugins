@@ -2868,7 +2868,7 @@ function raw_get(retval, page, status, headers, full_status, request_url)
  end
   local file = io.open(GetPluginInfo(GetPluginID(), 6), "w")
  Execute(GetAlphaOption("script_prefix") .. "DoAfterSpecial(1, \"ReloadPlugin('" .. GetPluginID() .. "')\", sendto.script)")
-ColourNote("white", "blue", "Plugin version is " .. raw_version)
+ColourNote("white", "blue", "Plugin version is " .. PLUGIN_VERSION)
 end -- function raw_get
 
 ]]>
