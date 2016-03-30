@@ -2151,9 +2151,9 @@ function settings_click_menu ()
     show_equip_list () 
  elseif result == "14" then
     print("")
-    print("Checking for Updates")
-	print("Chat and Mob window will clear after check, this is normal as the plugin reloads")
-	print("Please wait...")
+    ColourNote("white", "blue", "Connecting to the server and checking for updates.")
+    ColourNote("white", "blue", "Chat and Mob window will clear after checking and/or updating.")
+    ColourNote("white", "blue", "Please wait...")
     update_plugin ()
 end -- result
 
@@ -2853,6 +2853,7 @@ function raw_get(retval, page, status, headers, full_status, request_url)
  if raw_version == PLUGIN_VERSION then
   ColourNote("white", "blue", PLUGIN_NAME .. " is up-to-date.")
  elseif raw_version > PLUGIN_VERSION then
+  ColourNote("white", "blue", "An update has been found!")
   ColourNote("white", "blue", "Updating from version " .. 
   PLUGIN_VERSION .. " to " .. raw_version .. ". Do not touch anything!")
   SetVariable("plugin_updating", "true")
@@ -2869,8 +2870,9 @@ function raw_get(retval, page, status, headers, full_status, request_url)
 
  Execute(GetAlphaOption("script_prefix") .. "DoAfterSpecial(1, \"ReloadPlugin('" .. GetPluginID() .. "')\", sendto.script)")
  if GetVariable("plugin_updating") == "true" then
-  ColourNote("white", "blue", PLUGIN_NAME .. " has been updated to " .. PLUGIN_VERSION)
-  ColourNote("white", "blue", "You may need to reload the world to see all changes")
+  ColourNote("white", "blue", PLUGIN_NAME .. " has been updated to the latest version.")
+  ColourNote("white", "blue", "Plugin is now reloading.")
+  ColourNote("white", "blue", "Please save the world and re-open it to see changes.")
   SetVariable("plugin_updating", "false")
  end 
 end -- function raw_get
