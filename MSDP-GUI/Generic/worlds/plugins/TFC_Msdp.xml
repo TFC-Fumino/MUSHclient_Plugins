@@ -2856,6 +2856,7 @@ function raw_get(retval, page, status, headers, full_status, request_url)
  elseif raw_version > PLUGIN_VERSION then
   ColourNote("white", "blue", "Updating from version " .. 
   PLUGIN_VERSION .. " to " .. raw_version .. ". Do not touch anything!")
+  SetVariable("plugin_updating", true)
   local file = io.open(GetPluginInfo(GetPluginID(), 6), "w")
   file:write(page)
   file:close()
@@ -2868,7 +2869,10 @@ function raw_get(retval, page, status, headers, full_status, request_url)
  end
 
  Execute(GetAlphaOption("script_prefix") .. "DoAfterSpecial(1, \"ReloadPlugin('" .. GetPluginID() .. "')\", sendto.script)")
+ if GetVariable("plugin_updating") == true then
   ColourNote("white", "blue", PLUGIN_NAME .. " has been updated to " .. PLUGIN_VERSION)
+  SetVariable("plugin_updating", false)
+ end 
 end -- function raw_get
 
 ]]>
