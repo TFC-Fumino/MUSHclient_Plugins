@@ -604,7 +604,7 @@ FEATURES:
    send_to="12"
    sequence="100"
   >
-  <send>plugin_updater ()
+  <send>update_plugin ()
 </send>
   </alias>
 
@@ -744,6 +744,8 @@ FEATURES:
   starty_mob = ""
   
   function OnPluginInstall()
+   PLUGIN_VERSION = GetPluginInfo(GetPluginID(), 19)
+   PLUGIN_NAME = GetPluginInfo(GetPluginID(), 1)
     -- Dummy window to get font characteristics
     check (WindowCreate (Win, 0, 0, 1, 1, 12, 2, 0x000000) )
     WindowRectOp (Win, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
@@ -2000,7 +2002,8 @@ end -- avatar check
 
 end -- create_layout
   bgColour = tonumber(GetVariable ("bgColour")) or ColourNameToRGB("black")
-  
+  customBar_top_color = tonumber(GetVariable ("custom_bar_color_highlight_top")) or ColourNameToRGB("black")
+  customBar_bottom_color = tonumber(GetVariable ("custom_bar_color_highlight_bottom")) or ColourNameToRGB("black")
   
 function checkItem (which)
   menu [which] = "+" .. menu [which]
@@ -2008,24 +2011,41 @@ end -- checkItem
 
 function settings_click_menu ()
  menu = {
-  [1] = "! >Avatar Image",
+  [1] = "! >Avatar",
   [2] = "Default",
   [3] = "-",
   [4] = "Browse...",
   [5] = "<",
-  [6] = ">Background Image",
+  [6] = ">Background",
   [7] = "Castle 1",
   [8] = "Castle 2",
   [9] = "Castle 3",
   [10] = "-",
   [11] = "Browse...",
-  [12] = "<",
-  [13] = "-",
-  [14] = "Background Color",
-  [15] = "-",
-  [16] = "List equipment stats",
+  [12] = "-",
+  [13] = "Solid Color",
+  [14] = "<",
+  [15] = ">Prompt Bars",
+  [16] = "Default",
+  [17] = "-",
+  [18] = "Shiny",
+  [19] = "Extra Shiny",
+  [20] = "-",
+  [21] = "Custom Top Color",
+  [22] = "Custom Bottom Color",
+  [23] = "<",
+  [24] = "-",
+  [25] = "List equipment stats",
+  [26] = "-",
+  [27] = "Check and Update Plugin"
   }
-  
+   
+ if GetVariable("avatar_checked") == "one" or GetVariable("avatar_checked") == nil then
+   checkItem (2)
+ elseif GetVariable("avatar_checked") == "browse" then
+   checkItem (4)
+ end -- if
+ 
  if GetVariable("castle_checked") == "one" or GetVariable("castle_checked") == nil then
   checkItem (7)
  elseif GetVariable("castle_checked") == "two" then
@@ -2035,17 +2055,28 @@ function settings_click_menu ()
  elseif GetVariable("castle_checked") == "browse" then
   checkItem (11)
  end -- if 
- 
- if GetVariable("avatar_checked") == "one" or GetVariable("avatar_checked") == nil then
-   checkItem (2)
- elseif GetVariable("avatar_checked") == "browse" then
-   checkItem (4)
- end -- if
 
  if GetVariable("bgColour") ~= nil then
-  checkItem (14)
-  menu [14] = menu [14] .. " [" .. RGBColourToName(bgColour) .. "]"
+  checkItem (13)
+  menu [13] = menu [13] .. " [" .. RGBColourToName(bgColour) .. "]"
  end -- if
+ 
+ if GetVariable("prompt_checked") == "default" then
+  checkItem (16)
+ elseif GetVariable("prompt_checked") == "shiny" then
+  checkItem (18)
+ elseif GetVariable("prompt_checked") == "extrashiny" then
+  checkItem (19)
+ elseif GetVariable("prompt_checked") == "customTop" then
+  checkItem (21)
+  menu [21] = menu [21] .. " [" .. RGBColourToName(customBar_top_color) .. "]"
+ end -- prompt_checked
+ 
+ if GetVariable("prompt_checked_custom") == "customBottom" then
+  checkItem (22)
+  menu [22] = menu [22] .. " [" .. RGBColourToName(customBar_bottom_color) .. "]"
+ end -- prompt_checked_custom
+ 
  result = WindowMenu (titlebar_window, 65, 15, table.concat (menu, "|"))
 
  if result == "1" then
@@ -2085,18 +2116,57 @@ function settings_click_menu ()
     filename = utils.filepicker (title, name, extension, filter, save)
 	print("Background Selected:", filename)
  elseif result == "7" then
-    bgColour=getColour(bgColour)
+    bgColour = getColour(bgColour)
 	SetVariable("bgColour", bgColour) -- save it for next time they play
 	SetVariable("castle_checked", "none") -- so it doesnt mess with first time default 
+	filename = nil
 	SetBackgroundImage("", 0)
     SetBackgroundColour(tonumber(GetVariable ("bgColour")))
 	print("Background Selected:", "[Color name/code]:", RGBColourToName(bgColour), "[Red Green Blue]:", bgColour)
-	create_layout()
-	Repaint()
  elseif result == "8" then
+    SetVariable("prompt_checked", "default")
+	DeleteVariable("prompt_checked_custom")
+    SetVariable("custom_bar_color_highlight_top", ColourNameToRGB("#000000"))
+	SetVariable("custom_bar_color_highlight_bottom", ColourNameToRGB("#000000"))
+	print("Prompt Bars Selected: Default")
+	draw_energy_bars ()
+ elseif result == "9" then
+    SetVariable("prompt_checked", "shiny")
+	DeleteVariable("prompt_checked_custom")
+    SetVariable("custom_bar_color_highlight_top", ColourNameToRGB("#B9C9D8"))
+    SetVariable("custom_bar_color_highlight_bottom", ColourNameToRGB("#000000"))
+	print("Prompt Bars Selected: Shiny")
+	draw_energy_bars ()
+ elseif result == "10" then
+    SetVariable("prompt_checked", "extrashiny")
+	DeleteVariable("prompt_checked_custom")
+    SetVariable("custom_bar_color_highlight_top", ColourNameToRGB("#B9C9D8"))
+	SetVariable("custom_bar_color_highlight_bottom", ColourNameToRGB("#B9C9D8"))
+	print("Prompt Bars Selected: Extra Shiny")
+	draw_energy_bars ()
+ elseif result == "11" then
+    SetVariable("prompt_checked", "customTop")
+    customBar_top_color = getColour(customBar_top_color)
+	SetVariable("custom_bar_color_highlight_top", customBar_top_color)
+	print("Prompt Bars Selected:", "[Color name/code]:", RGBColourToName(customBar_top_color), "[Red Green Blue]:", customBar_top_color)
+	draw_energy_bars ()
+ elseif result == "12" then
+    SetVariable("prompt_checked_custom", "customBottom")
+    customBar_bottom_color = getColour(customBar_bottom_color)
+	SetVariable("custom_bar_color_highlight_bottom", customBar_bottom_color)
+	print("Prompt Bars Selected:", "[Color name/code]:", RGBColourToName(customBar_bottom_color), "[Red Green Blue]:", customBar_bottom_color)
+    draw_energy_bars ()	
+ elseif result == "13" then
     show_equip_list () 
+ elseif result == "14" then
+    print("")
+    print("Checking for Updates")
+	print("Client may freeze up for a couple seconds, this is normal.")
+	print("Chat and Mob window will clear after check, this is also normal")
+	print("Please wait...")
+    update_plugin ()
 end -- result
--- failsafes
+
 if filename ~= nil then
     SetVariable("filename", filename)
     SetVariable("castle_checked", "browse")
@@ -2304,11 +2374,12 @@ function draw_energy_bar (type_bar, colour, colour2, window, current_value, max_
     current = max
   end -- if
 
-  custom_bar_color_highlight_top = GetVariable("custom_bars_highlight_top")
-  custom_bar_color_highlight_bottom = GetVariable("custom_bars_highlight_bottom")
+  custom_bar_color_highlight_top = GetVariable("custom_bar_color_highlight_top")
+  custom_bar_color_highlight_bottom = GetVariable("custom_bar_color_highlight_bottom")
   
   if custom_bar_color_highlight_top == nil then
    custom_bar_color_highlight_top = ColourNameToRGB("black")
+   SetVariable("prompt_checked", "default")
   end -- custom color check
    
   if custom_bar_color_highlight_bottom == nil then
@@ -2328,8 +2399,8 @@ function draw_energy_bar (type_bar, colour, colour2, window, current_value, max_
 
   -- redraw the bars
   if current > 0 then
-    WindowGradient (window, 0, -1, filled, 10, colourBlack, colour, 2)
-    WindowGradient (window, 0, 10, filled, 21, colour, colourBlack, 2)
+    WindowGradient (window, 0, -1, filled, 10, custom_bar_color_highlight_top, colour, 2)
+    WindowGradient (window, 0, 10, filled, 21, colour, custom_bar_color_highlight_bottom, 2)
   end -- if
 
   -- write the information inside
@@ -2787,35 +2858,41 @@ function StoreVariable (MSDP_var, MSDP_val)
   end -- if
 end -- function StoreVariable
 
-Execute(GetAlphaOption("script_prefix").."DoAfterSpecial(1, \"ReloadPlugin('"..GetPluginID().."')\", sendto.script)")
-end
+function update_plugin()
+ raw = "https://raw.githubusercontent.com/TFC-Fumino/MUSHclient_Plugins/master/MSDP-GUI/Generic/worlds/plugins/TFC_Msdp.xml"
+ async_ok, async = pcall (require, "async")
 
-function plugin_updater ()
- PLUGIN_VERSION = GetPluginInfo(GetPluginID(), 19)
- PLUGIN_NAME = GetPluginInfo(GetPluginID(), 1)
- if not http then http = require ('socket.http') end
- page = http.request("https://raw.githubusercontent.com/TFC-Fumino/MUSHclient_Plugins/master/MSDP-GUI/Generic/worlds/plugins/TFC_Msdp.xml")
- raw_version = tonumber(string.match(page, '%s%s%s+version="([0-9%.]+)"'))
-Note(raw_version)
--- if raw_version == PLUGIN_VERSION then
---  ColourNote("white", "blue", PLUGIN_NAME .. " is up-to-date.")
--- elseif raw_version > PLUGIN_VERSION then
---  ColourNote("white", "blue", "Updating from version " .. 
---  PLUGIN_VERSION .. " to " .. raw_version .. ". Do not touch anything!")
---  local file = io.open(GetPluginInfo(GetPluginID(), 6), "w")
---  file:write(page)
---  file:close()
--- end
- 
--- raw_version = nil
+ if async_ok then
+  plugin_page = async.doAsyncRemoteRequest(raw, raw_get, "HTTPS")
+ else
+  ColourNote("white", "blue", "Error on plugin update!")
+ end -- async
 
--- if "" == GetAlphaOption("script_prefix") then
---  SetAlphaOption("script_prefix", "\\\\\\")
--- end
+end -- function update_plugin
 
--- Execute(GetAlphaOption("script_prefix") .. "DoAfterSpecial(1, \"ReloadPlugin('" .. GetPluginID() .. "')\", sendto.script)")
+function raw_get(retval, page, status, headers, full_status, request_url)
+ if status == 200 then
+  raw_version = tonumber(string.match(page, '%s%s%s+version="([0-9%.]+)"'))
+ end -- status
 
-end -- function plugin_updater
+ if raw_version == PLUGIN_VERSION then
+  ColourNote("white", "blue", PLUGIN_NAME .. " is up-to-date.")
+ elseif raw_version > PLUGIN_VERSION then
+  ColourNote("white", "blue", "Updating from version " .. 
+  PLUGIN_VERSION .. " to " .. raw_version .. ". Do not touch anything!")
+  local file = io.open(GetPluginInfo(GetPluginID(), 6), "w")
+  file:write(page)
+  file:close()
+ end -- raw_version
+
+ raw_version = nil
+
+ if "" == GetAlphaOption("script_prefix") then
+  SetAlphaOption("script_prefix", "\\\\\\")
+ end
+
+ Execute(GetAlphaOption("script_prefix") .. "DoAfterSpecial(1, \"ReloadPlugin('" .. GetPluginID() .. "')\", sendto.script)")
+end -- function raw_get
 
 ]]>
 </script>
