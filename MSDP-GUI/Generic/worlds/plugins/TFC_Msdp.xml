@@ -10,7 +10,7 @@
    purpose="A graphical user interface for The Final Challenge MUD"
    date_written="2016-03-26 00:49:31"
    requires="4.51"
-   version="2.6"
+   version="2.7"
    save_state="y"
    >
 <description trim="y">
@@ -2866,8 +2866,9 @@ function raw_get(retval, page, status, headers, full_status, request_url)
  if "" == GetAlphaOption("script_prefix") then
   SetAlphaOption("script_prefix", "\\\\\\")
  end
-
+  local file = io.open(GetPluginInfo(GetPluginID(), 6), "w")
  Execute(GetAlphaOption("script_prefix") .. "DoAfterSpecial(1, \"ReloadPlugin('" .. GetPluginID() .. "')\", sendto.script)")
+ColourNote("white", "blue", "Plugin has been updated to " .. raw_version)
 end -- function raw_get
 
 ]]>
