@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <!DOCTYPE muclient>
-
 <muclient>
 <plugin
    name="TFC_MSDP_GUI"
@@ -10,13 +9,13 @@
    purpose="A graphical user interface for The Final Challenge MUD"
    date_written="2016-03-26 00:49:31"
    requires="4.51"
-   version="2.9"
+   version="3.0"
    save_state="y"
    >
 <description trim="y">
 VERSION:
 
- Alpha 2.9
+ Alpha 3.0
 
  * Pre-release with built in stat workaround
  * Not all spell icons have been created, so some use a generic one. You can still see 
@@ -58,18 +57,15 @@ FUTURE PLANS:
  * Add more failsafes when players resize the client to prevent stuck windows
  
 </description>
-
 </plugin>
 
 ------------  TRIGGERS  ------------
-
 <triggers>
-
 -------------------------------
 -- Equipment stat triggers   
 -------------------------------
 
- <trigger
+  <trigger
    enabled="y"
    match="* You last logged in on *"
    send_to="12"
@@ -117,14 +113,13 @@ FUTURE PLANS:
     draw_score ()
    end -- eqstatcheck</send>
   </trigger>
-
 -------------------------------
 -- Room NPC(mobs) triggers   
 -------------------------------
-
+-- redo this trigger match later to make it more universal --
   <trigger
    enabled="n"
-   match="^\&lt;(.*?)hp(.+)$"
+   match="^\&lt;(.*?)hp(.+)$" 
    regexp="y"
    name="stop_reading"
    send_to="12"
@@ -162,23 +157,21 @@ FUTURE PLANS:
    OnPluginInstall()
   </send>
   </trigger>
- 
 -------------------------------
 -- Chat Channel Triggers 
 -- Temp fix until I have time to redo again (prompt bar may occasional show in window)
 -------------------------------
-  <trigger
-   enabled="y"
-   group="macktest"
-   match="^\#\#\# (.+)$"
-   script="chats"
-   regexp="y"
-   omit_from_output="y"
-   sequence="100"
-  >
-  </trigger>
+         <trigger
+    enabled="y"
+    group="macktest"
+    match="^\#\#\# (.+)$"
+    script="chats"
+    regexp="y"
+    omit_from_output="y"
+    sequence="100"
+    ></trigger>
 
-    <trigger
+        <trigger
     enabled="y"
     match="You say *"
     script="chats"
@@ -533,13 +526,10 @@ FUTURE PLANS:
 </triggers>
 
 ------------  ALIASES  ------------
-
 <aliases>
-
 -------------------------------
 -- Equipment Stat aliases   
 -------------------------------
-
   <alias
    match="eq"
    enabled="y"
@@ -582,11 +572,9 @@ FUTURE PLANS:
    sequence="100"
   >
   </alias>
-
 -------------------------------
 -- Map Patch aliases   
 -------------------------------
-
   <alias
    script="show_map_list"
    match="map list"
@@ -603,36 +591,34 @@ FUTURE PLANS:
   >
   </alias>
   
-  --------------------
-  -- test
-  --------------------
-    <alias
+--------------------
+-- Plugin updater
+--------------------
+  <alias
+   script="update_plugin"
    match="update plugin"
+   enabled="y"
+   sequence="100"
+  >
+  </alias>
+
+  <alias
+   match="mack test 123"
    enabled="y"
    send_to="12"
    sequence="100"
   >
-  <send>update_plugin ()
-</send>
+  <send>main_text_area()</send>
   </alias>
-
+  
 </aliases>
 
 <!--  Get our standard constants -->
-
 <include name="constants.lua"/>
-
 <!--  Script  -->
-
 <script>
- <![CDATA[
-
+<![CDATA[
 ------------  Communications Window  ------------
-
--------------------------------
--- Timestamp and Scrollbar Info   
--------------------------------
-
   require "copytable"
   BODY_FONT_NAME = "Franklin Gothic"
   BODY_FONT_SIZE = 9
@@ -644,76 +630,69 @@ FUTURE PLANS:
   local chat_border_window = "chat_border_window"  -- miniwindow ID
   local chat_border_window_ver = "chat_border_window_ver"  -- miniwindow ID
   local colourWhite = ColourNameToRGB("white")
-
   -- date_format = "[%d %b %H:%M:%S] "        -- [30 Aug 13:29:49]   date and time 24 hour
   -- date_format = "[%d %b %I:%M:%S%p] "  -- [30 Aug 01:20:12PM]     date and time 12 hour
   -- date_format = "[%H:%M:%S] "          -- [13:29:08]          time 24 hour
   -- date_format = "[%X] "                  -- [1:22:06 PM]            time 12 hour
-
   TIMESTAMP_TEXT_COLOUR = "white"
   TIMESTAMP_BACK_COLOUR = "black"
-
   -- doing it this way makes them default to true the first time around
   timestamp = not (GetVariable("timestamp") == "false")
   echo = not (GetVariable("echo") == "false")
-
   date_format = GetVariable("date_format")
+  
+  -- Width & Height of Chat Window --
   WINDOW_WIDTH = 550
   WINDOW_HEIGHT = 93
-  
+  -- Width & Height of NPC (mob) Window --
   WINDOW_WIDTH_MOB = 452
   WINDOW_HEIGHT_MOB = 93
-  
+  -- Top, Left, Height, Width of Vertical Seperator Line for the Horizontal slider --
   WINDOW_SEPERATOR_TOP = 76
-  WINDOW_SEPERATOR_WIDTH = 1010
-  WINDOW_SEPERATOR_HEIGHT = 1
   WINDOW_SEPERATOR_LEFT = 551
-  
+  WINDOW_SEPERATOR_HEIGHT = 1
+  WINDOW_SEPERATOR_WIDTH = 1010
+  -- Top position of the logo and settings button miniwindow --
   WINDOW_TITLEBAR_TOP = 80
 
-  -- offset of text from edge
+  -- Offset of text from edge to account for scrollbar --
   TEXT_INSET = 5
 
-  -- where to store the chat line
+  -- where to store the chat line --
   lines = {}  -- table of recent chat lines
   rawlines = {}
   lineStart = ""
   lineEnd = ""
   WINDOW_COLUMNS = ""
   WINDOW_LINES = ""
-
+  -- where to store the NPCs --
   lines_mob = {}
   rawlines_mob = {}
   lineStart_mob = ""
   lineEnd_mob = ""
   WINDOW_COLUMNS_MOB = ""
   WINDOW_LINES_MOB = ""
-  
+ 
+  -- Color theme for 3D-themed rectangles --
+  -- Replacement for WindowRectOp action 5, which allows for a 3D look while maintaining color theme --
+  -- Requires global theme.HIGHLIGHT, theme.FACE, theme.INNERSHADOW, and theme.OUTERSHADOW rgb colors to be set. --
   theme = {
     WINDOW_BORDER = ColourNameToRGB("#000000"), -- for miniwindow body
-    
     HIGHLIGHT=ColourNameToRGB("#B9C9D8"), -- for 3D surfaces
     FACE=0x000000, -- for 3D surfaces
     INNERSHADOW=ColourNameToRGB("#000000"), -- for 3D surfaces
     OUTERSHADOW = ColourNameToRGB("#404040"), -- for 3D surfaces
-   
     BACK_FACE = 0x000000, -- for contrasting details
     DETAIL = ColourNameToRGB ("#FFFFFF"), -- for contrasting details
-
     TITLE_HEIGHT = 17, -- for miniwindow title area
     SUBTITLE_HEIGHT = 17, -- for miniwindow title area
     TITLE_FONT_NAME = "Dina", -- for miniwindow title area
     TITLE_FONT_SIZE = 8 -- for miniwindow title area
   }  -- end theme table
 
-
-  -- replacement for WindowRectOp action 5, which allows for a 3D look while maintaining color theme
-  -- Requires global theme.HIGHLIGHT, theme.FACE, theme.INNERSHADOW, and theme.OUTERSHADOW rgb colors to be set.
-
 -------------------------------
 -- Custom Themed RectOp functions
 -------------------------------
-
   function DrawThemed3DRect(Window, left, top, right, bottom)
     WindowRectOp(Window, miniwin.rect_fill, left, top, right, bottom, theme.FACE)
     WindowLine(Window, left, top, right, top, theme.HIGHLIGHT, 
@@ -806,7 +785,12 @@ FUTURE PLANS:
   init_mob(true)
 OnPluginEnable_mob () 
 	create_layout () 
-	end -- function OnPluginInstall
+	 ColourNote ("", "", "")
+	 ColourNote ("green", "", "This main text area and the prompt bars will automatically align and resize after you connect to the server.")
+     ColourNote ("", "", "")
+	 ColourNote ("green", "", "Please make any window or text input adjustments now before connecting.")
+	 ColourNote ("green", "", "The Chat & NPC windows can be adjusted anytime using the horizontal slider")
+	 end -- function OnPluginInstall
 
 function init(firstTime)
     -- how many lines and columns will fit?
