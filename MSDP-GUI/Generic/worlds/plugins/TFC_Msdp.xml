@@ -10,13 +10,13 @@
    purpose="A graphical user interface for The Final Challenge MUD"
    date_written="2016-03-26 00:49:31"
    requires="4.51"
-   version="2.8"
+   version="2.9"
    save_state="y"
    >
 <description trim="y">
 VERSION:
 
- Alpha 2.8
+ Alpha 2.9
 
  * Pre-release with built in stat workaround
  * Not all spell icons have been created, so some use a generic one. You can still see 
@@ -75,10 +75,7 @@ FUTURE PLANS:
    send_to="12"
    sequence="100"
   >
-  <send>DoAfterSpecial (2, 'Execute ("equip")', sendto.script)
-   ColourNote ("yellow", "", "Please wait to do anything until after equipment stats are gathered.")
-   ColourNote ("gold", "", "Gathering equipment stats in 2")
-   DoAfterSpecial (1, 'ColourNote ("goldenrod", "", "Gathering equipment stats in 1")', sendto.script)</send>
+  <send>DoAfterSpecial (1, 'ColourNote ("goldenrod", "", "Check your equipment to see it totaled up in the right window")', sendto.script)</send>
   </trigger>
 
   <trigger
@@ -1781,6 +1778,8 @@ function create_layout ()
 ----------------------------------------------------------------------------
 main_text_area ()
 create_titlebar ()
+build_score_window ()
+build_avatar_window ()
 window_seperator_line ()
 window_seperator_button ()
 ----------------------------------------------------------------------------
@@ -1824,54 +1823,6 @@ window_seperator_button ()
 
   -- draw the map
   draw_minimap ()
-
-  ----------------------------------------------------------------------------
-  -- Create the score window to the right of the text.
-  ----------------------------------------------------------------------------
-  -- make a miniwindow for the inner area
-  check (WindowCreate (score_window,   -- window ID
-                right+107,   -- left
-                top+8,     -- top
-                score_width+28,-- width
-                bottom - top - 15, -- depth
-                12,         -- center it (ignored anyway) 
-                6,          -- draw underneath (1) + absolute location (2)
-                0x000000))  -- background colour
-
-  -- fill in the window
-  draw_score ()
-
-  -- draw the spell affect icons
-  draw_affects ()
-
-  -- show the window and its border
-  WindowShow (score_window, true)
-
-  ----------------------------------------------------------------------------
-  -- Create the avatar window to the right of the text.
-  ----------------------------------------------------------------------------
-  check (WindowCreate (avatar_window,   -- window ID
-                right+147,   -- left
-                top+55,     -- top
-                117,-- width
-                117, -- depth
-                12,         -- center it (ignored anyway) 
-                6,          -- draw underneath (1) + absolute location (2)
-                0x000000))  -- background colour
-
-  -- load the avatar image
- if GetVariable("avatar_checked") == "one" then
-  WindowLoadImage (avatar_window, "avatar", GetInfo (66) .. "Generic/avatars/Default.png")
- elseif GetVariable("avatar_checked") == "browse" then
-  WindowLoadImage (avatar_window, "avatar", GetVariable("avatar_filename"))
- else
-  WindowLoadImage (avatar_window, "avatar", GetInfo (66) .. "Generic/avatars/Default.png")
-end -- avatar check
-
-  -- draw the avatar
-  check (WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2))  -- draw it
-
-  WindowShow (avatar_window, true)
 
   ----------------------------------------------------------------------------
   -- Create the health, mana and movement bars at the bottom.
@@ -2507,6 +2458,49 @@ function list_affects ()
  print(affects)
 end -- list_affects
 ----------------------------------------------------------------------------
+-- Function to build the avatar window
+----------------------------------------------------------------------------
+function build_avatar_window ()
+ WindowCreate (avatar_window,   -- window ID
+    right+147,   -- left
+    top+55,     -- top
+    117,-- width
+    117, -- depth
+    12,         -- center it (ignored anyway) 
+    6,          -- draw underneath (1) + absolute location (2)
+    0x000000)  -- background colour
+ -- load the avatar image
+ if GetVariable("avatar_checked") == "one" then
+  WindowLoadImage (avatar_window, "avatar", GetInfo (66) .. "Generic/avatars/Default.png")
+ elseif GetVariable("avatar_checked") == "browse" then
+  WindowLoadImage (avatar_window, "avatar", GetVariable("avatar_filename"))
+ else
+  WindowLoadImage (avatar_window, "avatar", GetInfo (66) .. "Generic/avatars/Default.png")
+ end -- avatar check
+ -- draw the avatar
+ WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)  -- draw it
+ WindowShow (avatar_window, true)
+end -- function build_avatar_window
+----------------------------------------------------------------------------
+-- Function to build the score window
+----------------------------------------------------------------------------
+function build_score_window ()
+-- make a miniwindow for the inner area
+ WindowCreate (score_window,   -- window ID
+    right+107,   -- left
+    top+8,     -- top
+    score_width+28,-- width
+    bottom - top - 15, -- depth
+    12,         -- center it (ignored anyway) 
+    6,          -- draw underneath (1) + absolute location (2)
+    0x000000)  -- background colour
+ -- fill in the window
+ draw_score ()
+ -- draw the spell affect icons
+ draw_affects ()
+ WindowShow (score_window, true)
+end -- function build_score_window
+----------------------------------------------------------------------------
 -- Function to draw the spell icons
 ----------------------------------------------------------------------------
 function draw_affects ()
@@ -2786,6 +2780,8 @@ function CancelMouseDown_sep(flags, hotspot_id)
  create_titlebar () -- rebuild titlebar window
  top = delta_y + 73
  main_text_area ()  -- rebuild main text area
+ build_score_window ()  -- rebuild score window
+ build_avatar_window ()  -- rebuild avatar window
  -- in case they let go of the mouse away from window so slider track disappears
  WindowRectOp (chat_border_button, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
  DrawThemed3DRect(chat_border_button, 0, WINDOW_BORDER_Y + 30, 15, WINDOW_BORDER_Y + 15 + 30)
@@ -2812,6 +2808,8 @@ function MouseUp_sep(flags, hotspot_id)
  create_titlebar () -- rebuild titlebar window
  top = delta_y + 73
  main_text_area ()  -- rebuild main text area
+ build_score_window ()  -- rebuild score window
+ build_avatar_window ()  -- rebuild avatar window
 end -- function MouseUp_sep
 
 function drag_resize(flags, hotspot_id)
