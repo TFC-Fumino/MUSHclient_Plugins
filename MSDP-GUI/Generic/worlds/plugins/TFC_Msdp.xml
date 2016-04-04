@@ -2964,13 +2964,15 @@ function raw_get(retval, page, status, headers, full_status, request_url)
   local file = io.open(GetPluginInfo(GetPluginID(), 6), "w")
   file:write(page)
   file:close()
+ else
+  ColourNote("white", "blue", "Something has went wrong..")
  end -- raw_version
  raw_version = nil
  if "" == GetAlphaOption("script_prefix") then
   SetAlphaOption("script_prefix", "\\\\\\")
  end
- Execute(GetAlphaOption("script_prefix") .. "DoAfterSpecial(1, \"ReloadPlugin('" .. GetPluginID() .. "')\", sendto.script)")
  if GetVariable("plugin_updating") == "true" then
+  Execute(GetAlphaOption("script_prefix") .. "DoAfterSpecial(1, \"ReloadPlugin('" .. GetPluginID() .. "')\", sendto.script)")
   ColourNote("white", "blue", PLUGIN_NAME .. " has been updated to the latest version.")
   ColourNote("white", "blue", "Plugin is now reloading.")
   ColourNote("white", "blue", "Please save the world and re-open it to see changes.")
