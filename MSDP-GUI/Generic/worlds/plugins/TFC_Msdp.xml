@@ -9,13 +9,13 @@
    purpose="A graphical user interface for The Final Challenge MUD"
    date_written="2016-03-26 00:49:31"
    requires="4.51"
-   version="3.1"
+   version="3.2"
    save_state="y"
    >
 <description trim="y">
 VERSION:
 
- Alpha 3.1
+ Alpha 3.2
 
  * Pre-release with built in stat workaround
  * Not all spell icons have been created, so some use a generic one. You can still see 
@@ -832,12 +832,12 @@ OnPluginEnable_mob ()
   end
 
   init_mob(true)
-OnPluginEnable_mob () 
-	create_layout () 
+OnPluginEnable_mob ()
+DoAfterSpecial (0.1, 'create_layout()', sendto.script)  
 	 ColourNote ("", "", "")
 	 ColourNote ("green", "", "This main text area and the prompt bars will automatically align and resize after you connect to the server.")
      ColourNote ("", "", "")
-	 ColourNote ("green", "", "Please make any window or text input adjustments now before connecting.")
+	 ColourNote ("green", "", "Please make any window or text input box adjustments now before connecting.")
 	 ColourNote ("green", "", "The Chat & NPC windows can be adjusted anytime using the horizontal slider")
 	 end -- function OnPluginInstall
 
@@ -2134,7 +2134,7 @@ function getColour(c)
 end --getColour
 
 function OnPluginWorldOutputResized ()
-
+ 
 end -- function
 
 local RoomExit = {}
