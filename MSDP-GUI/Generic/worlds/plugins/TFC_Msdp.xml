@@ -9,13 +9,13 @@
    purpose="A graphical user interface for The Final Challenge MUD"
    date_written="2016-03-26 00:49:31"
    requires="4.51"
-   version="3.0"
+   version="3.1"
    save_state="y"
    >
 <description trim="y">
 VERSION:
 
- Alpha 3.0
+ Alpha 3.1
 
  * Pre-release with built in stat workaround
  * Not all spell icons have been created, so some use a generic one. You can still see 
@@ -154,7 +154,7 @@ FUTURE PLANS:
    WindowDelete (a_room_mob_window)
    lines_mob = {}
    rawlines_mob = {}
-   OnPluginInstall()
+   OnPluginInstall_repeat()
   </send>
   </trigger>
 -------------------------------
@@ -737,6 +737,55 @@ FUTURE PLANS:
   windowinfo_mob = ""
   startx_mob = ""
   starty_mob = ""
+  
+    function OnPluginInstall_repeat()
+   PLUGIN_VERSION = GetPluginInfo(GetPluginID(), 19)
+   PLUGIN_NAME = GetPluginInfo(GetPluginID(), 1)
+    -- Dummy window to get font characteristics
+    check (WindowCreate (Win, 0, 0, 1, 1, 12, 2, 0x000000) )
+    WindowRectOp (Win, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+    check (WindowFont(Win, "bodyfont"..Win, BODY_FONT_NAME, BODY_FONT_SIZE, true))
+    check (WindowFont(Win, "titlefont"..Win, theme.TITLE_FONT_NAME, theme.TITLE_FONT_SIZE))
+    font_height = WindowFontInfo (Win, "bodyfont"..Win, 1) -  WindowFontInfo (Win, "bodyfont"..Win, 4) + 1
+    line_height = font_height+1
+    font_width = WindowTextWidth (Win, "bodyfont"..Win, "W")
+    -- check for Echo/Timestamp/date_format/window size (in pixels) variables, if not there, set them
+    if date_format == nil then
+        date_format = "[%X] "
+    end -- if
+    if WINDOW_WIDTH == nil then
+        WINDOW_WIDTH = (font_width*80)+SCROLL_BAR_WIDTH -- 80 columns
+    end
+    if WINDOW_HEIGHT == nil then
+        WINDOW_HEIGHT = (line_height*6)+2 -- 6 lines
+    end -- if
+    init(true)
+    OnPluginEnable ()  -- do initialization stuff
+	
+    ----------------------------------------
+	-- SAME AS ABOVE EXCEPT FOR ROOM MOBS --
+	----------------------------------------
+	
+  -- Dummy window to get font characteristics
+  check (WindowCreate (a_room_mob_window, 0, 0, 1, 1, 12, 2, 0x000000) )
+  WindowRectOp (a_room_mob_window, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+  check (WindowFont(a_room_mob_window, "bodyfont_mob"..a_room_mob_window, BODY_FONT_NAME_MOB, BODY_FONT_SIZE_MOB, true))
+  check (WindowFont(a_room_mob_window, "titlefont_mob"..a_room_mob_window, theme.TITLE_FONT_NAME, theme.TITLE_FONT_SIZE))
+  font_height_mob = WindowFontInfo (a_room_mob_window, "bodyfont_mob"..a_room_mob_window, 1) -  WindowFontInfo (a_room_mob_window, "bodyfont_mob"..a_room_mob_window, 4) + 1
+  line_height_mob = font_height_mob+1
+  font_width_mob = WindowTextWidth (a_room_mob_window, "bodyfont_mob"..a_room_mob_window, "W")
+
+  if WINDOW_WIDTH_MOB == nil then
+   WINDOW_WIDTH_MOB = (font_width_mob*80)+SCROLL_BAR_WIDTH -- 80 columns
+  end
+  if WINDOW_HEIGHT_MOB == nil then
+   WINDOW_HEIGHT_MOB = (line_height_mob*6)+2 -- 6 lines
+  end
+
+  init_mob(true)
+OnPluginEnable_mob () 
+	create_layout () 
+	end -- function OnPluginInstall_repeat
   
   function OnPluginInstall()
    PLUGIN_VERSION = GetPluginInfo(GetPluginID(), 19)
