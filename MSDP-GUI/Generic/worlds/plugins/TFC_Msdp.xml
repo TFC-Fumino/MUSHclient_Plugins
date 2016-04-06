@@ -9,13 +9,13 @@
    purpose="A graphical user interface for The Final Challenge MUD"
    date_written="2016-03-26 00:49:31"
    requires="4.51"
-   version="3.2"
+   version="3.3"
    save_state="y"
    >
 <description trim="y">
 VERSION:
 
- Alpha 3.2
+ Alpha 3.3
 
  * Pre-release with built in stat workaround
  * Not all spell icons have been created, so some use a generic one. You can still see 
@@ -1968,7 +1968,9 @@ function settings_click_menu ()
   [24] = "-",
   [25] = "List equipment stats",
   [26] = "-",
-  [27] = "Check and Update Plugin"
+  [27] = "Check and Update Plugin",
+  [28] = "-",
+  [29] = "Report an issue"
   }
    
  if GetVariable("avatar_checked") == "one" or GetVariable("avatar_checked") == nil then
@@ -2017,10 +2019,17 @@ function settings_click_menu ()
     WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)
     print("Avatar Selected: Default")
  elseif result == "2" then
-    SetVariable("avatar_checked", "browse")
     filter = {  bmp = "Bitmap files", png = "Image files" }
     avatar_filename = utils.filepicker (title, name, extension, filter, save)
-	print("Avatar Selected:", avatar_filename)
+	if avatar_filename == nil then
+	 print("Custom Avatar Canceled")
+	else
+	 print("Avatar Selected:", avatar_filename)
+	 SetVariable("avatar_filename", avatar_filename)
+     SetVariable("avatar_checked", "browse")
+     WindowLoadImage (avatar_window, "avatar", avatar_filename)
+     WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)
+	end -- avatar_filename
  elseif result == "3" then
     filename = nil
 	DeleteVariable("bgColour")
@@ -2043,13 +2052,21 @@ function settings_click_menu ()
     DeleteVariable("bgColour")
     filter = {  bmp = "Bitmap files", png = "Image files" }
     filename = utils.filepicker (title, name, extension, filter, save)
-	print("Background Selected:", filename)
+	if filename == nil then
+	 print("Custom Background Image Canceled")
+	else
+	 print("Background Selected:", filename)
+	 SetVariable("filename", filename)
+     SetVariable("castle_checked", "browse")
+     SetBackgroundImage(GetVariable("filename"), 0)
+	end -- filename
  elseif result == "7" then
     bgColour = getColour(bgColour)
+	print("Background Solid Color Canceled")
 	SetVariable("bgColour", bgColour) -- save it for next time they play
 	SetVariable("castle_checked", "none") -- so it doesnt mess with first time default 
 	filename = nil
-	SetBackgroundImage("", 0)
+    SetBackgroundImage("", 0)
     SetBackgroundColour(tonumber(GetVariable ("bgColour")))
 	print("Background Selected:", "[Color name/code]:", RGBColourToName(bgColour), "[Red Green Blue]:", bgColour)
 	main_text_area ()
@@ -2091,21 +2108,24 @@ function settings_click_menu ()
  elseif result == "14" then
     print("")
     ColourNote("white", "blue", "Connecting to the server and checking for updates.")
-    ColourNote("white", "blue", "Please wait...")
+    ColourNote("white", "blue", "Please wait..")
     update_plugin ()
+ elseif result == "15" then
+  if IsConnected() == true then
+   issue_gui = utils.inputbox ( "What is the issue you are having?", "Report an Issue", default, font, fontsize, { prompt_height = 24 } )
+   if issue_gui == nil then
+    print("Report an issue has been canceled.")
+   else
+    Send("note to Fumino")
+    Send("note subject Issue with MSDP GUI v", PLUGIN_VERSION)
+    Send("note +", issue_gui)
+	print("If everything is correct, please type note post")
+   end -- issue_gui
+  else
+   print("You must be connected to the server to report an issue.")
+  end -- IsConnected
 end -- result
 
-if filename ~= nil then
-    SetVariable("filename", filename)
-    SetVariable("castle_checked", "browse")
-    SetBackgroundImage(GetVariable("filename"), 0)
- end -- filename
-if avatar_filename ~= nil then
-    SetVariable("avatar_filename", avatar_filename)
-    SetVariable("avatar_checked", "browse")
-    WindowLoadImage (avatar_window, "avatar", avatar_filename)
-    WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)
- end -- filename
  DrawThemed3DRect(titlebar_window, 65, 0, 104, 13)
  outlined_text (colourWhite, titlebar_window, "settings", 5, 68, 2, 0)
  Redraw()
