@@ -9,13 +9,13 @@
    purpose="A graphical user interface for The Final Challenge MUD"
    date_written="2016-03-26 00:49:31"
    requires="4.51"
-   version="3.3"
+   version="3.4"
    save_state="y"
    >
 <description trim="y">
 VERSION:
 
- Alpha 3.3
+ Alpha 3.4
 
  * Pre-release with built in stat workaround
  * Not all spell icons have been created, so some use a generic one. You can still see 
@@ -2118,7 +2118,7 @@ function settings_click_menu ()
    else
     Send("note to Fumino")
     Send("note subject Issue with MSDP GUI v", PLUGIN_VERSION)
-    Send("note +", issue_gui)
+    Send("note + ", issue_gui)
 	print("If everything is correct, please type note post")
    end -- issue_gui
   else
