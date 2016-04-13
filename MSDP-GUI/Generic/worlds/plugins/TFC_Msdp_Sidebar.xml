@@ -7,15 +7,15 @@
    id="9232cf74f97637b76afe76c7"
    language="Lua"
    purpose="A graphical user interface sidebar for The Final Challenge MUD"
-   date_written="2016-04-11 00:49:31"
+   date_written="2016-04-12 00:49:31"
    requires="4.51"
-   version="1.0"
+   version="1.1"
    save_state="y"
    >
 <description trim="y">
 VERSION:
 
- Alpha 1.0
+ Alpha 1.1
 
  * Pre-release with built in stat workaround
  * Not all spell icons have been created, so some use a generic one. You can still see 
@@ -53,524 +53,426 @@ FUTURE PLANS:
  
 </description>
 </plugin>
-
-------------  TRIGGERS  ------------
+------------/  TRIGGERS  /------------
 <triggers>
--------------------------------
--- Equipment stat triggers   
--------------------------------
-
-  <trigger
-   enabled="y"
-   match="* You last logged in on *"
-   send_to="12"
-   sequence="100"
-  >
-  <send>DoAfterSpecial (1, 'ColourNote ("goldenrod", "", "Check your equipment to see it totaled up in the right window")', sendto.script)</send>
-  </trigger>
-
-  <trigger
-   enabled="n"
-   match="You are using:"
-   name="clearoldstats"
-   script="start_of_equip_list"
-   sequence="100"
-  >
-  </trigger>
-
-  <trigger
-   enabled="n"
-   expand_variables="y"
-   keep_evaluating="y"
-   match="(int:|wis:|dex:|str:|chr:|con:|luc:|dmg:|hr:|da:|ma:|svs:|hp:|mr:)(\D*\d+)"
-   name="additup"
-   regexp="y"
-   repeat="y"
-   script="attrib_trigger_script"
-   send_to="12"
-   sequence="100"
-  >
-  </trigger>
-
-  <trigger
-   enabled="y"
-   match="^$"
-   name="stopadding"
-   regexp="y"
-   send_to="12"
-   sequence="100"
-  >
-  <send>if GetVariable("eqstatcheck") == "true" then
-    SetVariable("eqstatcheck", "false")
-    EnableTrigger ("clearoldstats", false)
-    EnableTrigger ("additup", false)
-    print ("Str:", stats.str, "Int:", stats.int, "Wis:", stats.wis, "Dex:", stats.dex, "Con:", stats.con, "Hr:", stats.hr, "Dmg:", stats.dmg, "Chr:", stats.chr, "Luc:", stats.luc, "Svs:", stats.svs, "Da:", stats.da, "Mr:", stats.mr, "Hp:", stats.hp, "Ma:", stats.ma)
-   end -- eqstatcheck</send>
-  </trigger>
--------------------------------
--- Chat Channel Triggers 
--- Temp fix until I have time to redo again (prompt bar may occasional show in window)
--------------------------------
-         <trigger
-    enabled="y"
-    group="macktest"
-    match="^\#\#\# (.+)$"
-    script="chats"
-    regexp="y"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-
-        <trigger
-    enabled="y"
-    match="You say*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="* You say*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="* says*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>	
-	
-		<trigger
-    enabled="y"
-    match="* * says*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="You gossip*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-		<trigger
-    enabled="y"
-    match="* You gossip*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="* gossips*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-		<trigger
-    enabled="y"
-    match="* * gossips*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	   <trigger
-    enabled="y"
-    match="You shout*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="* You shout*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="* shouts*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="* * shouts*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>	
-	
-	    <trigger
-    enabled="y"
-    match="You yell*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-
-	    <trigger
-    enabled="y"
-    match="* You yell*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="* yells*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-
-	    <trigger
-    enabled="y"
-    match="* * yells*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="You pray, *"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-
-	    <trigger
-    enabled="y"
-    match="* You pray, *"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="* prays *"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-
-	    <trigger
-    enabled="y"
-    match="* * prays *"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="You auction*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-
-	    <trigger
-    enabled="y"
-    match="* You auction*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="* auctions*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-
-		<trigger
-    enabled="y"
-    match="* * auctions*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="You tell *"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-
-	    <trigger
-    enabled="y"
-    match="* You tell *"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="* tells *"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="* * tells *"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>	
-	
-		<trigger
-    enabled="y"
-    match="You ftell, *"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-		<trigger
-    enabled="y"
-    match="* You ftell, *"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>	
-	
-	    <trigger
-    enabled="y"
-    match="* ftells, *"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="* * ftells *"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>	
-	
-		<trigger
-    enabled="y"
-    match="You cant*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-		<trigger
-    enabled="y"
-    match="* You cant*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>	
-	
-	    <trigger
-    enabled="y"
-    match="* cants*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>
-	
-	    <trigger
-    enabled="y"
-    match="* * cants*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>	
-	
-	    <trigger
-    enabled="y"
-    match="You question*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>	
-	
-	    <trigger
-    enabled="y"
-    match="* You question*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>		
-
-	    <trigger
-    enabled="y"
-    match="* questions*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>		
-
-	    <trigger
-    enabled="y"
-    match="* * questions*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>	
-
-	    <trigger
-    enabled="y"
-    match="You answer*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>		
-	
-	    <trigger
-    enabled="y"
-    match="* You answer*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>		
-
-	    <trigger
-    enabled="y"
-    match="* answers*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>		
-
-	    <trigger
-    enabled="y"
-    match="* * answers*"
-    script="chats"
-    omit_from_output="y"
-    sequence="100"
-    ></trigger>	
-	
+ ----/ Equipment stat triggers /---- 
+ <trigger
+  enabled="y"
+  match="* You last logged in on *"
+  send_to="12"
+  sequence="100">
+ <send>DoAfterSpecial (1, 'ColourNote ("goldenrod", "", "Check your equipment to see it totaled up in the right window")', sendto.script)</send>
+ </trigger>
+ <trigger
+  enabled="n"
+  match="You are using:"
+  name="clearoldstats"
+  script="start_of_equip_list"
+  sequence="100">
+ </trigger>
+ <trigger
+  enabled="n"
+  expand_variables="y"
+  keep_evaluating="y"
+  match="(int:|wis:|dex:|str:|chr:|con:|luc:|dmg:|hr:|da:|ma:|svs:|hp:|mr:)(\D*\d+)"
+  name="additup"
+  regexp="y"
+  repeat="y"
+  script="attrib_trigger_script"
+  send_to="12"
+  sequence="100">
+ </trigger>
+ <trigger
+  enabled="y"
+  match="^$"
+  name="stopadding"
+  regexp="y"
+  send_to="12"
+  sequence="100">
+ <send>if GetVariable("eqstatcheck") == "true" then
+   SetVariable("eqstatcheck", "false")
+   EnableTrigger ("clearoldstats", false)
+   EnableTrigger ("additup", false)
+   show_equip_list ()
+  end -- eqstatcheck</send>
+ </trigger>
+ ----/ Chat Channel Triggers /----
+ ----/ Temp fix until I have time to redo again (prompt bar may occasional show in window) /----
+ <trigger
+  enabled="y"
+  group="macktest"
+  match="^\#\#\# (.+)$"
+  script="chats"
+  regexp="y"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="You say*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* You say*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* says*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>	
+ <trigger
+  enabled="y"
+  match="* * says*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="You gossip*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* You gossip*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* gossips*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* * gossips*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="You shout*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* You shout*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* shouts*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* * shouts*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>	
+ <trigger
+  enabled="y"
+  match="You yell*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* You yell*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* yells*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* * yells*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="You pray, *"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* You pray, *"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* prays *"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* * prays *"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="You auction*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* You auction*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* auctions*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* * auctions*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="You tell *"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* You tell *"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* tells *"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* * tells *"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>	
+ <trigger
+  enabled="y"
+  match="You ftell, *"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* You ftell, *"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>	
+ <trigger
+  enabled="y"
+  match="* ftells, *"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* * ftells *"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>	
+ <trigger
+  enabled="y"
+  match="You cant*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* You cant*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>	
+ <trigger
+  enabled="y"
+  match="* cants*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>
+ <trigger
+  enabled="y"
+  match="* * cants*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>	
+ <trigger
+  enabled="y"
+  match="You question*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>	
+ <trigger
+  enabled="y"
+  match="* You question*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>		
+ <trigger
+  enabled="y"
+  match="* questions*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>		
+ <trigger
+  enabled="y"
+  match="* * questions*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>	
+ <trigger
+  enabled="y"
+  match="You answer*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>		
+ <trigger
+  enabled="y"
+  match="* You answer*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>		
+ <trigger
+  enabled="y"
+  match="* answers*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>		
+ <trigger
+  enabled="y"
+  match="* * answers*"
+  script="chats"
+  omit_from_output="y"
+  sequence="100"
+ ></trigger>	
 </triggers>
-
-------------  ALIASES  ------------
+------------/  ALIASES  /------------
 <aliases>
--------------------------------
--- Equipment Stat aliases   
--------------------------------
-  <alias
-   match="eq"
-   enabled="y"
-   send_to="12"
-   sequence="100"
-  >
-  <send>Execute ("update eq stats")</send>
-  </alias>
-
-  <alias
-   match="equip"
-   enabled="y"
-   send_to="12"
-   sequence="100"
-  >
-  <send>Execute ("update eq stats")</send>
-  </alias>
-
-  <alias
-   match="equipment"
-   enabled="y"
-   send_to="12"
-   sequence="100"
-  >
-  <send>Execute ("update eq stats")</send>
-  </alias>
-
-  <alias
-   script="check_equipment"
-   match="update eq stats"
-   enabled="y"
-   sequence="100"
-  >
-  </alias>
-
-  <alias
-   script="show_equip_list"
-   match="show stats"
-   enabled="y"
-   sequence="100"
-  >
-  </alias>
--------------------------------
--- Map Patch aliases   
--------------------------------
-  <alias
-   script="show_map_list"
-   match="map list"
-   enabled="y"
-   sequence="100"
-  >
-  </alias>
-
-  <alias
-   script="close_map_list"
-   match="close map list"
-   enabled="y"
-   sequence="100"
-  >
-  </alias>
-  
---------------------
--- Plugin updater
---------------------
-  <alias
-   script="update_plugin"
-   match="update plugin"
-   enabled="y"
-   sequence="100"
-  >
-  </alias>
-
-  <alias
-   match="mack test 123"
-   enabled="y"
-   send_to="12"
-   sequence="100"
-  >
-  <send>main_text_area()</send>
-  </alias>
+ ----/ Equipment Stat aliases /----
+ <alias
+  match="eq"
+  enabled="y"
+  script="check_equipment"
+  sequence="100">
+ </alias>
+ <alias
+  match="equip"
+  enabled="y"
+  script="check_equipment"
+  sequence="100">
+ </alias>
+ <alias
+  match="equipment"
+  enabled="y"
+  script="check_equipment"
+  sequence="100">
+ </alias>
+ <alias
+  script="show_equip_list"
+  match="show stats"
+  enabled="y"
+  sequence="100">
+ </alias>
+ ----/ Map Patch aliases /----
+ <alias
+  script="show_map_list"
+  match="map list"
+  enabled="y"
+  sequence="100">
+ </alias>
+ <alias
+  script="close_map_list"
+  match="close map list"
+  enabled="y"
+  sequence="100">
+ </alias>
+ ----/ Plugin updater /----
+ <alias
+  script="update_plugin"
+  match="update plugin"
+  enabled="y"
+  sequence="100">
+ </alias>
 </aliases>
-
 <!--  Get our standard constants -->
 <include name="constants.lua"/>
 <!--  Script  -->
 <script>
 <![CDATA[
--- default first time window visibility to true, must be opposite for toggles
+----/ default first time window visibility to true, must be opposite for toggles /----
 CHAT_VISIBILITY = false
 PROMPT_BARS_VISIBILITY = false
------------- Sidebar Positions  ------------
+------------/ Sidebar & Adjustable Window Positions  /------------
 AVATAR_LEFT_POSITION = 25
 SIDEBAR_LEFT_POSITION = 160
 TITLEBAR_LEFT_POSITION = 0
@@ -585,53 +487,49 @@ HEALTH_BAR_LEFT_POSITION = 383
 MANA_BAR_LEFT_POSITION = 497
 MOVE_BAR_LEFT_POSITION = 695
 ENEM_BAR_LEFT_POSITION = 180
-------------  Communications Window  ------------
-  require "copytable"
-  BODY_FONT_NAME = "Franklin Gothic"
-  BODY_FONT_SIZE = 9
-  SCROLL_BAR_WIDTH = 15
-  MAX_LINES = 10000 -- how many lines to store in scrollback
-  local sidebar_button_window = "sidebar_button_window"  -- miniwindow ID
-  local chat_border_window = "chat_border_window"  -- miniwindow ID
-  local chat_border_window_hor = "chat_border_window_hor"  -- miniwindow ID
-  local colourWhite = ColourNameToRGB("white")
-  -- date_format = "[%d %b %H:%M:%S] "        -- [30 Aug 13:29:49]   date and time 24 hour
-  -- date_format = "[%d %b %I:%M:%S%p] "  -- [30 Aug 01:20:12PM]     date and time 12 hour
-  -- date_format = "[%H:%M:%S] "          -- [13:29:08]          time 24 hour
-  -- date_format = "[%X] "                  -- [1:22:06 PM]            time 12 hour
-  TIMESTAMP_TEXT_COLOUR = "white"
-  TIMESTAMP_BACK_COLOUR = "black"
-  -- doing it this way makes them default to true the first time around
-  timestamp = not (GetVariable("timestamp") == "false")
-  echo = not (GetVariable("echo") == "false")
-  date_format = GetVariable("date_format")
-  
-  -- Width & Height of Chat Window --
-  WINDOW_WIDTH = GetInfo (250) - 200
-  WINDOW_HEIGHT = 93
-  -- Top, Left, Height, Width of Vertical Seperator Line for the Horizontal slider --
-  WINDOW_SEPERATOR_TOP = 77
-  WINDOW_SEPERATOR_HEIGHT_HOR = 77
-  WINDOW_SEPERATOR_LEFT = 175
-  WINDOW_SEPERATOR_HEIGHT = 1
-  -- GetInfo (250) Main frame window width (long)
-  WINDOW_SEPERATOR_WIDTH = GetInfo (250)
-
-  -- Offset of text from edge to account for scrollbar --
-  TEXT_INSET = 5
-
-  -- where to store the chat line --
-  lines = {}  -- table of recent chat lines
-  rawlines = {}
-  lineStart = ""
-  lineEnd = ""
-  WINDOW_COLUMNS = ""
-  WINDOW_LINES = ""
- 
-  -- Color theme for 3D-themed rectangles --
-  -- Replacement for WindowRectOp action 5, which allows for a 3D look while maintaining color theme --
-  -- Requires global theme.HIGHLIGHT, theme.FACE, theme.INNERSHADOW, and theme.OUTERSHADOW rgb colors to be set. --
-  theme = {
+------------/  Communications Window  /------------
+require "copytable"
+BODY_FONT_NAME = "Franklin Gothic"
+BODY_FONT_SIZE = 9
+SCROLL_BAR_WIDTH = 15
+MAX_LINES = 10000 -- how many lines to store in scrollback
+local sidebar_button_window = "sidebar_button_window"  -- miniwindow ID
+local chat_border_window = "chat_border_window"  -- miniwindow ID
+local chat_border_window_hor = "chat_border_window_hor"  -- miniwindow ID
+local colourWhite = ColourNameToRGB("white")
+-- date_format = "[%d %b %H:%M:%S] "        -- [30 Aug 13:29:49]   date and time 24 hour
+-- date_format = "[%d %b %I:%M:%S%p] "  -- [30 Aug 01:20:12PM]     date and time 12 hour
+-- date_format = "[%H:%M:%S] "          -- [13:29:08]          time 24 hour
+-- date_format = "[%X] "                  -- [1:22:06 PM]            time 12 hour
+TIMESTAMP_TEXT_COLOUR = "white"
+TIMESTAMP_BACK_COLOUR = "black"
+-- doing it this way makes them default to true the first time around
+timestamp = not (GetVariable("timestamp") == "false")
+echo = not (GetVariable("echo") == "false")
+date_format = GetVariable("date_format")
+-- Width & Height of Chat Window --
+WINDOW_WIDTH = GetInfo (250) - 200
+WINDOW_HEIGHT = 93
+-- Top, Left, Height, Width of Vertical Seperator Line for the Horizontal slider --
+WINDOW_SEPERATOR_TOP = 77
+WINDOW_SEPERATOR_HEIGHT_HOR = 77
+WINDOW_SEPERATOR_LEFT = 175
+WINDOW_SEPERATOR_HEIGHT = 1
+-- GetInfo (250) Main frame window width (long)
+WINDOW_SEPERATOR_WIDTH = GetInfo (250)
+-- Offset of text from edge to account for scrollbar --
+TEXT_INSET = 5
+-- where to store the chat line --
+lines = {}  -- table of recent chat lines
+rawlines = {}
+lineStart = ""
+lineEnd = ""
+WINDOW_COLUMNS = ""
+WINDOW_LINES = ""
+-- Color theme for 3D-themed rectangles --
+-- Replacement for WindowRectOp action 5, which allows for a 3D look while maintaining color theme --
+-- Requires global theme.HIGHLIGHT, theme.FACE, theme.INNERSHADOW, and theme.OUTERSHADOW rgb colors to be set. --
+theme = {
     WINDOW_BORDER = ColourNameToRGB("#000000"), -- for miniwindow body
     HIGHLIGHT=ColourNameToRGB("#B9C9D8"), -- for 3D surfaces
     FACE=0x000000, -- for 3D surfaces
@@ -643,164 +541,157 @@ ENEM_BAR_LEFT_POSITION = 180
     SUBTITLE_HEIGHT = 17, -- for miniwindow title area
     TITLE_FONT_NAME = "Dina", -- for miniwindow title area
     TITLE_FONT_SIZE = 8 -- for miniwindow title area
-  }  -- end theme table
-
--------------------------------
--- Custom Themed RectOp functions
--------------------------------
-  function DrawThemed3DRect(Window, left, top, right, bottom)
-    WindowRectOp(Window, miniwin.rect_fill, left, top, right, bottom, theme.FACE)
-    WindowLine(Window, left, top, right, top, theme.HIGHLIGHT, 
-                miniwin.pen_solid + miniwin.pen_endcap_flat, 1)
-    WindowLine(Window, left, top, left, bottom, theme.HIGHLIGHT, 
-                miniwin.pen_solid + miniwin.pen_endcap_flat, 1)
-    WindowLine(Window, left, bottom-2, right, bottom-2, theme.INNERSHADOW, 
-                miniwin.pen_solid + miniwin.pen_endcap_flat, 1)
-    WindowLine(Window, right-2, top, right-2, bottom-2, theme.INNERSHADOW, 
-                miniwin.pen_solid + miniwin.pen_endcap_flat, 1)
-    WindowLine(Window, left, bottom-1, right, bottom-1, theme.OUTERSHADOW, 
-                miniwin.pen_solid + miniwin.pen_endcap_flat, 1)
-    WindowLine(Window, right-1, top, right-1, bottom-1, theme.OUTERSHADOW, 
-                miniwin.pen_solid + miniwin.pen_endcap_flat, 1)    
-  end -- Drawthemed3DRectOp
-
-  function DrawThemedResizeTag(Window, x1, y1, size)
-    local x2, y2 = x1+size, y1+size
-    DrawThemed3DRect(Window, x1, y1, x2, y2)
-    local m = 2
-    local n = 2
-    while (x1+m+2 <= x2-3 and y1+n+1 <= y2-4) do
-        WindowLine(Window, x1+m+1, y2-4, x2-3, y1+n, theme.HIGHLIGHT, 
-                    miniwin.pen_solid, 1)
-        WindowLine(Window, x1+m+2, y2-4, x2-3, y1+n+1, theme.INNERSHADOW, 
-                    miniwin.pen_solid, 1)
-        m = m+3
-        n = n+3
-    end
-  end  -- function DrawThemedResizeTag
-
-  Win = GetPluginID()
-  font_height = ""
-  line_height = ""
-  windowinfo = ""
-  startx = ""
-  starty = ""
-
-    function OnPluginInstall_repeat()
-   PLUGIN_VERSION = GetPluginInfo(GetPluginID(), 19)
-   PLUGIN_NAME = GetPluginInfo(GetPluginID(), 1)
-    -- Dummy window to get font characteristics
-    check (WindowCreate (Win, 0, 0, 1, 1, 12, 2, 0x000000) )
-    WindowRectOp (Win, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
-    check (WindowFont(Win, "bodyfont"..Win, BODY_FONT_NAME, BODY_FONT_SIZE, true))
-    check (WindowFont(Win, "titlefont"..Win, theme.TITLE_FONT_NAME, theme.TITLE_FONT_SIZE))
-    font_height = WindowFontInfo (Win, "bodyfont"..Win, 1) -  WindowFontInfo (Win, "bodyfont"..Win, 4) + 1
-    line_height = font_height+1
-    font_width = WindowTextWidth (Win, "bodyfont"..Win, "W")
-    -- check for Echo/Timestamp/date_format/window size (in pixels) variables, if not there, set them
-    if date_format == nil then
-        date_format = "[%X] "
-    end -- if
-    if WINDOW_WIDTH == nil then
-        WINDOW_WIDTH = (font_width*80)+SCROLL_BAR_WIDTH -- 80 columns
-    end
-    if WINDOW_HEIGHT == nil then
-        WINDOW_HEIGHT = (line_height*6)+2 -- 6 lines
-    end -- if
-    init(true)
-    OnPluginEnable ()  -- do initialization stuff
-	create_layout () 
-	end -- function OnPluginInstall_repeat
+}  -- end theme table
+----/ Custom Themed RectOp functions /----
+function DrawThemed3DRect(Window, left, top, right, bottom)
+ WindowRectOp(Window, miniwin.rect_fill, left, top, right, bottom, theme.FACE)
+ WindowLine(Window, left, top, right, top, theme.HIGHLIGHT, 
+    miniwin.pen_solid + miniwin.pen_endcap_flat, 1)
+ WindowLine(Window, left, top, left, bottom, theme.HIGHLIGHT, 
+    miniwin.pen_solid + miniwin.pen_endcap_flat, 1)
+ WindowLine(Window, left, bottom-2, right, bottom-2, theme.INNERSHADOW, 
+    miniwin.pen_solid + miniwin.pen_endcap_flat, 1)
+ WindowLine(Window, right-2, top, right-2, bottom-2, theme.INNERSHADOW, 
+    miniwin.pen_solid + miniwin.pen_endcap_flat, 1)
+ WindowLine(Window, left, bottom-1, right, bottom-1, theme.OUTERSHADOW, 
+    miniwin.pen_solid + miniwin.pen_endcap_flat, 1)
+ WindowLine(Window, right-1, top, right-1, bottom-1, theme.OUTERSHADOW, 
+    miniwin.pen_solid + miniwin.pen_endcap_flat, 1)    
+end -- function Drawthemed3DRectOp
+----/ Currently unused function /----
+function DrawThemedResizeTag(Window, x1, y1, size)
+ local x2, y2 = x1+size, y1+size
+ DrawThemed3DRect(Window, x1, y1, x2, y2)
+ local m = 2
+ local n = 2
+ while (x1+m+2 <= x2-3 and y1+n+1 <= y2-4) do
+    WindowLine(Window, x1+m+1, y2-4, x2-3, y1+n, theme.HIGHLIGHT, 
+        miniwin.pen_solid, 1)
+    WindowLine(Window, x1+m+2, y2-4, x2-3, y1+n+1, theme.INNERSHADOW, 
+        miniwin.pen_solid, 1)
+    m = m+3
+    n = n+3
+ end -- while loop
+end  -- function DrawThemedResizeTag
+Win = GetPluginID()
+font_height = ""
+line_height = ""
+windowinfo = ""
+startx = ""
+starty = ""
+function OnPluginInstall_repeat()
+ PLUGIN_VERSION = GetPluginInfo(GetPluginID(), 19)
+ PLUGIN_NAME = GetPluginInfo(GetPluginID(), 1)
+ -- Dummy window to get font characteristics
+ check (WindowCreate (Win, 0, 0, 1, 1, 12, 2, 0x000000) )
+ WindowRectOp (Win, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+ check (WindowFont(Win, "bodyfont"..Win, BODY_FONT_NAME, BODY_FONT_SIZE, true))
+ check (WindowFont(Win, "titlefont"..Win, theme.TITLE_FONT_NAME, theme.TITLE_FONT_SIZE))
+ font_height = WindowFontInfo (Win, "bodyfont"..Win, 1) -  WindowFontInfo (Win, "bodyfont"..Win, 4) + 1
+ line_height = font_height+1
+ font_width = WindowTextWidth (Win, "bodyfont"..Win, "W")
+ -- check for Echo/Timestamp/date_format/window size (in pixels) variables, if not there, set them
+ if date_format == nil then
+  date_format = "[%X] "
+ end -- if
+ if WINDOW_WIDTH == nil then
+  WINDOW_WIDTH = (font_width*80)+SCROLL_BAR_WIDTH -- 80 columns
+ end -- if
+ if WINDOW_HEIGHT == nil then
+  WINDOW_HEIGHT = (line_height*6)+2 -- 6 lines
+ end -- if
+ init(true)
+ OnPluginEnable ()  -- do initialization stuff
+ create_layout () 
+end -- function OnPluginInstall_repeat
   
-  function OnPluginInstall()
-   PLUGIN_VERSION = GetPluginInfo(GetPluginID(), 19)
-   PLUGIN_NAME = GetPluginInfo(GetPluginID(), 1)
-    -- Dummy window to get font characteristics
-    check (WindowCreate (Win, 0, 0, 1, 1, 12, 2, 0x000000) )
-    WindowRectOp (Win, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
-    check (WindowFont(Win, "bodyfont"..Win, BODY_FONT_NAME, BODY_FONT_SIZE, true))
-    check (WindowFont(Win, "titlefont"..Win, theme.TITLE_FONT_NAME, theme.TITLE_FONT_SIZE))
-    font_height = WindowFontInfo (Win, "bodyfont"..Win, 1) -  WindowFontInfo (Win, "bodyfont"..Win, 4) + 1
-    line_height = font_height+1
-    font_width = WindowTextWidth (Win, "bodyfont"..Win, "W")
-    -- check for Echo/Timestamp/date_format/window size (in pixels) variables, if not there, set them
-    if date_format == nil then
-        date_format = "[%X] "
-    end -- if
-    if WINDOW_WIDTH == nil then
-        WINDOW_WIDTH = (font_width*80)+SCROLL_BAR_WIDTH -- 80 columns
-    end
-    if WINDOW_HEIGHT == nil then
-        WINDOW_HEIGHT = (line_height*6)+2 -- 6 lines
-    end -- if
-    init(true)
-    OnPluginEnable ()  -- do initialization stuff
-     DoAfterSpecial (0.1, 'create_layout()', sendto.script)  
-	 ColourNote ("", "", "")
-	 end -- function OnPluginInstall
+function OnPluginInstall()
+ PLUGIN_VERSION = GetPluginInfo(GetPluginID(), 19)
+ PLUGIN_NAME = GetPluginInfo(GetPluginID(), 1)
+ -- Dummy window to get font characteristics
+ check (WindowCreate (Win, 0, 0, 1, 1, 12, 2, 0x000000) )
+ WindowRectOp (Win, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+ check (WindowFont(Win, "bodyfont"..Win, BODY_FONT_NAME, BODY_FONT_SIZE, true))
+ check (WindowFont(Win, "titlefont"..Win, theme.TITLE_FONT_NAME, theme.TITLE_FONT_SIZE))
+ font_height = WindowFontInfo (Win, "bodyfont"..Win, 1) -  WindowFontInfo (Win, "bodyfont"..Win, 4) + 1
+ line_height = font_height+1
+ font_width = WindowTextWidth (Win, "bodyfont"..Win, "W")
+ -- check for Echo/Timestamp/date_format/window size (in pixels) variables, if not there, set them
+ if date_format == nil then
+  date_format = "[%X] "
+ end -- if
+ if WINDOW_WIDTH == nil then
+  WINDOW_WIDTH = (font_width*80)+SCROLL_BAR_WIDTH -- 80 columns
+ end -- if
+ if WINDOW_HEIGHT == nil then
+  WINDOW_HEIGHT = (line_height*6)+2 -- 6 lines
+ end -- if
+ init(true)
+ OnPluginEnable ()  -- do initialization stuff
+ DoAfterSpecial (0.1, 'create_layout()', sendto.script)  
+ ColourNote ("", "", "")
+end -- function OnPluginInstall
 
 function init(firstTime)
-    -- how many lines and columns will fit?
-    WINDOW_LINES = math.ceil((WINDOW_HEIGHT-17)/line_height)
-    WINDOW_COLUMNS = math.ceil((WINDOW_WIDTH-SCROLL_BAR_WIDTH)/font_width)
-    if firstTime then
-     WindowCreate(Win, CHATS_LEFT_POSITION, CHATS_TOP_POSITION, WINDOW_WIDTH, WINDOW_HEIGHT, 4, 6, 0x000000)
-     -- catch for right-click menu and line selection
-     WindowAddHotspot(Win, "textarea", 0, 0, WINDOW_WIDTH-SCROLL_BAR_WIDTH,0, 
-        "", "", "MouseDown", "CancelMouseDown", "MouseUp", "", 
-        miniwin.cursor_ibeam, 0)
-     -- scroll bar up/down buttons
-     WindowAddHotspot(Win, "up", WINDOW_WIDTH-SCROLL_BAR_WIDTH, 0, 0, SCROLL_BAR_WIDTH, 
-        "MouseOver", "CancelMouseOver", "MouseDown", "CancelMouseDown", "MouseUp", "", 
-        miniwin.cursor_hand, 0)
-     WindowAddHotspot(Win, "down", WINDOW_WIDTH-SCROLL_BAR_WIDTH, WINDOW_HEIGHT-(2*SCROLL_BAR_WIDTH), 0, WINDOW_HEIGHT-SCROLL_BAR_WIDTH, 
-        "MouseOver", "CancelMouseOver", "MouseDown", "CancelMouseDown", "MouseUp", "", 
-        miniwin.cursor_hand, 0)
-     else
-      WindowMoveHotspot(Win, "textarea", 0, 0, WINDOW_WIDTH-SCROLL_BAR_WIDTH, 0)
-      WindowMoveHotspot(Win, "up", WINDOW_WIDTH-SCROLL_BAR_WIDTH, 0, 0, SCROLL_BAR_WIDTH)
-      WindowMoveHotspot(Win, "down", WINDOW_WIDTH-SCROLL_BAR_WIDTH, WINDOW_HEIGHT-(2*SCROLL_BAR_WIDTH), 0, WINDOW_HEIGHT-SCROLL_BAR_WIDTH)
-    end -- firstTime
-    WindowShow(Win, true)  
-    if (firstTime == true) then
-     lines = {}
-     for _,styles in ipairs(rawlines) do 
-      fillBuffer(styles)
-     end  -- for each line
-    end -- if
-    lineStart = math.max(1, #lines-WINDOW_LINES+2)
-    lineEnd = math.max(1, #lines)
-    refresh()
+ -- how many lines and columns will fit?
+ WINDOW_LINES = math.ceil((WINDOW_HEIGHT-17)/line_height)
+ WINDOW_COLUMNS = math.ceil((WINDOW_WIDTH-SCROLL_BAR_WIDTH)/font_width)
+ if firstTime then
+  WindowCreate(Win, CHATS_LEFT_POSITION, CHATS_TOP_POSITION, WINDOW_WIDTH, WINDOW_HEIGHT, 4, 6, 0x000000)
+  -- catch for right-click menu and line selection
+  WindowAddHotspot(Win, "textarea", 0, 0, WINDOW_WIDTH-SCROLL_BAR_WIDTH,0, 
+    "", "", "MouseDown", "CancelMouseDown", "MouseUp", "", 
+    miniwin.cursor_ibeam, 0)
+  -- scroll bar up/down buttons
+  WindowAddHotspot(Win, "up", WINDOW_WIDTH-SCROLL_BAR_WIDTH, 0, 0, SCROLL_BAR_WIDTH, 
+    "MouseOver", "CancelMouseOver", "MouseDown", "CancelMouseDown", "MouseUp", "", 
+    miniwin.cursor_hand, 0)
+  WindowAddHotspot(Win, "down", WINDOW_WIDTH-SCROLL_BAR_WIDTH, WINDOW_HEIGHT-(2*SCROLL_BAR_WIDTH), 0, WINDOW_HEIGHT-SCROLL_BAR_WIDTH, 
+    "MouseOver", "CancelMouseOver", "MouseDown", "CancelMouseDown", "MouseUp", "", 
+    miniwin.cursor_hand, 0)
+ else
+  WindowMoveHotspot(Win, "textarea", 0, 0, WINDOW_WIDTH-SCROLL_BAR_WIDTH, 0)
+  WindowMoveHotspot(Win, "up", WINDOW_WIDTH-SCROLL_BAR_WIDTH, 0, 0, SCROLL_BAR_WIDTH)
+  WindowMoveHotspot(Win, "down", WINDOW_WIDTH-SCROLL_BAR_WIDTH, WINDOW_HEIGHT-(2*SCROLL_BAR_WIDTH), 0, WINDOW_HEIGHT-SCROLL_BAR_WIDTH)
+ end -- firstTime
+ WindowShow(Win, true)  
+ if (firstTime == true) then
+  lines = {}
+  for _,styles in ipairs(rawlines) do 
+   fillBuffer(styles)
+  end  -- for each line
+ end -- if
+ lineStart = math.max(1, #lines-WINDOW_LINES+2)
+ lineEnd = math.max(1, #lines)
+ refresh()
 end  -- function init
 
 function OnPluginClose ()
-    -- if enabled
-    if GetPluginInfo (GetPluginID(), 17) then
-        OnPluginDisable()
-    end -- if enabled
+ -- if enabled
+ if GetPluginInfo (GetPluginID(), 17) then
+  OnPluginDisable()
+ end -- if enabled
 end -- function OnPluginClose
 
 function OnPluginEnable ()
-    WindowShow (Win, true)
+ WindowShow (Win, true)
 end -- function OnPluginEnable
 
 function OnPluginSaveState ()
-    -- save echo/timestamp status
-    SetVariable ("echo", tostring (echo))
-    SetVariable ("timestamp", tostring (timestamp))
-    SetVariable("date_format", date_format)
-    SetVariable("WINDOW_WIDTH", WINDOW_WIDTH)
-    SetVariable("WINDOW_HEIGHT", WINDOW_HEIGHT)
+ -- save echo/timestamp status
+ SetVariable ("echo", tostring (echo))
+ SetVariable ("timestamp", tostring (timestamp))
+ SetVariable("date_format", date_format)
+ SetVariable("WINDOW_WIDTH", WINDOW_WIDTH)
+ SetVariable("WINDOW_HEIGHT", WINDOW_HEIGHT)
  if castle_checked ~= nil then
   SetVariable("castle_checked", tostring (castle_checked))
   elseif filename ~= nil then
   SetVariable("filename", tostring (filename))
-  end -- background
-
+ end -- background
 end -- function OnPluginSaveState
 
 function OnPluginDisable ()
-
 end -- function OnPluginDisable
 
 -- display one line
@@ -814,11 +705,11 @@ function Display_Line (line, styles)
  end -- backfill  
  if (styles) then
   for _, style in ipairs (styles) do
-    local width = WindowTextWidth (Win, font, style.text) -- get width of text
-    local right = left + width
-    WindowRectOp (Win, miniwin.rect_fill, left, top, right, bottom, style.backcolour)  -- draw background
-    WindowText (Win, font, style.text, left, top, 0, 0, style.textcolour)  -- draw text
-    left = left + width  -- advance horizontally
+   local width = WindowTextWidth (Win, font, style.text) -- get width of text
+   local right = left + width
+   WindowRectOp (Win, miniwin.rect_fill, left, top, right, bottom, style.backcolour)  -- draw background
+   WindowText (Win, font, style.text, left, top, 0, 0, style.textcolour)  -- draw text
+   left = left + width  -- advance horizontally
   end -- for each style run        
  end -- if  styles
 end -- Display_Line
@@ -826,7 +717,7 @@ end -- Display_Line
 -- display all visible lines
 function writeLines()
  for count = lineStart, lineEnd do
-    Display_Line( count-lineStart, lines[count][1], false )
+  Display_Line( count-lineStart, lines[count][1], false )
  end  -- for each line
  Redraw()
 end  -- function writeLines
@@ -879,8 +770,8 @@ function drawStuff()
    barPos = SCROLL_BAR_WIDTH+SCROLL_BAR_HEIGHT - barSize
   end -- barPos+barSize
   WindowAddHotspot(Win, "scroller", (WINDOW_WIDTH-SCROLL_BAR_WIDTH), barPos, WINDOW_WIDTH, barPos+barSize, 
-       "MouseOver", "CancelMouseOver", "MouseDown", "CancelMouseDown", "MouseUp", "", 
-       miniwin.cursor_hand, 0)
+    "MouseOver", "CancelMouseOver", "MouseDown", "CancelMouseDown", "MouseUp", "", 
+    miniwin.cursor_hand, 0)
   WindowDragHandler(Win, "scroller", "ScrollerMoveCallback", "ScrollerReleaseCallback", 0)
  end  -- if
  DrawThemed3DRect(Win, WINDOW_WIDTH-SCROLL_BAR_WIDTH, barPos, WINDOW_WIDTH+2, barPos+barSize)
@@ -903,8 +794,8 @@ function ScrollerMoveCallback(flags, hotspot_id)
 end  -- function ScrollerMoveCallback
 
 function ScrollerReleaseCallback(flags, hotspot_id)
-    dragscrolling = false
-    refresh()
+ dragscrolling = false
+ refresh()
 end  -- function ScrollerReleaseCallback
 
 function fillBuffer(rawstyles)
@@ -916,58 +807,58 @@ function fillBuffer(rawstyles)
  local remove = table.remove
  local insert = table.insert
  while #styles > 0 do
-    if avail <= 0 then -- no room available? start new line
-     -- remove first line if filled up
-     if #lines >= MAX_LINES then
-      remove (lines, 1)
-     end -- if 
-     avail = WINDOW_WIDTH - (TEXT_INSET * 2) - 9
-     line_styles = {}
-     add_line( line_styles, beginning )
-     beginning = false
-    end -- line full
-    -- get next style, work out how long it is
-    local style = remove (styles, 1)
-    local width = WindowTextWidth (Win, "bodyfont"..Win, style.text)
-    -- if it fits, copy whole style in
+  if avail <= 0 then -- no room available? start new line
+   -- remove first line if filled up
+   if #lines >= MAX_LINES then
+    remove (lines, 1)
+   end -- if 
+   avail = WINDOW_WIDTH - (TEXT_INSET * 2) - 9
+   line_styles = {}
+   add_line( line_styles, beginning )
+   beginning = false
+  end -- line full
+  -- get next style, work out how long it is
+  local style = remove (styles, 1)
+  local width = WindowTextWidth (Win, "bodyfont"..Win, style.text)
+  -- if it fits, copy whole style in
+  if width <= avail then
+   insert (line_styles, style)
+   avail = avail - width
+  else -- otherwise, have to split style   
+   -- look for trailing space (work backwards). remember where space is
+   local col = style.length - 1
+   local split_col
+   -- keep going until out of columns
+   while col > 1 do
+    width = WindowTextWidth (Win, "bodyfont"..Win, style.text:sub (1, col)) 
     if width <= avail then
-     insert (line_styles, style)
-     avail = avail - width
-    else -- otherwise, have to split style   
-     -- look for trailing space (work backwards). remember where space is
-     local col = style.length - 1
-     local split_col
-     -- keep going until out of columns
-     while col > 1 do
-        width = WindowTextWidth (Win, "bodyfont"..Win, style.text:sub (1, col)) 
-      if width <= avail then
-       if not split_col then
-        split_col = col  -- in case no space found, this is where we can split
-       end -- if
-       -- see if space here
-       if style.text:sub (col, col) == " " then
-        split_col = col
-        break
-       end -- if space
-      end -- if will now fit
-      col = col - 1
-     end -- while
-     -- if we found a place to split, use old style, and make it shorter. Also make a copy and put the rest in that
-     if split_col then
-      insert (line_styles, style)
-      local style_copy = copytable.shallow (style)
-      style.text = style.text:sub (1, split_col)
-      style.length = split_col 
-      style_copy.text = style_copy.text:sub (split_col + 1)
-      style_copy.length = #style_copy.text
-      insert (styles, 1, style_copy)
-     elseif next (line_styles) == nil then
-      insert (line_styles, style)
-     else
-      insert (styles, 1, style)
-     end -- if    
-     avail = 0  -- now we need to wrap     
-    end -- if could not fit whole thing in
+     if not split_col then
+      split_col = col  -- in case no space found, this is where we can split
+     end -- if
+     -- see if space here
+     if style.text:sub (col, col) == " " then
+      split_col = col
+      break
+     end -- if space
+    end -- if will now fit
+    col = col - 1
+   end -- while
+   -- if we found a place to split, use old style, and make it shorter. Also make a copy and put the rest in that
+   if split_col then
+    insert (line_styles, style)
+    local style_copy = copytable.shallow (style)
+    style.text = style.text:sub (1, split_col)
+    style.length = split_col 
+    style_copy.text = style_copy.text:sub (split_col + 1)
+    style_copy.length = #style_copy.text
+    insert (styles, 1, style_copy)
+   elseif next (line_styles) == nil then
+    insert (line_styles, style)
+   else
+    insert (styles, 1, style)
+   end -- if    
+    avail = 0  -- now we need to wrap     
+  end -- if could not fit whole thing in
  end -- while we still have styles over
 end  -- function fillBuffer
 
@@ -1018,199 +909,196 @@ require "wait"
 
 function scrollbar(calledBy)
  wait.make (function()
- while keepscrolling == true do
-    if calledBy == "up" then
-     if (lineStart > 1) then
-      lineStart = lineStart - 1
-      lineEnd = lineEnd - 1
-      WindowRectOp(Win, miniwin.rect_draw_edge, (WINDOW_WIDTH-SCROLL_BAR_WIDTH), 0, 0, SCROLL_BAR_WIDTH, 
-                   miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all) -- up arrow pushed
-      points = string.format ("%i,%i,%i,%i,%i,%i", (WINDOW_WIDTH-SCROLL_BAR_WIDTH)+3, 9,(WINDOW_WIDTH-SCROLL_BAR_WIDTH)+7, 5,(WINDOW_WIDTH-SCROLL_BAR_WIDTH)+11, 9)
-      WindowPolygon (Win, points,
-                     theme.DETAIL, miniwin.pen_solid, 1, -- pen (solid, width 1)
-                     theme.DETAIL, miniwin.brush_solid, -- brush (solid)
-                     true, -- close
-                     false) -- alt fill
-     else
-      keepscrolling = false
-     end
-    elseif calledBy == "down" then
-     if (lineEnd < #lines) then
-      lineStart = lineStart + 1
-      lineEnd = lineEnd + 1
-      WindowRectOp(Win, miniwin.rect_draw_edge, (WINDOW_WIDTH-SCROLL_BAR_WIDTH), WINDOW_HEIGHT-(SCROLL_BAR_WIDTH*2), 0, WINDOW_HEIGHT-SCROLL_BAR_WIDTH-1, 
-                   miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all) -- down arrow pushed
-      points = string.format ("%i,%i,%i,%i,%i,%i", (WINDOW_WIDTH-SCROLL_BAR_WIDTH)+3, (WINDOW_HEIGHT-SCROLL_BAR_WIDTH)-11,(WINDOW_WIDTH-SCROLL_BAR_WIDTH)+7, (WINDOW_HEIGHT-SCROLL_BAR_WIDTH)-7, (WINDOW_WIDTH-SCROLL_BAR_WIDTH)+11,(WINDOW_HEIGHT-SCROLL_BAR_WIDTH)-11) -- draw triangle in up button
-      WindowPolygon (Win, points,
-                     theme.DETAIL, miniwin.pen_solid, 1, -- pen (solid, width 1)
-                     theme.DETAIL, miniwin.brush_solid, -- brush (solid)
-                     true, -- close
-                     false) -- alt fill
-     else
-      keepscrolling = false
-     end
-    end -- if
-    wait.time(0.1)
-    refresh()
-   end -- while keepscrolling
+  while keepscrolling == true do
+   if calledBy == "up" then
+    if (lineStart > 1) then
+     lineStart = lineStart - 1
+     lineEnd = lineEnd - 1
+     WindowRectOp(Win, miniwin.rect_draw_edge, (WINDOW_WIDTH-SCROLL_BAR_WIDTH), 0, 0, SCROLL_BAR_WIDTH, 
+         miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all) -- up arrow pushed
+     points = string.format ("%i,%i,%i,%i,%i,%i", (WINDOW_WIDTH-SCROLL_BAR_WIDTH)+3, 9,(WINDOW_WIDTH-SCROLL_BAR_WIDTH)+7, 5,(WINDOW_WIDTH-SCROLL_BAR_WIDTH)+11, 9)
+     WindowPolygon (Win, points,
+         theme.DETAIL, miniwin.pen_solid, 1, -- pen (solid, width 1)
+         theme.DETAIL, miniwin.brush_solid, -- brush (solid)
+         true, -- close
+         false) -- alt fill
+    else
+     keepscrolling = false
+    end
+   elseif calledBy == "down" then
+    if (lineEnd < #lines) then
+     lineStart = lineStart + 1
+     lineEnd = lineEnd + 1
+     WindowRectOp(Win, miniwin.rect_draw_edge, (WINDOW_WIDTH-SCROLL_BAR_WIDTH), WINDOW_HEIGHT-(SCROLL_BAR_WIDTH*2), 0, WINDOW_HEIGHT-SCROLL_BAR_WIDTH-1, 
+         miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all) -- down arrow pushed
+     points = string.format ("%i,%i,%i,%i,%i,%i", (WINDOW_WIDTH-SCROLL_BAR_WIDTH)+3, (WINDOW_HEIGHT-SCROLL_BAR_WIDTH)-11,(WINDOW_WIDTH-SCROLL_BAR_WIDTH)+7, (WINDOW_HEIGHT-SCROLL_BAR_WIDTH)-7, (WINDOW_WIDTH-SCROLL_BAR_WIDTH)+11,(WINDOW_HEIGHT-SCROLL_BAR_WIDTH)-11) -- draw triangle in up button
+     WindowPolygon (Win, points,
+         theme.DETAIL, miniwin.pen_solid, 1, -- pen (solid, width 1)
+         theme.DETAIL, miniwin.brush_solid, -- brush (solid)
+         true, -- close
+         false) -- alt fill
+    else
+     keepscrolling = false
+    end
+   end -- if
+   wait.time(0.1)
+   refresh()
+  end -- while keepscrolling
  end)  -- wait.make
 end  -- function scrollbar
 
 function GetLineText (styles)
-  local t = {}
-  for _, style in ipairs (styles) do
-    table.insert (t, style.text)
-  end -- for
-  return table.concat (t)
+ local t = {}
+ for _, style in ipairs (styles) do
+  table.insert (t, style.text)
+ end -- for
+ return table.concat (t)
 end -- function GetLineText
 
 function GetAllBufferedMessages()
-    local t = {}
-    for _,styles in ipairs(rawlines) do
-      table.insert (t, GetLineText (styles))
-    end -- for
-    SetClipboard(table.concat(t,"\r\n"))
+ local t = {}
+ for _,styles in ipairs(rawlines) do
+  table.insert (t, GetLineText (styles))
+ end -- for
+ SetClipboard(table.concat(t,"\r\n"))
 end -- function GetAllBufferedMessages
 
 function GetBufferedMessage(xpos, ypos)
-    windowline = math.floor((ypos/line_height)+1)-1
-    text = ""
-    if (#lines > windowline) then
-        local line = windowline+lineStart
-        -- go to beginning of message
-        while lines[line][2] ~= true and line > 1 do
-            line = line - 1
-        end -- while
-        -- first line
-        local styles = copytable.deep(lines[line][1])
-        if (line-lineStart+1 > 0) then
-            Display_Line (line-lineStart, styles, true)
-        end -- if
-        text = GetLineText (styles)
-        -- remaining lines
-        line = line + 1
-        while line <= #lines and lines[line][2] ~= true do
-            local styles = copytable.deep(lines[line][1])
-            if (line-lineStart+1 > 0 and line-lineStart < WINDOW_LINES) then
-                Display_Line (line-lineStart, styles, true)
-            end
-            text = text.. GetLineText (styles)
-            line = line + 1
-        end -- while
-        SetClipboard(text)
-    end -- if
-    Redraw()   
+ windowline = math.floor((ypos/line_height)+1)-1
+ text = ""
+ if (#lines > windowline) then
+  local line = windowline+lineStart
+  -- go to beginning of message
+  while lines[line][2] ~= true and line > 1 do
+   line = line - 1
+  end -- while
+  -- first line
+  local styles = copytable.deep(lines[line][1])
+  if (line-lineStart+1 > 0) then
+   Display_Line (line-lineStart, styles, true)
+  end -- if
+  text = GetLineText (styles)
+  -- remaining lines
+  line = line + 1
+  while line <= #lines and lines[line][2] ~= true do
+   local styles = copytable.deep(lines[line][1])
+   if (line-lineStart+1 > 0 and line-lineStart < WINDOW_LINES) then
+    Display_Line (line-lineStart, styles, true)
+   end
+   text = text.. GetLineText (styles)
+   line = line + 1
+  end -- while
+  SetClipboard(text)
+ end -- if
+ Redraw()   
 end  -- function GetBufferedMessage
 
 function MouseOver(flags, hotspot_id)
-    keepscrolling = false
+ keepscrolling = false
 end  -- function MouseOver
 
 function CancelMouseOver(flags, hotspot_id)
-    keepscrolling = false
+ keepscrolling = false
 end  -- function CancelMouseOver
 
 function MouseDown(flags, hotspot_id)
-    if (hotspot_id == "resizer") then
-        startx, starty = WindowInfo (Win, 17), WindowInfo (Win, 18)
-    elseif (hotspot_id == "scroller") then
-        clickdelta = WindowHotspotInfo(Win, "scroller", 2)-WindowInfo (Win, 15)
-        dragscrolling = true
-    elseif (hotspot_id == "textarea" and flags == miniwin.hotspot_got_lh_mouse) then
-        GetBufferedMessage(WindowInfo(Win, 14), WindowInfo(Win,15))
-    else
-        keepscrolling = true
-        scrollbar(hotspot_id)
-    end -- if
+ if (hotspot_id == "resizer") then
+  startx, starty = WindowInfo (Win, 17), WindowInfo (Win, 18)
+ elseif (hotspot_id == "scroller") then
+  clickdelta = WindowHotspotInfo(Win, "scroller", 2)-WindowInfo (Win, 15)
+  dragscrolling = true
+ elseif (hotspot_id == "textarea" and flags == miniwin.hotspot_got_lh_mouse) then
+  GetBufferedMessage(WindowInfo(Win, 14), WindowInfo(Win,15))
+ else
+  keepscrolling = true
+  scrollbar(hotspot_id)
+ end -- if
 end  -- function MouseDown
 
 function CancelMouseDown(flags, hotspot_id)
-    keepscrolling = false
-    refresh()
+ keepscrolling = false
+ refresh()
 end  -- function CancelMouseDown
 
 function MouseUp(flags, hotspot_id)
-    if (hotspot_id == "textarea" and flags == miniwin.hotspot_got_rh_mouse) then
-        -- build menu for current state
-        right_click_menu()
-    else
-        refresh()
-    end -- if
-    keepscrolling = false
+ if (hotspot_id == "textarea" and flags == miniwin.hotspot_got_rh_mouse) then
+  -- build menu for current state
+  right_click_menu()
+ else
+  refresh()
+ end -- if
+ keepscrolling = false
 end  -- function MouseUp
 
 function chat_echo (name, line, wildcards)
-    if wildcards [1] == false then
-      echo = not echo  -- toggle
-      SetVariable("wechoon", "false")
-    else
-      echo = wildcards [1]:lower () == " on"
-      SetVariable("wechoon", "true")
-    end -- if
-
-    if echo then
-        ColourNote ("yellow", "", "Echoing chats in main window ENABLED.")
-    else
-        ColourNote ("yellow", "", "Echoing chats in main window DISABLED.")
-    end -- if
+ if wildcards [1] == false then
+  echo = not echo  -- toggle
+  SetVariable("wechoon", "false")
+ else
+  echo = wildcards [1]:lower () == " on"
+  SetVariable("wechoon", "true")
+ end -- if
+ if echo then
+  ColourNote ("yellow", "", "Echoing chats in main window ENABLED.")
+ else
+  ColourNote ("yellow", "", "Echoing chats in main window DISABLED.")
+ end -- if
 end -- function chat_echo
 
 -- right click menu
 function right_click_menu ()
-    menustring ="Copy All To Clipboard|Change Font|Turn Echo "
-    
-    if echo then
-        menustring = menustring .. "Off"
-    else
-        menustring = menustring .. "On"
-    end -- if
-    
-    menustring = menustring.."|>Timestamp|No Timestamps|30 Aug 13:29:49|30 Aug 01:20:12PM|13:29:08|1:22:06 PM"
-    result = WindowMenu (Win, 
-        WindowInfo (Win, 14),  -- x position
-        WindowInfo (Win, 15),   -- y position
-        menustring) -- content
-    if result == "Copy All To Clipboard" then
-        GetAllBufferedMessages()
-        ColourNote ("yellow", "", "All buffered messages copied to clipboard.")
-    elseif result == "Change Font" then
-        wanted_font = utils.fontpicker (BODY_FONT_NAME, BODY_FONT_SIZE) --font dialog
-        if wanted_font then
-            BODY_FONT_NAME = wanted_font.name
-            BODY_FONT_SIZE = wanted_font.size
-            SetVariable ("bodyfont", BODY_FONT_NAME)
-            SetVariable ("font_size", BODY_FONT_SIZE)
-            OnPluginInstall()
-        end
-    elseif result == "Turn Echo Off" then
-        echo = false
-        ColourNote ("yellow", "", "Echoing chats in main window DISABLED.")
-    elseif result == "Turn Echo On" then
-        echo = true
-        ColourNote ("yellow", "", "Echoing chats in main window ENABLED.")
-    elseif result == "No Timestamps" then
-        timestamp = false
-        ColourNote ("yellow", "", "Timestamps in communication window DISABLED.")
-    elseif result == "30 Aug 13:29:49" then
-        timestamp = true
-        date_format = "[%d %b %H:%M:%S] "
-        ColourNote ("yellow", "", "Timestamps in communication window ENABLED using format like '30 Aug 13:29:49'.")
-    elseif result == "30 Aug 01:20:12PM" then
-        timestamp = true
-        date_format = "[%d %b %I:%M:%S%p] "
-        ColourNote ("yellow", "", "Timestamps in communication window ENABLED using format like '30 Aug 01:20:12PM'.")
-    elseif result == "13:29:08" then
-        timestamp = true
-        date_format = "[%H:%M:%S] "
-        ColourNote ("yellow", "", "Timestamps in communication window ENABLED using format like '13:29:08'.")
-    elseif result == "1:22:06 PM" then
-        timestamp = true
-        date_format = "[%I:%M:%S%p] "
-        ColourNote ("yellow", "", "Timestamps in communication window ENABLED using format like '1:22:06 PM'.")
-    elseif result == "Hide Window" then
-        WindowShow( Win, false )
-        ColourNote ("yellow", "", "Chats window now hidden. Type 'chats show' to see it again.")        
-    end -- if
+ menustring ="Copy All To Clipboard|Change Font|Turn Echo "
+ if echo then
+  menustring = menustring .. "Off"
+ else
+  menustring = menustring .. "On"
+ end -- if
+ menustring = menustring.."|>Timestamp|No Timestamps|30 Aug 13:29:49|30 Aug 01:20:12PM|13:29:08|1:22:06 PM"
+ result = WindowMenu (Win, 
+            WindowInfo (Win, 14),  -- x position
+            WindowInfo (Win, 15),   -- y position
+            menustring) -- content
+ if result == "Copy All To Clipboard" then
+  GetAllBufferedMessages()
+  ColourNote ("yellow", "", "All buffered messages copied to clipboard.")
+ elseif result == "Change Font" then
+  wanted_font = utils.fontpicker (BODY_FONT_NAME, BODY_FONT_SIZE) --font dialog
+  if wanted_font then
+   BODY_FONT_NAME = wanted_font.name
+   BODY_FONT_SIZE = wanted_font.size
+   SetVariable ("bodyfont", BODY_FONT_NAME)
+   SetVariable ("font_size", BODY_FONT_SIZE)
+   OnPluginInstall()
+  end
+ elseif result == "Turn Echo Off" then
+  echo = false
+  ColourNote ("yellow", "", "Echoing chats in main window DISABLED.")
+ elseif result == "Turn Echo On" then
+  echo = true
+  ColourNote ("yellow", "", "Echoing chats in main window ENABLED.")
+ elseif result == "No Timestamps" then
+  timestamp = false
+  ColourNote ("yellow", "", "Timestamps in communication window DISABLED.")
+ elseif result == "30 Aug 13:29:49" then
+  timestamp = true
+  date_format = "[%d %b %H:%M:%S] "
+  ColourNote ("yellow", "", "Timestamps in communication window ENABLED using format like '30 Aug 13:29:49'.")
+ elseif result == "30 Aug 01:20:12PM" then
+  timestamp = true
+  date_format = "[%d %b %I:%M:%S%p] "
+  ColourNote ("yellow", "", "Timestamps in communication window ENABLED using format like '30 Aug 01:20:12PM'.")
+ elseif result == "13:29:08" then
+  timestamp = true
+  date_format = "[%H:%M:%S] "
+  ColourNote ("yellow", "", "Timestamps in communication window ENABLED using format like '13:29:08'.")
+ elseif result == "1:22:06 PM" then
+  timestamp = true
+  date_format = "[%I:%M:%S%p] "
+  ColourNote ("yellow", "", "Timestamps in communication window ENABLED using format like '1:22:06 PM'.")
+ elseif result == "Hide Window" then
+  WindowShow( Win, false )
+  ColourNote ("yellow", "", "Chats window now hidden. Type 'chats show' to see it again.")        
+ end -- if
 end -- function right_click_menu
 
 --latest
@@ -1294,7 +1182,20 @@ function start_of_equip_list (name, line, wildcards)
 end -- start_of_equip_list
 
 function show_equip_list ()
- print ("Str:", stats.str, "Int:", stats.int, "Wis:", stats.wis, "Dex:", stats.dex, "Con:", stats.con, "Hr:", stats.hr, "Dmg:", stats.dmg, "Chr:", stats.chr, "Luc:", stats.luc, "Svs:", stats.svs, "Da:", stats.da, "Mr:", stats.mr, "Hp:", stats.hp, "Ma:", stats.ma)
+    ColourNote("white", "black", "Str:", "red", "black", stats.str,
+               "white", "black", " Int:", "red", "black", stats.int,
+               "white", "black", " Wis:", "red", "black", stats.wis,
+               "white", "black", " Dex:", "red", "black", stats.dex,
+               "white", "black", " Con:", "red", "black", stats.con,
+               "white", "black", " Da:", "red", "black", stats.da,
+               "white", "black", " Mr:", "red", "black", stats.mr,
+               "white", "black", " Hr:", "red", "black", stats.hr,
+               "white", "black", " Dmg:", "red", "black", stats.dmg,
+               "white", "black", " Chr:", "red", "black", stats.chr,
+               "white", "black", " Luc:", "red", "black", stats.luc,
+               "white", "black", " Svs:", "red", "black", stats.svs,
+               "white", "black", " Hp:", "red", "black", stats.hp,
+               "white", "black", " Ma:", "red", "black", stats.ma)
 end -- show_equip_list
 
 -- create the layout here, on connect or install
@@ -1314,9 +1215,7 @@ function create_layout ()
  if bottom < top then
   bottom = top
  end -- if
- ----------------------------------------------------------------------------
- -- Create adjustable windows
- ----------------------------------------------------------------------------
+ ----/ Create adjustable windows /----
  main_text_area ()
  create_titlebar ()
  build_avatar_window ()
@@ -1325,9 +1224,7 @@ function create_layout ()
  create_sidebar_button ()
  create_minimap_window ()
  build_prompt_bars ()
- ----------------------------------------------------------------------------
- -- Set the background.
- ----------------------------------------------------------------------------
+ ----/ Set the background /----
  if GetVariable("castle_checked") == "browse" then
   SetBackgroundImage(GetVariable("filename"), 0)
  elseif GetVariable("castle_checked") == "two" then
@@ -1347,9 +1244,18 @@ function create_layout ()
 end -- create_layout
 
 bgColour = tonumber(GetVariable ("bgColour")) or ColourNameToRGB("black")
+health_color = tonumber(GetVariable("health_color")) or 0x0000CC
+health_colorB = tonumber(GetVariable("health_colorB")) or 0x000033
+mana_color = tonumber(GetVariable("mana_color")) or 0xCC0000
+mana_colorB = tonumber(GetVariable("mana_colorB")) or 0x330000
+move_color = tonumber(GetVariable("move_color")) or 0x00CC00
+move_colorB = tonumber(GetVariable("move_colorB")) or 0x003300
+enemy_color = tonumber(GetVariable("enemy_color")) or 0x00CCCC
+enemy_colorB = tonumber(GetVariable("enemy_colorB")) or 0x003333
+bar_text_color = tonumber(GetVariable("bar_text_color")) or ColourNameToRGB("white")
 customBar_top_color = tonumber(GetVariable ("custom_bar_color_highlight_top")) or ColourNameToRGB("black")
 customBar_bottom_color = tonumber(GetVariable ("custom_bar_color_highlight_bottom")) or ColourNameToRGB("black")
-  
+
 function checkItem (which)
   menu [which] = "+" .. menu [which]
 end -- checkItem
@@ -1359,32 +1265,41 @@ function settings_click_menu ()
   [1] = "! >Avatar",
   [2] = "Default",
   [3] = "-",
-  [4] = "Browse...",
+  [4] = "Browse..",
   [5] = "<",
   [6] = ">Background",
   [7] = "Castle 1",
   [8] = "Castle 2",
   [9] = "Castle 3",
   [10] = "-",
-  [11] = "Browse...",
+  [11] = "Browse..",
   [12] = "-",
   [13] = "Solid Color",
   [14] = "<",
   [15] = ">Prompt Bars",
-  [16] = "Default",
+  [16] = "Default [Reset]",
   [17] = "-",
   [18] = "Shiny",
   [19] = "Extra Shiny",
   [20] = "-",
-  [21] = "Custom Top Color",
+  [21] = "Custom Top Color", 
   [22] = "Custom Bottom Color",
-  [23] = "<",
-  [24] = "-",
-  [25] = "List equipment stats",
-  [26] = "-",
-  [27] = "Check and Update Plugin",
-  [28] = "-",
-  [29] = "Report an issue"
+  [23] = "-",
+  [24] = "Custom Health Center Color Filled", 
+  [25] = "Custom Health Center Color Empty",
+  [26] = "Custom Mana Center Color Filled", 
+  [27] = "Custom Mana Center Color Empty",
+  [28] = "Custom Move Center Color Filled", 
+  [29] = "Custom Move Center Color Empty",
+  [30] = "Custom Enemy Center Color Filled", 
+  [31] = "Custom Enemy Center Color Empty",  
+  [32] = "-",
+  [33] = "Custom Text Color",
+  [34] = "<",
+  [35] = "-",
+  [36] = "Report an issue",
+  [37] = "-",
+  [38] = "Check and Update Plugin"
  }
  if GetVariable("avatar_checked") == "one" or GetVariable("avatar_checked") == nil then
   checkItem (2)
@@ -1417,7 +1332,43 @@ function settings_click_menu ()
  if GetVariable("prompt_checked_custom") == "customBottom" then
   checkItem (22)
   menu [22] = menu [22] .. " [" .. RGBColourToName(customBar_bottom_color) .. "]"
- end -- prompt_checked_custom
+ end -- prompt_checked_custom 
+ if GetVariable("health_color") ~= nil then
+  checkItem (24)
+  menu [24] = menu [24] .. " [" .. RGBColourToName(GetVariable("health_color")) .. "]"
+ end -- health_color
+ if GetVariable("health_colorB") ~= nil then
+  checkItem (25)
+  menu [25] = menu [25] .. " [" .. RGBColourToName(GetVariable("health_colorB")) .. "]"
+ end -- health_colorB 
+ if GetVariable("mana_color") ~= nil then
+  checkItem (26)
+  menu [26] = menu [26] .. " [" .. RGBColourToName(GetVariable("mana_color")) .. "]"
+ end -- mana_color
+ if GetVariable("mana_colorB") ~= nil then
+  checkItem (27)
+  menu [27] = menu [27] .. " [" .. RGBColourToName(GetVariable("mana_colorB")) .. "]"
+ end -- mana_colorB
+ if GetVariable("move_color") ~= nil then
+  checkItem (28)
+  menu [28] = menu [28] .. " [" .. RGBColourToName(GetVariable("move_color")) .. "]"
+ end -- move_color
+ if GetVariable("move_colorB") ~= nil then
+  checkItem (29)
+  menu [29] = menu [29] .. " [" .. RGBColourToName(GetVariable("move_colorB")) .. "]"
+ end -- move_colorB
+ if GetVariable("enemy_color") ~= nil then
+  checkItem (30)
+  menu [30] = menu [30] .. " [" .. RGBColourToName(GetVariable("enemy_color")) .. "]"
+ end -- enemy_color
+ if GetVariable("enemy_colorB") ~= nil then
+  checkItem (31)
+  menu [31] = menu [31] .. " [" .. RGBColourToName(GetVariable("enemy_colorB")) .. "]"
+ end -- enemy_colorB
+ if GetVariable("bar_text_color") ~= nil then
+  checkItem (33)
+  menu [33] = menu [33] .. " [" .. RGBColourToName(GetVariable("bar_text_color")) .. "]"
+ end -- bar_text_color
  result = WindowMenu (titlebar_window, 65, 15, table.concat (menu, "|"))
  if result == "1" then
   avatar_filename = nil
@@ -1475,62 +1426,112 @@ function settings_click_menu ()
   filename = nil
   SetBackgroundImage("", 0)
   SetBackgroundColour(tonumber(GetVariable ("bgColour")))
-  print("Background Selected:", "[Color name/code]:", RGBColourToName(bgColour), "[Red Green Blue]:", bgColour)
   main_text_area ()
  elseif result == "8" then
   SetVariable("prompt_checked", "default")
   DeleteVariable("prompt_checked_custom")
+  DeleteVariable("health_color")
+  DeleteVariable("health_colorB")
+  DeleteVariable("mana_color")
+  DeleteVariable("mana_colorB")
+  DeleteVariable("move_color")
+  DeleteVariable("move_colorB")
+  DeleteVariable("enemy_color")
+  DeleteVariable("enemy_colorB")
+  DeleteVariable("bar_text_color")
   SetVariable("custom_bar_color_highlight_top", ColourNameToRGB("#000000"))
   SetVariable("custom_bar_color_highlight_bottom", ColourNameToRGB("#000000"))
-  print("Prompt Bars Selected: Default")
   draw_energy_bars ()
  elseif result == "9" then
   SetVariable("prompt_checked", "shiny")
   DeleteVariable("prompt_checked_custom")
-  SetVariable("custom_bar_color_highlight_top", ColourNameToRGB("#B9C9D8"))
+  SetVariable("custom_bar_color_highlight_top", ColourNameToRGB("#FFFFFF"))
   SetVariable("custom_bar_color_highlight_bottom", ColourNameToRGB("#000000"))
-  print("Prompt Bars Selected: Shiny")
   draw_energy_bars ()
  elseif result == "10" then
   SetVariable("prompt_checked", "extrashiny")
   DeleteVariable("prompt_checked_custom")
-  SetVariable("custom_bar_color_highlight_top", ColourNameToRGB("#B9C9D8"))
-  SetVariable("custom_bar_color_highlight_bottom", ColourNameToRGB("#B9C9D8"))
-  print("Prompt Bars Selected: Extra Shiny")
+  SetVariable("custom_bar_color_highlight_top", ColourNameToRGB("#FFFFFF"))
+  SetVariable("custom_bar_color_highlight_bottom", ColourNameToRGB("#FFFFFF"))
   draw_energy_bars ()
  elseif result == "11" then
   SetVariable("prompt_checked", "customTop")
   customBar_top_color = getColour(customBar_top_color)
   SetVariable("custom_bar_color_highlight_top", customBar_top_color)
-  print("Prompt Bars Selected:", "[Color name/code]:", RGBColourToName(customBar_top_color), "[Red Green Blue]:", customBar_top_color)
   draw_energy_bars ()
  elseif result == "12" then
   SetVariable("prompt_checked_custom", "customBottom")
+  if GetVariable("prompt_checked") ~= "customTop" then
+   SetVariable("prompt_checked", "blahblah")
+  end -- quick fix so I dont have to rewrite code cause im lazy lol
   customBar_bottom_color = getColour(customBar_bottom_color)
   SetVariable("custom_bar_color_highlight_bottom", customBar_bottom_color)
-  print("Prompt Bars Selected:", "[Color name/code]:", RGBColourToName(customBar_bottom_color), "[Red Green Blue]:", customBar_bottom_color)
-  draw_energy_bars ()	
+  draw_energy_bars ()	 
  elseif result == "13" then
-  show_equip_list () 
+  SetVariable("prompt_checked", "blahblah")
+  health_color = getColour(health_color)
+  SetVariable("health_color", health_color)
+  draw_energy_bars ()
  elseif result == "14" then
-  print("")
-  ColourNote("white", "blue", "Connecting to the server and checking for updates.")
-  ColourNote("white", "blue", "Please wait..")
-  update_plugin ()
+  SetVariable("prompt_checked", "blahblah")
+  health_colorB = getColour(health_colorB)
+  SetVariable("health_colorB", health_colorB)
+  draw_energy_bars ()
  elseif result == "15" then
+  SetVariable("prompt_checked", "blahblah")
+  mana_color = getColour(mana_color)
+  SetVariable("mana_color", mana_color)
+  draw_energy_bars ()
+ elseif result == "16" then
+  SetVariable("prompt_checked", "blahblah")
+  mana_colorB = getColour(mana_colorB)
+  SetVariable("mana_colorB", mana_colorB)
+  draw_energy_bars ()
+ elseif result == "17" then
+  SetVariable("prompt_checked", "blahblah")
+  move_color = getColour(move_color)
+  SetVariable("move_color", move_color)
+  draw_energy_bars ()
+ elseif result == "18" then
+  SetVariable("prompt_checked", "blahblah")
+  move_colorB = getColour(move_colorB)
+  SetVariable("move_colorB", move_colorB)
+  draw_energy_bars ()
+ elseif result == "19" then
+  SetVariable("prompt_checked", "blahblah")
+  enemy_color = getColour(enemy_color)
+  SetVariable("enemy_color", enemy_color)
+  draw_energy_bars ()
+ elseif result == "20" then
+  SetVariable("prompt_checked", "blahblah")
+  enemy_colorB = getColour(enemy_colorB)
+  SetVariable("enemy_colorB", enemy_colorB)
+  draw_energy_bars ()
+ elseif result == "21" then
+  SetVariable("prompt_checked", "blahblah")
+  bar_text_color = getColour(bar_text_color)
+  SetVariable("bar_text_color", bar_text_color)
+  draw_energy_bars ()
+ elseif result == "22" then
   if IsConnected() == true then
    issue_gui = utils.inputbox ( "What is the issue you are having?", "Report an Issue", default, font, fontsize, { prompt_height = 24 } )
    if issue_gui == nil then
     print("Report an issue has been canceled.")
    else
     Send("note to Fumino")
-    Send("note subject Issue with MSDP GUI v", PLUGIN_VERSION)
+    Send("note subject Issue with Msdp Sidebar v", PLUGIN_VERSION)
     Send("note + ", issue_gui)
-	print("If everything is correct, please type note post")
+	ColourNote("white", "blue", "If everything is correct, please type ",
+	  "lime", "blue", "note post")
    end -- issue_gui
   else
    print("You must be connected to the server to report an issue.")
   end -- IsConnected
+ elseif result == "23" then
+  print("")
+  ColourNote("white", "blue", "Connecting to the server and checking for updates.")
+  ColourNote("white", "blue", "Please wait..")
+  update_plugin ()
 end -- result
  DrawThemed3DRect(titlebar_window, 65, 0, 104, 13)
  outlined_text (colourWhite, titlebar_window, "settings", 5, 68, 2, 0)
@@ -1561,9 +1562,7 @@ end --getColour
 
 function OnPluginWorldOutputResized ()
 end -- function
-----------------------------------------------------------------------------
--- Create the health, mana and movement bars at the bottom.
-----------------------------------------------------------------------------
+----/ Create the health, mana, movement and enemy bars at the bottom /----
 function build_prompt_bars ()
  WindowCreate (bars_border_window,   -- window ID
     BARS_BORDER_LEFT_POSITION,         -- left
@@ -1716,8 +1715,8 @@ function draw_energy_bars ()
  end -- if
  if current_health ~= nil and max_health ~= nil then
   type_bar = "Health"
-  colour = 0x0000CC
-  colour2 = 0x000033
+  colour = GetVariable("health_color") or 0x0000CC
+  colour2 = GetVariable("health_colorB") or 0x000033
   draw_energy_bar(type_bar, colour, colour2, health_window, current_health, max_health)
  end -- if
  -- MANA
@@ -1730,8 +1729,8 @@ function draw_energy_bars ()
  end -- if
  if current_mana ~= nil and max_mana ~= nil then
   type_bar = "Mana"
-  colour = 0xCC0000
-  colour2 = 0x330000
+  colour = GetVariable("mana_color") or 0xCC0000
+  colour2 = GetVariable("mana_colorB") or 0x330000
   draw_energy_bar(type_bar, colour, colour2, mana_window, current_mana, max_mana)
  end -- if
  -- MOVEMENT
@@ -1744,8 +1743,8 @@ function draw_energy_bars ()
  end -- if
  if current_movement ~= nil and max_movement ~= nil then
   type_bar = "Move"
-  colour = 0x00CC00
-  colour2 = 0x003300
+  colour = GetVariable("move_color") or 0x00CC00
+  colour2 = GetVariable("move_colorB") or 0x003300
   draw_energy_bar(type_bar, colour, colour2, movement_window, current_movement, max_movement)
  end -- if
  -- EXP
@@ -1758,8 +1757,8 @@ function draw_energy_bars ()
  end -- if
  if current_exp ~= nil and max_exp ~= nil then
   type_bar = "Enemy"
-  colour = 0x00CCCC
-  colour2 = 0x003333
+  colour = GetVariable("enemy_color") or 0x00CCCC
+  colour2 = GetVariable("enemy_colorB") or 0x003333
   draw_energy_bar(type_bar, colour, colour2, exp_window, current_exp, max_exp)
  end -- if
 end -- draw_energy_bars
@@ -1799,8 +1798,9 @@ function draw_energy_bar (type_bar, colour, colour2, window, current_value, max_
   WindowGradient (window, 0, 10, filled, 21, colour, custom_bar_color_highlight_bottom, 2)
  end -- if
  -- write the information inside
- outlined_text (colourWhite, window, type_bar, 9, 3, 3, 0)
- outlined_text (colourWhite, window, math.ceil(filled)..'%', 9, 55, 3, 0)
+ colour_cust = GetVariable("bar_text_color") or ColourNameToRGB("white")
+ outlined_text (colour_cust, window, type_bar, 9, 3, 3, 0)
+ outlined_text (colour_cust, window, math.ceil(filled)..'%', 9, 55, 3, 0)
 end -- draw_energy_bar
 
 local AffectName = {}
@@ -1844,9 +1844,7 @@ end -- function
 function list_affects ()
  print(affects)
 end -- list_affects
-----------------------------------------------------------------------------
--- Function to build the avatar window
-----------------------------------------------------------------------------
+----/ Function to build the avatar window /----
 function build_avatar_window ()
  WindowCreate (avatar_window,   -- window ID
     AVATAR_LEFT_POSITION,   -- left
@@ -1868,9 +1866,7 @@ function build_avatar_window ()
  WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)  -- draw it
  WindowShow (avatar_window, true)
 end -- function build_avatar_window
-----------------------------------------------------------------------------
--- Function to draw the spell icons
-----------------------------------------------------------------------------
+----/ Function to draw the spell icons /----
 function draw_affects ()
  affects = msdp["AFFECTS"]
  if affects == nil or affects == "None" then
@@ -2009,9 +2005,7 @@ function draw_affects ()
   end -- if
  end -- for
 end -- draw_affects
-----------------------------------------------------------------------------
--- Function to create a black shadow behind to text to make it easier to read
-----------------------------------------------------------------------------
+----/ Function to create a black shadow behind to text to make it easier to read /----
 function outlined_text (colour, window, text, size, x, y, centre_width)
  outlineColour = colourBlack
  -- write the information inside
@@ -2033,9 +2027,7 @@ function outlined_text (colour, window, text, size, x, y, centre_width)
  WindowText(window,'f',text,x,y,0,0,colour,0)
  return width
 end -- function outlined_text
-----------------------------------------------------------------------------
--- Set the main text area.
-----------------------------------------------------------------------------
+----/ Set the main text area /----
 function main_text_area () 
  -- tell the client where to draw the text
  if GetVariable("bgColour") ~= nil then
@@ -2060,9 +2052,7 @@ function main_text_area ()
     8) -- OutsideFillStyle (fine hatch)
  end -- bgColour
 end -- function main_text_area
-----------------------------------------------------------------------------
--- Create the title top left of the screen.
-----------------------------------------------------------------------------
+----/ Create the title top left of the screen /----
 function create_titlebar ()
  -- make a miniwindow to the left of the text
  WindowCreate (titlebar_window,   -- window ID
@@ -2107,9 +2097,7 @@ end -- PROMPT_BARS_VISIBILITY
  -- show the window
  WindowShow (titlebar_window, true)
 end -- function create_titlebar
-----------------------------------------------------------------------------
--- Create the minimap window to the left of the text.
-----------------------------------------------------------------------------
+----/ Create the minimap window to the left of the text /----
 function create_minimap_window ()
  -- make a miniwindow for the map
  WindowCreate (minimap_window,   -- window ID
@@ -2128,9 +2116,7 @@ function create_minimap_window ()
  -- draw the map
  draw_minimap ()
 end -- function create_minimap_window
-----------------------------------------------------------------------------
--- Create the sidebar button
-----------------------------------------------------------------------------
+----/ Create the sidebar button /----
 function create_sidebar_button ()
  -- make a miniwindow to the left of the text
  WindowCreate (sidebar_button_window,   -- window ID
@@ -2236,7 +2222,7 @@ function MouseUp_sidebar_button_op(flags, hotspot_id)
   end -- SIDEBAR_LEFT_POSITION 
  end  -- while
 end -- function MouseUp_sidebar_button_op
--------------- Mouse function for Chat Window Button ---------------
+----/ Mouse function for Chat Window Button /----
 function MouseUp_ch()
 CHAT_VISIBILITY = not CHAT_VISIBILITY
 if CHAT_VISIBILITY == true then
@@ -2287,7 +2273,7 @@ if CHAT_VISIBILITY == false then
  end  -- while loop sidebar_closing
 end -- CHAT_VISIBILITY
 end -- function MouseUp_ch
--------------- Mouse function for Prompt Bar Windows Button ---------------
+----/ Mouse function for Prompt Bar Windows Button /----
 function MouseUp_bars()
 PROMPT_BARS_VISIBILITY = not PROMPT_BARS_VISIBILITY
 if PROMPT_BARS_VISIBILITY == true then
@@ -2332,9 +2318,7 @@ if PROMPT_BARS_VISIBILITY == false then
  end  -- while loop bars_closing
 end -- PROMPT_BARS_VISIBILITY
 end -- function MouseUp_bars
------------------------------------------------
--- Horizontal Window Seperator Line
------------------------------------------------
+----/ Horizontal Window Seperator Line /----
 function window_seperator_line_hor ()
  WindowCreate (chat_border_window_hor,   -- window ID
     WINDOW_SEPERATOR_LEFT,         -- left
@@ -2352,9 +2336,7 @@ function window_seperator_line_hor ()
  end -- border image	 
  WindowShow(chat_border_window_hor, true)
 end -- function window_seperator_line_hor
------------------------------------------------
--- Vertical Window Seperator Line
------------------------------------------------
+----/ Vertical Window Seperator Line /----
 function window_seperator_line ()
  WindowCreate (chat_border_window,   -- window ID
     WINDOW_SEPERATOR_LEFT,         -- left
@@ -2372,9 +2354,7 @@ function window_seperator_line ()
  end -- border image	 
  WindowShow(chat_border_window, true)
 end -- function window_seperator_line
------------------------------------------------
--- MSDP negotiation
------------------------------------------------
+----/ MSDP negotiation /----
 local MSDP = 69
 function OnPluginTelnetRequest (type_msdp, data)
  if type_msdp == MSDP and data == "WILL" then
@@ -2458,9 +2438,7 @@ function StoreVariable (MSDP_var, MSDP_val)
   msdp[MSDP_var] = MSDP_val
  end -- if
 end -- function StoreVariable
------------------------------------------------
--- Plugin updater - needs more work done on it, but... it works pretty good for now
------------------------------------------------
+----/ Plugin updater - needs more work done on it, but... it works pretty good for now /----
 function update_plugin()
  raw = "https://raw.githubusercontent.com/TFC-Fumino/MUSHclient_Plugins/master/MSDP-GUI/Generic/worlds/plugins/TFC_Msdp_Sidebar.xml"
  async_ok, async = pcall (require, "async")
