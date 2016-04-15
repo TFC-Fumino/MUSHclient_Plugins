@@ -9,13 +9,13 @@
    purpose="A graphical user interface sidebar for The Final Challenge MUD"
    date_written="2016-04-12 00:49:31"
    requires="4.51"
-   version="1.1"
+   version="1.2"
    save_state="y"
    >
 <description trim="y">
 VERSION:
 
- Alpha 1.1
+ Alpha 1.2
 
  * Pre-release with built in stat workaround
  * Not all spell icons have been created, so some use a generic one. You can still see 
@@ -47,7 +47,6 @@ FEATURES:
 FUTURE PLANS:
 
  * Add the rest of the spell icons.
- * Clean up, organize, and remove unused code. (bottom half done)
  * Add weather graphics based on in-game weather. (may place as background for an analog clock, yet to be decided)
  * Add more failsafes when players resize the client to prevent stuck windows
  
@@ -61,7 +60,7 @@ FUTURE PLANS:
   match="* You last logged in on *"
   send_to="12"
   sequence="100">
- <send>DoAfterSpecial (1, 'ColourNote ("goldenrod", "", "Check your equipment to see it totaled up in the right window")', sendto.script)</send>
+ <send>DoAfterSpecial (1, 'ColourNote ("goldenrod", "", "Check your equipment to see it totaled up")', sendto.script)</send>
  </trigger>
  <trigger
   enabled="n"
@@ -481,8 +480,6 @@ SPELLS_LEFT_POSITION = 14
 SPELLSCOOLDOWN_LEFT_POSITION = 3
 CHATS_LEFT_POSITION = 176
 CHATS_TOP_POSITION = 0
-HOR_SEP_TOP_POSITION = 0
-BARS_BORDER_LEFT_POSITION = 180
 HEALTH_BAR_LEFT_POSITION = 383
 MANA_BAR_LEFT_POSITION = 497
 MOVE_BAR_LEFT_POSITION = 695
@@ -494,8 +491,6 @@ BODY_FONT_SIZE = 9
 SCROLL_BAR_WIDTH = 15
 MAX_LINES = 10000 -- how many lines to store in scrollback
 local sidebar_button_window = "sidebar_button_window"  -- miniwindow ID
-local chat_border_window = "chat_border_window"  -- miniwindow ID
-local chat_border_window_hor = "chat_border_window_hor"  -- miniwindow ID
 local colourWhite = ColourNameToRGB("white")
 -- date_format = "[%d %b %H:%M:%S] "        -- [30 Aug 13:29:49]   date and time 24 hour
 -- date_format = "[%d %b %I:%M:%S%p] "  -- [30 Aug 01:20:12PM]     date and time 12 hour
@@ -508,15 +503,9 @@ timestamp = not (GetVariable("timestamp") == "false")
 echo = not (GetVariable("echo") == "false")
 date_format = GetVariable("date_format")
 -- Width & Height of Chat Window --
-WINDOW_WIDTH = GetInfo (250) - 200
+WINDOW_WIDTH = GetInfo (250) - 198
 WINDOW_HEIGHT = 93
--- Top, Left, Height, Width of Vertical Seperator Line for the Horizontal slider --
-WINDOW_SEPERATOR_TOP = 77
-WINDOW_SEPERATOR_HEIGHT_HOR = 77
-WINDOW_SEPERATOR_LEFT = 175
-WINDOW_SEPERATOR_HEIGHT = 1
 -- GetInfo (250) Main frame window width (long)
-WINDOW_SEPERATOR_WIDTH = GetInfo (250)
 -- Offset of text from edge to account for scrollbar --
 TEXT_INSET = 5
 -- where to store the chat line --
@@ -1103,11 +1092,8 @@ end -- function right_click_menu
 
 --latest
 local using_msdp = false
-local bars_border_window = "bars_border_window"
 local background_window = "world_background_image"  -- miniwindow ID
 local titlebar_window = "titlebar_image"  -- miniwindow ID
-local chat_border_button = "chat_border_button"  -- miniwindow ID
-local chat_border_button_ver = "chat_border_button_ver"  -- miniwindow ID
 local avatar_window = "avatar_window"  -- miniwindow ID
 local bars_window = "bars_image"  -- miniwindow ID
 local minimap_window = "minimap_image"  -- miniwindow ID
@@ -1219,8 +1205,6 @@ function create_layout ()
  main_text_area ()
  create_titlebar ()
  build_avatar_window ()
- window_seperator_line_hor ()
- window_seperator_line ()
  create_sidebar_button ()
  create_minimap_window ()
  build_prompt_bars ()
@@ -1564,21 +1548,6 @@ function OnPluginWorldOutputResized ()
 end -- function
 ----/ Create the health, mana, movement and enemy bars at the bottom /----
 function build_prompt_bars ()
- WindowCreate (bars_border_window,   -- window ID
-    BARS_BORDER_LEFT_POSITION,         -- left
-    bars_bottom - 6,      -- top
-    615,        -- width
-    1,        -- depth
-    12,         -- center it (ignored anyway) 
-    2,          -- draw underneath (1) + absolute location (2)
-    0x000000)  -- background colour
- -- load the bottom border image
- if WindowLoadImage (bars_border_window, "border_bottom", GetInfo (66) .. "Generic/layout/border_bottom.png") == eOK then
-  check (WindowDrawImage (bars_border_window, "border_bottom", 0, 0, 0, 0, 1))  -- draw it
- else -- the file is missing
-  Note( "File '" .. GetInfo (66) .. "Generic/layout/border_top.png' is missing.")
- end -- if
- WindowShow(bars_border_window, true)
  -- make a miniwindow under the text
  WindowCreate (health_window,   -- window ID
     HEALTH_BAR_LEFT_POSITION,            -- left
@@ -2032,9 +2001,9 @@ function main_text_area ()
  -- tell the client where to draw the text
  if GetVariable("bgColour") ~= nil then
   TextRectangle(left+4,  
-    top+10,   
+    top,   
     right+197,
-    bottom - 6,  
+    bottom - 4,  
     0,  -- BorderOffset, 
     colourWhite,    -- BorderColour, 
     0,  -- BorderWidth, 
@@ -2042,9 +2011,9 @@ function main_text_area ()
     0) -- OutsideFillStyle (fine hatch)
  else
   TextRectangle(left+4,  
-    top+10,   
+    top,   
     right+197,
-    bottom-8,  
+    bottom - 4,  
     0,  -- BorderOffset, 
     colourWhite,    -- BorderColour, 
     0,  -- BorderWidth, 
@@ -2150,21 +2119,9 @@ function MouseUp_sidebar_button(flags, hotspot_id)
    sidebar_closing = false
    which_sidebar_image = true
    create_sidebar_button ()
-   CHATS_LEFT_POSITION = 0
-   WINDOW_WIDTH = GetInfo (250) - 24
-   init(true)
-   left = 0 + 15
-   main_text_area ()
-   WINDOW_SEPERATOR_LEFT = 0
-   window_seperator_line_hor ()
-   window_seperator_line ()
-   BARS_BORDER_LEFT_POSITION = 15
-   ENEM_BAR_LEFT_POSITION = 15
-   HEALTH_BAR_LEFT_POSITION = 218
-   MANA_BAR_LEFT_POSITION = 332
-   MOVE_BAR_LEFT_POSITION = 530
-   build_prompt_bars ()
-   draw_energy_bars ()
+  -- CHATS_LEFT_POSITION = 0
+  -- WINDOW_WIDTH = GetInfo (250) - 24
+  -- init(true)
    WindowShow( titlebar_window, false )
   else
    AVATAR_LEFT_POSITION = AVATAR_LEFT_POSITION - 10
@@ -2178,6 +2135,17 @@ function MouseUp_sidebar_button(flags, hotspot_id)
    SPELLS_LEFT_POSITION = SPELLS_LEFT_POSITION - 10
    SPELLSCOOLDOWN_LEFT_POSITION = SPELLSCOOLDOWN_LEFT_POSITION - 10   
    draw_affects ()
+   left = left - 10
+   main_text_area ()
+   ENEM_BAR_LEFT_POSITION = ENEM_BAR_LEFT_POSITION - 10
+   HEALTH_BAR_LEFT_POSITION = HEALTH_BAR_LEFT_POSITION - 10
+   MANA_BAR_LEFT_POSITION = MANA_BAR_LEFT_POSITION - 10
+   MOVE_BAR_LEFT_POSITION = MOVE_BAR_LEFT_POSITION - 10
+   build_prompt_bars ()
+   draw_energy_bars ()
+   CHATS_LEFT_POSITION = CHATS_LEFT_POSITION - 10
+   WINDOW_WIDTH = WINDOW_WIDTH + 10
+   init(true)   
    Repaint()
   end -- SIDEBAR_LEFT_POSITION 
  end  -- while loop sidebar_closing
@@ -2191,21 +2159,9 @@ function MouseUp_sidebar_button_op(flags, hotspot_id)
    sidebar_closing = false
    which_sidebar_image = false
    create_sidebar_button ()
-   CHATS_LEFT_POSITION = 176
-   WINDOW_WIDTH = GetInfo (250) - 200
-   init(true)
-   left = 175
-   main_text_area ()
-   WINDOW_SEPERATOR_LEFT = 175
-   window_seperator_line_hor ()
-   window_seperator_line ()
-   BARS_BORDER_LEFT_POSITION = 180
-   ENEM_BAR_LEFT_POSITION = 180
-   HEALTH_BAR_LEFT_POSITION = 383
-   MANA_BAR_LEFT_POSITION = 497
-   MOVE_BAR_LEFT_POSITION = 695
-   build_prompt_bars ()
-   draw_energy_bars ()
+  -- CHATS_LEFT_POSITION = 176
+  -- WINDOW_WIDTH = GetInfo (250) - 200
+  -- init(true)
   else
    AVATAR_LEFT_POSITION = AVATAR_LEFT_POSITION + 10
    build_avatar_window ()
@@ -2217,7 +2173,18 @@ function MouseUp_sidebar_button_op(flags, hotspot_id)
    create_minimap_window ()  
    SPELLS_LEFT_POSITION = SPELLS_LEFT_POSITION + 10
    SPELLSCOOLDOWN_LEFT_POSITION = SPELLSCOOLDOWN_LEFT_POSITION + 10   
-   draw_affects ()   
+   draw_affects ()
+   left = left + 10
+   main_text_area ()
+   ENEM_BAR_LEFT_POSITION = ENEM_BAR_LEFT_POSITION + 10
+   HEALTH_BAR_LEFT_POSITION = HEALTH_BAR_LEFT_POSITION + 10
+   MANA_BAR_LEFT_POSITION = MANA_BAR_LEFT_POSITION + 10
+   MOVE_BAR_LEFT_POSITION = MOVE_BAR_LEFT_POSITION + 10
+   build_prompt_bars ()
+   draw_energy_bars ()
+   CHATS_LEFT_POSITION = CHATS_LEFT_POSITION + 10
+   WINDOW_WIDTH = WINDOW_WIDTH - 10
+   init(true)  
    Repaint()
   end -- SIDEBAR_LEFT_POSITION 
  end  -- while
@@ -2237,39 +2204,31 @@ Redraw()
 if CHAT_VISIBILITY == true then
  chat_closing = true
  while chat_closing do
-  if WINDOW_SEPERATOR_TOP < -40 then
+  if CHATS_TOP_POSITION < -65 then
    chat_closing = false
    WindowShow( Win, false )
-   top = 0 - 10
-   main_text_area ()
   else
-   CHATS_TOP_POSITION = CHATS_TOP_POSITION - 10
+   CHATS_TOP_POSITION = CHATS_TOP_POSITION - 5
    init(true)
-   HOR_SEP_TOP_POSITION = HOR_SEP_TOP_POSITION - 10
-   window_seperator_line_hor ()
-   WINDOW_SEPERATOR_TOP = WINDOW_SEPERATOR_TOP - 10
-   window_seperator_line ()
+   top = top - 5
+   main_text_area ()
    Repaint()
-  end -- WINDOW_SEPERATOR_TOP 
+  end -- CHATS_TOP_POSITION 
  end  -- while loop sidebar_closing
 end -- CHAT_VISIBILITY
 if CHAT_VISIBILITY == false then
  chat_closing = true
  WindowShow( Win, true )
  while chat_closing do
-  if WINDOW_SEPERATOR_TOP > 75 then
+  if CHATS_TOP_POSITION > -3 then
    chat_closing = false
-   top = 73
-   main_text_area ()
   else
-   CHATS_TOP_POSITION = CHATS_TOP_POSITION + 10
+   CHATS_TOP_POSITION = CHATS_TOP_POSITION + 5
    init(true)
-   HOR_SEP_TOP_POSITION = HOR_SEP_TOP_POSITION + 10
-   window_seperator_line_hor ()
-   WINDOW_SEPERATOR_TOP = WINDOW_SEPERATOR_TOP + 10
-   window_seperator_line ()
+   top = top + 5
+   main_text_area ()
    Repaint()
-  end -- WINDOW_SEPERATOR_TOP  
+  end -- CHATS_TOP_POSITION 
  end  -- while loop sidebar_closing
 end -- CHAT_VISIBILITY
 end -- function MouseUp_ch
@@ -2291,12 +2250,13 @@ if PROMPT_BARS_VISIBILITY == true then
  while bars_closing do
   if bars_bottom > bars_orig then
    bars_closing = false
-   bottom = bottom + 25
    main_text_area ()
   else
    bars_bottom = bars_bottom + 5
    build_prompt_bars ()
    draw_energy_bars ()
+   bottom = bottom + 5
+   main_text_area ()
    Repaint()
   end -- bars_bottom 
  end  -- while loop bars_closing
@@ -2307,53 +2267,18 @@ if PROMPT_BARS_VISIBILITY == false then
  while bars_closing do
   if bars_bottom < bars_orig then
    bars_closing = false
-   bottom = bottom - 25
    main_text_area ()
   else
    bars_bottom = bars_bottom - 5
    build_prompt_bars ()
    draw_energy_bars ()
+   bottom = bottom - 5
+   main_text_area ()
    Repaint()
   end -- bars_bottom 
  end  -- while loop bars_closing
 end -- PROMPT_BARS_VISIBILITY
 end -- function MouseUp_bars
-----/ Horizontal Window Seperator Line /----
-function window_seperator_line_hor ()
- WindowCreate (chat_border_window_hor,   -- window ID
-    WINDOW_SEPERATOR_LEFT,         -- left
-    HOR_SEP_TOP_POSITION,      -- top
-    1,        -- width
-    WINDOW_SEPERATOR_HEIGHT_HOR,        -- depth
-    12,         -- center it (ignored anyway) 
-    2,          -- draw underneath (1) + absolute location (2)
-    0x000000)  -- background colour
- -- load the border image
- if WindowLoadImage (chat_border_window_hor, "border_right", GetInfo (66) .. "Generic/layout/border_right.png") == eOK then
-  check (WindowDrawImage (chat_border_window_hor, "border_right", 0, 0, 0, 0, 1))  -- draw it
- else -- the file is missing
-  Note( "File '" .. GetInfo (66) .. "Generic/layout/border_right.png' is missing.")
- end -- border image	 
- WindowShow(chat_border_window_hor, true)
-end -- function window_seperator_line_hor
-----/ Vertical Window Seperator Line /----
-function window_seperator_line ()
- WindowCreate (chat_border_window,   -- window ID
-    WINDOW_SEPERATOR_LEFT,         -- left
-    WINDOW_SEPERATOR_TOP,      -- top
-    WINDOW_SEPERATOR_WIDTH,        -- width
-    WINDOW_SEPERATOR_HEIGHT,        -- depth
-    12,         -- center it (ignored anyway) 
-    2,          -- draw underneath (1) + absolute location (2)
-    0x000000)  -- background colour
- -- load the border image
- if WindowLoadImage (chat_border_window, "border_bottom", GetInfo (66) .. "Generic/layout/border_bottom.png") == eOK then
-  check (WindowDrawImage (chat_border_window, "border_bottom", 0, 0, 0, 0, 1))  -- draw it
- else -- the file is missing
-  Note( "File '" .. GetInfo (66) .. "Generic/layout/border_top.png' is missing.")
- end -- border image	 
- WindowShow(chat_border_window, true)
-end -- function window_seperator_line
 ----/ MSDP negotiation /----
 local MSDP = 69
 function OnPluginTelnetRequest (type_msdp, data)
