@@ -9,13 +9,13 @@
    purpose="A graphical user interface sidebar for The Final Challenge MUD"
    date_written="2016-04-12 00:49:31"
    requires="4.51"
-   version="1.2"
+   version="1.3"
    save_state="y"
    >
 <description trim="y">
 VERSION:
 
- Alpha 1.2
+ Alpha 1.3
 
  * Pre-release with built in stat workaround
  * Not all spell icons have been created, so some use a generic one. You can still see 
@@ -503,7 +503,7 @@ timestamp = not (GetVariable("timestamp") == "false")
 echo = not (GetVariable("echo") == "false")
 date_format = GetVariable("date_format")
 -- Width & Height of Chat Window --
-WINDOW_WIDTH = GetInfo (250) - 198
+WINDOW_WIDTH = GetInfo (250) - 200
 WINDOW_HEIGHT = 93
 -- GetInfo (250) Main frame window width (long)
 -- Offset of text from edge to account for scrollbar --
@@ -1832,7 +1832,11 @@ function build_avatar_window ()
   WindowLoadImage (avatar_window, "avatar", GetInfo (66) .. "Generic/avatars/Default.png")
  end -- avatar check
  -- draw the avatar
- WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)  -- draw it
+ if avatar_fade ~= nil then
+  WindowBlendImage (avatar_window, "avatar", 0, 0, 117, 117, 4, avatar_fade)
+ else
+  WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)  -- draw it 
+ end -- avatar_fade   
  WindowShow (avatar_window, true)
 end -- function build_avatar_window
 ----/ Function to draw the spell icons /----
@@ -2114,17 +2118,17 @@ end -- function create_sidebar_button
 
 function MouseUp_sidebar_button(flags, hotspot_id)
  sidebar_closing = true
+ avatar_fade = 1
  while sidebar_closing do
   if SIDEBAR_LEFT_POSITION < 1 then
+   avatar_fade = nil
    sidebar_closing = false
    which_sidebar_image = true
    create_sidebar_button ()
-  -- CHATS_LEFT_POSITION = 0
-  -- WINDOW_WIDTH = GetInfo (250) - 24
-  -- init(true)
    WindowShow( titlebar_window, false )
   else
    AVATAR_LEFT_POSITION = AVATAR_LEFT_POSITION - 10
+   avatar_fade = avatar_fade - 0.1
    build_avatar_window ()
    SIDEBAR_LEFT_POSITION = SIDEBAR_LEFT_POSITION - 10
    create_sidebar_button ()
@@ -2145,7 +2149,7 @@ function MouseUp_sidebar_button(flags, hotspot_id)
    draw_energy_bars ()
    CHATS_LEFT_POSITION = CHATS_LEFT_POSITION - 10
    WINDOW_WIDTH = WINDOW_WIDTH + 10
-   init(true)   
+   init(true)
    Repaint()
   end -- SIDEBAR_LEFT_POSITION 
  end  -- while loop sidebar_closing
@@ -2153,17 +2157,18 @@ end -- function MouseUp_sidebar_button
 
 function MouseUp_sidebar_button_op(flags, hotspot_id)
  sidebar_closing = true
+ avatar_fade = 0
  WindowShow( titlebar_window, true )
  while sidebar_closing do
   if SIDEBAR_LEFT_POSITION > 155 then
+   avatar_fade = nil
    sidebar_closing = false
    which_sidebar_image = false
    create_sidebar_button ()
-  -- CHATS_LEFT_POSITION = 176
-  -- WINDOW_WIDTH = GetInfo (250) - 200
-  -- init(true)
+   build_avatar_window ()
   else
    AVATAR_LEFT_POSITION = AVATAR_LEFT_POSITION + 10
+   avatar_fade = avatar_fade + 0.05
    build_avatar_window ()
    SIDEBAR_LEFT_POSITION = SIDEBAR_LEFT_POSITION + 10
    create_sidebar_button ()
