@@ -9,13 +9,13 @@
    purpose="A graphical user interface sidebar for The Final Challenge MUD"
    date_written="2016-04-12 00:49:31"
    requires="4.51"
-   version="1.3"
+   version="1.4"
    save_state="y"
    >
 <description trim="y">
 VERSION:
 
- Alpha 1.3
+ Alpha 1.4
 
  * Pre-release with built in stat workaround
  * Not all spell icons have been created, so some use a generic one. You can still see 
@@ -49,6 +49,7 @@ FUTURE PLANS:
  * Add the rest of the spell icons.
  * Add weather graphics based on in-game weather. (may place as background for an analog clock, yet to be decided)
  * Add more failsafes when players resize the client to prevent stuck windows
+ * Combine non-graphical msdp gui features to this plugin (like the stationary prompt bar)
  
 </description>
 </plugin>
@@ -1648,10 +1649,13 @@ function draw_minimap ()
  draw_room (mapCentre, mapCentre, "O")
  -- draw any surrounding rooms
  if ExitCount > 0 then
+  WindowCircleOp (minimap_window, 4, 0, 0, 110, 114,   -- pie
+        ColourNameToRGB("silver"), 0, 1, ColourNameToRGB("cyan"), 1, 
+        0, 0, 0, 0)
   for i=1,ExitCount,1 do
    if RoomExit[i] == "north" then
     draw_room(mapCentre, mapCentre-30, RoomType[i])
-    outlined_text (colourWhite, minimap_window, "n", 9, mapCentre+6, mapCentre-29, 0)
+    outlined_text (colourWhite, minimap_window, "n", 9, mapCentre+6, mapCentre-28, 0)
    elseif RoomExit[i] == "south" then
     draw_room(mapCentre, mapCentre+30, RoomType[i])
     outlined_text (colourWhite, minimap_window, "s", 9, mapCentre+6, mapCentre+33, 0)
@@ -1660,13 +1664,13 @@ function draw_minimap ()
     outlined_text (colourWhite, minimap_window, "e", 9, mapCentre+32, mapCentre+2, 0)
    elseif RoomExit[i] == "west" then
     draw_room(mapCentre-26, mapCentre, RoomType[i])
-    outlined_text (colourWhite, minimap_window, "w", 9, mapCentre-22, mapCentre+2, 0)
+    outlined_text (colourWhite, minimap_window, "w", 9, mapCentre-22, mapCentre+3, 0)
    elseif RoomExit[i] == "up" then
-    draw_room(mapCentre+42, mapCentre-40, RoomType[i])
-    outlined_text (colourWhite, minimap_window, "u", 9, mapCentre+48, mapCentre-37, 0)
+    draw_room(mapCentre+26, mapCentre-30, RoomType[i])
+    outlined_text (colourWhite, minimap_window, "u", 9, mapCentre+32, mapCentre-28, 0)
    elseif RoomExit[i] == "down" then
-    draw_room(mapCentre+42, mapCentre+42, RoomType[i])
-    outlined_text (colourWhite, minimap_window, "d", 9, mapCentre+48, mapCentre+44, 0)
+    draw_room(mapCentre+26, mapCentre+30, RoomType[i])
+    outlined_text (colourWhite, minimap_window, "d", 9, mapCentre+32, mapCentre+33, 0)
    end -- if
   end -- for
  end -- if
@@ -1831,12 +1835,7 @@ function build_avatar_window ()
  else
   WindowLoadImage (avatar_window, "avatar", GetInfo (66) .. "Generic/avatars/Default.png")
  end -- avatar check
- -- draw the avatar
- if avatar_fade ~= nil then
-  WindowBlendImage (avatar_window, "avatar", 0, 0, 117, 117, 4, avatar_fade)
- else
-  WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)  -- draw it 
- end -- avatar_fade   
+ WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)  -- draw it  
  WindowShow (avatar_window, true)
 end -- function build_avatar_window
 ----/ Function to draw the spell icons /----
@@ -1900,7 +1899,7 @@ function draw_affects ()
         12,     -- position mode
         0,      -- flags
         backgroundColour) 
-   if timer > 2 and timer < 11 then
+   if timer > 1 and timer < 10 then
     percent = timer / 10.0
     -- calculate pie end point
     endy = (math.cos(math.rad (percent * 360 + 90)) * 28) + 14
@@ -1915,7 +1914,11 @@ function draw_affects ()
         endy, endx)
     -- turn pie shape into an image
     WindowImageFromWindow(win, "mask", tempwin)
-   elseif timer > 0 and timer < 3 then
+    -- blend in (darken mode) with 100% opacity
+    WindowBlendImage(win, "mask", 
+        3, 3, 31, 31,  -- rectangle
+        1, 0.5)       -- mode and opacity
+   elseif timer > 0 and timer < 2 then
     percent = timer / 10.0
     -- calculate pie end point
     endy = (math.cos(math.rad (percent * 360 + 90)) * 28) + 14
@@ -1974,10 +1977,15 @@ function draw_affects ()
    -- show the window
    WindowShow (win, true)
    -- create a hotspot over the timer
-   WindowAddHotspot(win, "hs_affect_"..i, 0, 0, 34, 34, "", "", "", "", "", AffectName[i], 1, 0)
+   WindowAddHotspot(win, "hs_affect_"..i, 0, 0, 34, 34, "", "", "", "", "MouseUp_aff", AffectName[i], 1, 0)
   end -- if
  end -- for
 end -- draw_affects
+
+function MouseUp_aff(flags, hotspot_id)
+ print("Sorry! Clicking the icon does nothing for now..")
+end -- function MouseUp_aff
+
 ----/ Function to create a black shadow behind to text to make it easier to read /----
 function outlined_text (colour, window, text, size, x, y, centre_width)
  outlineColour = colourBlack
@@ -2077,7 +2085,7 @@ function create_minimap_window ()
     MINIMAP_LEFT_POSITION,         -- left
     top_map+167,    -- top
     112,        -- width
-    112,        -- depth
+    114,        -- depth
     12,         -- center it (ignored anyway) 
     6,          -- draw underneath (1) + absolute location (2)
     0x000000)  -- background colour
@@ -2118,17 +2126,14 @@ end -- function create_sidebar_button
 
 function MouseUp_sidebar_button(flags, hotspot_id)
  sidebar_closing = true
- avatar_fade = 1
  while sidebar_closing do
   if SIDEBAR_LEFT_POSITION < 1 then
-   avatar_fade = nil
    sidebar_closing = false
    which_sidebar_image = true
    create_sidebar_button ()
    WindowShow( titlebar_window, false )
   else
    AVATAR_LEFT_POSITION = AVATAR_LEFT_POSITION - 10
-   avatar_fade = avatar_fade - 0.1
    build_avatar_window ()
    SIDEBAR_LEFT_POSITION = SIDEBAR_LEFT_POSITION - 10
    create_sidebar_button ()
@@ -2137,7 +2142,7 @@ function MouseUp_sidebar_button(flags, hotspot_id)
    MINIMAP_LEFT_POSITION = MINIMAP_LEFT_POSITION - 10
    create_minimap_window ()   
    SPELLS_LEFT_POSITION = SPELLS_LEFT_POSITION - 10
-   SPELLSCOOLDOWN_LEFT_POSITION = SPELLSCOOLDOWN_LEFT_POSITION - 10   
+   SPELLSCOOLDOWN_LEFT_POSITION = SPELLSCOOLDOWN_LEFT_POSITION - 10
    draw_affects ()
    left = left - 10
    main_text_area ()
@@ -2152,23 +2157,20 @@ function MouseUp_sidebar_button(flags, hotspot_id)
    init(true)
    Repaint()
   end -- SIDEBAR_LEFT_POSITION 
- end  -- while loop sidebar_closing
+ end  -- while loop sidebar_closing 
 end -- function MouseUp_sidebar_button
 
 function MouseUp_sidebar_button_op(flags, hotspot_id)
  sidebar_closing = true
- avatar_fade = 0
  WindowShow( titlebar_window, true )
  while sidebar_closing do
   if SIDEBAR_LEFT_POSITION > 155 then
-   avatar_fade = nil
    sidebar_closing = false
    which_sidebar_image = false
    create_sidebar_button ()
    build_avatar_window ()
   else
    AVATAR_LEFT_POSITION = AVATAR_LEFT_POSITION + 10
-   avatar_fade = avatar_fade + 0.05
    build_avatar_window ()
    SIDEBAR_LEFT_POSITION = SIDEBAR_LEFT_POSITION + 10
    create_sidebar_button ()
@@ -2177,7 +2179,7 @@ function MouseUp_sidebar_button_op(flags, hotspot_id)
    MINIMAP_LEFT_POSITION = MINIMAP_LEFT_POSITION + 10
    create_minimap_window ()  
    SPELLS_LEFT_POSITION = SPELLS_LEFT_POSITION + 10
-   SPELLSCOOLDOWN_LEFT_POSITION = SPELLSCOOLDOWN_LEFT_POSITION + 10   
+   SPELLSCOOLDOWN_LEFT_POSITION = SPELLSCOOLDOWN_LEFT_POSITION + 10
    draw_affects ()
    left = left + 10
    main_text_area ()
@@ -2245,7 +2247,7 @@ if PROMPT_BARS_VISIBILITY == true then
  outlined_text (colourWhite, titlebar_window, "Prompt Bars", 5, 110, 62, 0)
 else
  WindowRectOp(titlebar_window, miniwin.rect_draw_edge, 107, 60, 161, 76, 
-             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+    miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
  outlined_text (colourTFC, titlebar_window, "Prompt Bars", 5, 110, 62, 0)
 end -- PROMPT_BARS_VISIBILITY
 Redraw()
@@ -2257,10 +2259,10 @@ if PROMPT_BARS_VISIBILITY == true then
    bars_closing = false
    main_text_area ()
   else
-   bars_bottom = bars_bottom + 5
+   bars_bottom = bars_bottom + 2
    build_prompt_bars ()
    draw_energy_bars ()
-   bottom = bottom + 5
+   bottom = bottom + 2
    main_text_area ()
    Repaint()
   end -- bars_bottom 
@@ -2274,10 +2276,10 @@ if PROMPT_BARS_VISIBILITY == false then
    bars_closing = false
    main_text_area ()
   else
-   bars_bottom = bars_bottom - 5
+   bars_bottom = bars_bottom - 2
    build_prompt_bars ()
    draw_energy_bars ()
-   bottom = bottom - 5
+   bottom = bottom - 2
    main_text_area ()
    Repaint()
   end -- bars_bottom 
