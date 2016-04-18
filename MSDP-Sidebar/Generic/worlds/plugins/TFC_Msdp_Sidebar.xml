@@ -2381,7 +2381,7 @@ function StoreVariable (MSDP_var, MSDP_val)
 end -- function StoreVariable
 ----/ Plugin updater - needs more work done on it, but... it works pretty good for now /----
 function update_plugin()
- raw = "https://raw.githubusercontent.com/TFC-Fumino/MUSHclient_Plugins/master/MSDP-GUI/Generic/worlds/plugins/TFC_Msdp_Sidebar.xml"
+ raw = "https://raw.githubusercontent.com/TFC-Fumino/MUSHclient_Plugins/master/MSDP-Sidebar/Generic/worlds/plugins/TFC_Msdp_Sidebar.xml"
  async_ok, async = pcall (require, "async")
  if async_ok then
   plugin_page = async.doAsyncRemoteRequest(raw, raw_get, "HTTPS")
