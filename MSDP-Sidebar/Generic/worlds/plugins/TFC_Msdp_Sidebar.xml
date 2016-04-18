@@ -469,6 +469,7 @@ FUTURE PLANS:
 <!--  Script  -->
 <script>
 <![CDATA[
+CHAT_HIDDEN = false
 ----/ default first time window visibility to true, must be opposite for toggles /----
 CHAT_VISIBILITY = false
 PROMPT_BARS_VISIBILITY = false
@@ -2155,6 +2156,9 @@ function MouseUp_sidebar_button(flags, hotspot_id)
    CHATS_LEFT_POSITION = CHATS_LEFT_POSITION - 10
    WINDOW_WIDTH = WINDOW_WIDTH + 10
    init(true)
+   if CHAT_HIDDEN ~= false then
+    WindowShow( Win, false )
+   end -- chat_closing
    Repaint()
   end -- SIDEBAR_LEFT_POSITION 
  end  -- while loop sidebar_closing 
@@ -2191,7 +2195,10 @@ function MouseUp_sidebar_button_op(flags, hotspot_id)
    draw_energy_bars ()
    CHATS_LEFT_POSITION = CHATS_LEFT_POSITION + 10
    WINDOW_WIDTH = WINDOW_WIDTH - 10
-   init(true)  
+   init(true)
+   if CHAT_HIDDEN ~= false then
+    WindowShow( Win, false )
+   end -- chat_closing
    Repaint()
   end -- SIDEBAR_LEFT_POSITION 
  end  -- while
@@ -2214,6 +2221,7 @@ if CHAT_VISIBILITY == true then
   if CHATS_TOP_POSITION < -65 then
    chat_closing = false
    WindowShow( Win, false )
+   CHAT_HIDDEN = true
   else
    CHATS_TOP_POSITION = CHATS_TOP_POSITION - 5
    init(true)
@@ -2229,6 +2237,7 @@ if CHAT_VISIBILITY == false then
  while chat_closing do
   if CHATS_TOP_POSITION > -3 then
    chat_closing = false
+   CHAT_HIDDEN = false
   else
    CHATS_TOP_POSITION = CHATS_TOP_POSITION + 5
    init(true)
