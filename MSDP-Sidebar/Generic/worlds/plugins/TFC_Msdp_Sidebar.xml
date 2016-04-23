@@ -7,15 +7,15 @@
    id="9232cf74f97637b76afe76c7"
    language="Lua"
    purpose="A graphical user interface sidebar for The Final Challenge MUD"
-   date_written="2016-04-12 00:49:31"
+   date_written="2016-04-22 00:49:31"
    requires="4.51"
-   version="1.4"
+   version="1.5"
    save_state="y"
    >
 <description trim="y">
 VERSION:
 
- Alpha 1.4
+ Alpha 1.5
 
  * Pre-release with built in stat workaround
  * Not all spell icons have been created, so some use a generic one. You can still see 
@@ -55,6 +55,21 @@ FUTURE PLANS:
 </plugin>
 ------------/  TRIGGERS  /------------
 <triggers>
+ ----/ Exits workaround trigger /----
+ <trigger
+  enabled="y"
+  keep_evaluating="y"
+  match="^\[Exits\: (.*)\]$"
+  send_to="12"
+  regexp="y"
+  name="room_exits"
+  sequence="100">
+ <send>curRoom_exits = {}
+ for w in string.gmatch ("%1", "[^%s]+") do
+  table.insert (curRoom_exits, w)
+ end -- for w
+ draw_minimap ()</send>
+ </trigger>
  ----/ Equipment stat triggers /---- 
  <trigger
   enabled="y"
@@ -64,7 +79,8 @@ FUTURE PLANS:
  <send>DoAfterSpecial (1, 'ColourNote ("goldenrod", "", "Check your equipment to see it totaled up")', sendto.script)</send>
  </trigger>
  <trigger
-  enabled="n"
+  enabled="y"
+  keep_evaluating="y"
   match="You are using:"
   name="clearoldstats"
   script="start_of_equip_list"
@@ -84,6 +100,7 @@ FUTURE PLANS:
  </trigger>
  <trigger
   enabled="y"
+  keep_evaluating="y"
   match="^$"
   name="stopadding"
   regexp="y"
@@ -91,7 +108,6 @@ FUTURE PLANS:
   sequence="100">
  <send>if GetVariable("eqstatcheck") == "true" then
    SetVariable("eqstatcheck", "false")
-   EnableTrigger ("clearoldstats", false)
    EnableTrigger ("additup", false)
    show_equip_list ()
   end -- eqstatcheck</send>
@@ -414,7 +430,16 @@ FUTURE PLANS:
   script="chats"
   omit_from_output="y"
   sequence="100"
- ></trigger>	
+ ></trigger>
+ ----/ Star Logger /----
+ <trigger
+  enabled="n"
+  keep_evaluating="y"
+  match="*"
+  name="starlogger"
+  script="dc_log"
+  sequence="100">
+ </trigger>
 </triggers>
 ------------/  ALIASES  /------------
 <aliases>
@@ -463,6 +488,72 @@ FUTURE PLANS:
   enabled="y"
   sequence="100">
  </alias>
+ ----/ Star Logger /----
+  <alias
+  match="^star log (on|off)$"
+  enabled="y"
+  regexp="y"
+  send_to="12"
+  sequence="100">
+  <send>if "%1" == "on" then
+   starLog_timestamp = { 
+    tsType_a = "[1:22:06 PM]", 
+    tsType_b = "Jan 01 2016 [08:00:15AM]", 
+    tsType_c = "[13:29:08]", 
+    tsType_d = "01 Jan [01:20:12PM]",
+    tsType_e = "01 Jan [13:29:08]",
+    tsType_f = "No Timestamp"
+    } 
+  result_timestamp = utils.choose ("Choose a Timestamp", "Timestamp options: ", starLog_timestamp, "tsType_f")
+   if result_timestamp ~= nil then
+    SetVariable("starLog_tsType", result_timestamp)
+   end -- result_timestamp
+  result_prevLines = utils.msgbox ("Would you like to log previous lines?", "Star Logger", "yesno", "?")
+  result_filename = utils.inputbox ("What would you like the filename to be?", "Star Logger", "goobers042216", "Courier", 9)
+  if result_filename ~= nil then
+   SetVariable("starLog_filename", result_filename)
+  end -- result_filename
+  if result_prevLines == "yes" then
+   starLog_prev ()
+  end -- result_prevLines  
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Activated")
+   EnableTrigger("starlogger", true)
+  elseif "%1" == "off" then
+   EnableTrigger("starlogger", false)
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Deactivated")
+  if GetVariable("starLog_filename") ~= nil then
+   Star_Log = GetVariable("starLog_filename")
+  else
+   DC_logName = "%b %d %Y [%I_%M_%S%p]"
+   Star_Log = os.date (DC_logName)
+  end -- starLog_filename
+   if GetVariable("starlog_folder") ~= nil then
+    SaveNotepad ("Star_Log_Test", GetVariable("starlog_folder") .. "\\\\" .. Star_Log .. ".txt")
+    CloseNotepad ("Star_Log_Test", 0)
+    ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Log file saved to ", "red", "", GetVariable("starlog_folder") .. "\\\\" .. Star_Log .. ".txt")
+   else
+    SaveNotepad ("Star_Log_Test", GetInfo (66) .. "logs/" .. Star_Log .. ".txt", 0)
+    CloseNotepad ("Star_Log_Test", 0)
+    ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Log file saved to ", "red", "", GetInfo (66) .. "logs\\\\" .. Star_Log .. ".txt")
+   end -- starlog_folder
+  else
+   ColourNote ("red", "", "Error: ", "silver", "", "Must pick on or off")
+  end -- star log
+  </send>
+ </alias>
+  <alias
+  match="^star log folder$"
+  enabled="y"
+  regexp="y"
+  send_to="12"
+  sequence="100">
+  <send>directoryname = utils.directorypicker ("Folder to put logs into", GetInfo (66) .. "\logs")
+  if directoryname ~= nil then
+   SetVariable("starlog_folder", directoryname)
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Logs will now save to ", "red", "", directoryname)
+  end -- directoryname
+  </send>
+ </alias>
 </aliases>
 <!--  Get our standard constants -->
 <include name="constants.lua"/>
@@ -507,6 +598,7 @@ date_format = GetVariable("date_format")
 -- Width & Height of Chat Window --
 WINDOW_WIDTH = GetInfo (250) - 200
 WINDOW_HEIGHT = 93
+sepOne_top = 76
 -- GetInfo (250) Main frame window width (long)
 -- Offset of text from edge to account for scrollbar --
 TEXT_INSET = 5
@@ -1103,6 +1195,8 @@ local health_window = "health_bar"  -- miniwindow ID
 local mana_window = "mana_bar"  -- miniwindow ID
 local movement_window = "movement_bar"  -- miniwindow ID
 local exp_window = "exp_bar"  -- miniwindow ID
+local line_sepOne = "line_sepOne"  -- miniwindow ID
+local line_sepTwo = "line_sepTwo"  -- miniwindow ID
 local msdp = {}
 local colourTFC = ColourNameToRGB("#B9C9D8")
 local colourGold = ColourNameToRGB("gold")
@@ -1137,7 +1231,6 @@ function close_map_list ()
 end -- show_map_list
 
 function check_equipment ()
- EnableTrigger("clearoldstats", true)
  EnableTrigger("additup", true)
  Send "eq"
  SetVariable("eqstatcheck", "true")
@@ -1189,7 +1282,7 @@ end -- show_equip_list
 -- create the layout here, on connect or install
 function create_layout ()
  left = 175
- top = 73
+ top = 78
  top_map = 73
  right = GetInfo (281) - 320
  bottom = GetInfo (280) - 20
@@ -1210,6 +1303,8 @@ function create_layout ()
  create_sidebar_button ()
  create_minimap_window ()
  build_prompt_bars ()
+ build_chatLine ()
+ build_promptLine ()
  ----/ Set the background /----
  if GetVariable("castle_checked") == "browse" then
   SetBackgroundImage(GetVariable("filename"), 0)
@@ -1241,6 +1336,7 @@ enemy_colorB = tonumber(GetVariable("enemy_colorB")) or 0x003333
 bar_text_color = tonumber(GetVariable("bar_text_color")) or ColourNameToRGB("white")
 customBar_top_color = tonumber(GetVariable ("custom_bar_color_highlight_top")) or ColourNameToRGB("black")
 customBar_bottom_color = tonumber(GetVariable ("custom_bar_color_highlight_bottom")) or ColourNameToRGB("black")
+terrain_color = GetVariable("terrain_color") or ColourNameToRGB("white")
 
 function checkItem (which)
   menu [which] = "+" .. menu [which]
@@ -1263,29 +1359,45 @@ function settings_click_menu ()
   [13] = "Solid Color",
   [14] = "<",
   [15] = ">Prompt Bars",
-  [16] = "Default [Reset]",
+  [16] = "Default [reset]",
   [17] = "-",
-  [18] = "Shiny",
-  [19] = "Extra Shiny",
-  [20] = "-",
-  [21] = "Custom Top Color", 
-  [22] = "Custom Bottom Color",
-  [23] = "-",
-  [24] = "Custom Health Center Color Filled", 
-  [25] = "Custom Health Center Color Empty",
-  [26] = "Custom Mana Center Color Filled", 
-  [27] = "Custom Mana Center Color Empty",
-  [28] = "Custom Move Center Color Filled", 
-  [29] = "Custom Move Center Color Empty",
-  [30] = "Custom Enemy Center Color Filled", 
-  [31] = "Custom Enemy Center Color Empty",  
+  [18] = "Font Color",
+  [19] = "-",
+  [20] = "Shiny",
+  [21] = "Extra Shiny",
+  [22] = "-",
+  [23] = "Top Edge Color", 
+  [24] = "Bottom Edge Color",
+  [25] = "-",
+  [26] = ">Center Color",
+  [27] = "Health Color Filled", 
+  [28] = "Health Color Empty",
+  [29] = "-",
+  [30] = "Mana Color Filled", 
+  [31] = "Mana Color Empty",
   [32] = "-",
-  [33] = "Custom Text Color",
-  [34] = "<",
+  [33] = "Move Color Filled", 
+  [34] = "Move Color Empty",
   [35] = "-",
-  [36] = "Report an issue",
-  [37] = "-",
-  [38] = "Check and Update Plugin"
+  [36] = "Enemy Color Filled", 
+  [37] = "Enemy Color Empty",
+  [38] = "<",
+  [39] = "<",
+  [40] = ">Exits Minimap",
+  [41] = "Default [reset]",
+  [42] = "-",
+  [43] = "Font Color",
+  [44] = "-",
+  [45] = ">Background",
+  [46] = "Disable",
+  [47] = "Gray moon",
+  [48] = "Blue moon",
+  [49] = "<",
+  [50] = "<",
+  [51] = "-",
+  [52] = "Report an issue",
+  [53] = "-",
+  [54] = "Check and Update Plugin"
  }
  if GetVariable("avatar_checked") == "one" or GetVariable("avatar_checked") == nil then
   checkItem (2)
@@ -1308,53 +1420,68 @@ function settings_click_menu ()
  if GetVariable("prompt_checked") == "default" then
   checkItem (16)
  elseif GetVariable("prompt_checked") == "shiny" then
-  checkItem (18)
+  checkItem (20)
  elseif GetVariable("prompt_checked") == "extrashiny" then
-  checkItem (19)
- elseif GetVariable("prompt_checked") == "customTop" then
   checkItem (21)
-  menu [21] = menu [21] .. " [" .. RGBColourToName(customBar_top_color) .. "]"
+ elseif GetVariable("prompt_checked") == "customTop" then
+  checkItem (23)
+  menu [23] = menu [23] .. " [" .. RGBColourToName(customBar_top_color) .. "]"
  end -- prompt_checked
  if GetVariable("prompt_checked_custom") == "customBottom" then
-  checkItem (22)
-  menu [22] = menu [22] .. " [" .. RGBColourToName(customBar_bottom_color) .. "]"
+  checkItem (24)
+  menu [24] = menu [24] .. " [" .. RGBColourToName(customBar_bottom_color) .. "]"
  end -- prompt_checked_custom 
  if GetVariable("health_color") ~= nil then
-  checkItem (24)
-  menu [24] = menu [24] .. " [" .. RGBColourToName(GetVariable("health_color")) .. "]"
+  checkItem (27)
+  menu [27] = menu [27] .. " [" .. RGBColourToName(GetVariable("health_color")) .. "]"
  end -- health_color
  if GetVariable("health_colorB") ~= nil then
-  checkItem (25)
-  menu [25] = menu [25] .. " [" .. RGBColourToName(GetVariable("health_colorB")) .. "]"
+  checkItem (28)
+  menu [28] = menu [28] .. " [" .. RGBColourToName(GetVariable("health_colorB")) .. "]"
  end -- health_colorB 
  if GetVariable("mana_color") ~= nil then
-  checkItem (26)
-  menu [26] = menu [26] .. " [" .. RGBColourToName(GetVariable("mana_color")) .. "]"
+  checkItem (30)
+  menu [30] = menu [30] .. " [" .. RGBColourToName(GetVariable("mana_color")) .. "]"
  end -- mana_color
  if GetVariable("mana_colorB") ~= nil then
-  checkItem (27)
-  menu [27] = menu [27] .. " [" .. RGBColourToName(GetVariable("mana_colorB")) .. "]"
+  checkItem (31)
+  menu [31] = menu [31] .. " [" .. RGBColourToName(GetVariable("mana_colorB")) .. "]"
  end -- mana_colorB
  if GetVariable("move_color") ~= nil then
-  checkItem (28)
-  menu [28] = menu [28] .. " [" .. RGBColourToName(GetVariable("move_color")) .. "]"
+  checkItem (33)
+  menu [33] = menu [33] .. " [" .. RGBColourToName(GetVariable("move_color")) .. "]"
  end -- move_color
  if GetVariable("move_colorB") ~= nil then
-  checkItem (29)
-  menu [29] = menu [29] .. " [" .. RGBColourToName(GetVariable("move_colorB")) .. "]"
+  checkItem (34)
+  menu [34] = menu [34] .. " [" .. RGBColourToName(GetVariable("move_colorB")) .. "]"
  end -- move_colorB
  if GetVariable("enemy_color") ~= nil then
-  checkItem (30)
-  menu [30] = menu [30] .. " [" .. RGBColourToName(GetVariable("enemy_color")) .. "]"
+  checkItem (36)
+  menu [36] = menu [36] .. " [" .. RGBColourToName(GetVariable("enemy_color")) .. "]"
  end -- enemy_color
  if GetVariable("enemy_colorB") ~= nil then
-  checkItem (31)
-  menu [31] = menu [31] .. " [" .. RGBColourToName(GetVariable("enemy_colorB")) .. "]"
+  checkItem (37)
+  menu [37] = menu [37] .. " [" .. RGBColourToName(GetVariable("enemy_colorB")) .. "]"
  end -- enemy_colorB
  if GetVariable("bar_text_color") ~= nil then
-  checkItem (33)
-  menu [33] = menu [33] .. " [" .. RGBColourToName(GetVariable("bar_text_color")) .. "]"
+  checkItem (18)
+  menu [18] = menu [18] .. " [" .. RGBColourToName(GetVariable("bar_text_color")) .. "]"
  end -- bar_text_color
+ if GetVariable("terrain_type") == nil then
+  if GetVariable("terrain_color") == nil then
+   checkItem (41)
+  end -- terrain_color
+ elseif GetVariable("terrain_type") == "nomoon" then
+  checkItem (46)
+  menu [46] = menu [46] .. "d"
+ elseif GetVariable("terrain_type") == "graymoon" then
+  checkItem (47)
+ elseif GetVariable("terrain_type") == "bluemoon" then
+  checkItem (48)
+ end -- terrain_type
+ if GetVariable("terrain_color") ~= nil then
+  checkItem (43)
+ end -- terrain_color
  result = WindowMenu (titlebar_window, 65, 15, table.concat (menu, "|"))
  if result == "1" then
   avatar_filename = nil
@@ -1429,23 +1556,28 @@ function settings_click_menu ()
   SetVariable("custom_bar_color_highlight_bottom", ColourNameToRGB("#000000"))
   draw_energy_bars ()
  elseif result == "9" then
+  SetVariable("prompt_checked", "blahblah")
+  bar_text_color = getColour(bar_text_color)
+  SetVariable("bar_text_color", bar_text_color)
+  draw_energy_bars ()
+ elseif result == "10" then
   SetVariable("prompt_checked", "shiny")
   DeleteVariable("prompt_checked_custom")
   SetVariable("custom_bar_color_highlight_top", ColourNameToRGB("#FFFFFF"))
   SetVariable("custom_bar_color_highlight_bottom", ColourNameToRGB("#000000"))
   draw_energy_bars ()
- elseif result == "10" then
+ elseif result == "11" then
   SetVariable("prompt_checked", "extrashiny")
   DeleteVariable("prompt_checked_custom")
   SetVariable("custom_bar_color_highlight_top", ColourNameToRGB("#FFFFFF"))
   SetVariable("custom_bar_color_highlight_bottom", ColourNameToRGB("#FFFFFF"))
   draw_energy_bars ()
- elseif result == "11" then
+ elseif result == "12" then
   SetVariable("prompt_checked", "customTop")
   customBar_top_color = getColour(customBar_top_color)
   SetVariable("custom_bar_color_highlight_top", customBar_top_color)
   draw_energy_bars ()
- elseif result == "12" then
+ elseif result == "13" then
   SetVariable("prompt_checked_custom", "customBottom")
   if GetVariable("prompt_checked") ~= "customTop" then
    SetVariable("prompt_checked", "blahblah")
@@ -1453,67 +1585,68 @@ function settings_click_menu ()
   customBar_bottom_color = getColour(customBar_bottom_color)
   SetVariable("custom_bar_color_highlight_bottom", customBar_bottom_color)
   draw_energy_bars ()	 
- elseif result == "13" then
+ elseif result == "14" then
   SetVariable("prompt_checked", "blahblah")
   health_color = getColour(health_color)
   SetVariable("health_color", health_color)
   draw_energy_bars ()
- elseif result == "14" then
+ elseif result == "15" then
   SetVariable("prompt_checked", "blahblah")
   health_colorB = getColour(health_colorB)
   SetVariable("health_colorB", health_colorB)
   draw_energy_bars ()
- elseif result == "15" then
+ elseif result == "16" then
   SetVariable("prompt_checked", "blahblah")
   mana_color = getColour(mana_color)
   SetVariable("mana_color", mana_color)
   draw_energy_bars ()
- elseif result == "16" then
+ elseif result == "17" then
   SetVariable("prompt_checked", "blahblah")
   mana_colorB = getColour(mana_colorB)
   SetVariable("mana_colorB", mana_colorB)
   draw_energy_bars ()
- elseif result == "17" then
+ elseif result == "18" then
   SetVariable("prompt_checked", "blahblah")
   move_color = getColour(move_color)
   SetVariable("move_color", move_color)
   draw_energy_bars ()
- elseif result == "18" then
+ elseif result == "19" then
   SetVariable("prompt_checked", "blahblah")
   move_colorB = getColour(move_colorB)
   SetVariable("move_colorB", move_colorB)
   draw_energy_bars ()
- elseif result == "19" then
+ elseif result == "20" then
   SetVariable("prompt_checked", "blahblah")
   enemy_color = getColour(enemy_color)
   SetVariable("enemy_color", enemy_color)
   draw_energy_bars ()
- elseif result == "20" then
+ elseif result == "21" then
   SetVariable("prompt_checked", "blahblah")
   enemy_colorB = getColour(enemy_colorB)
   SetVariable("enemy_colorB", enemy_colorB)
   draw_energy_bars ()
- elseif result == "21" then
-  SetVariable("prompt_checked", "blahblah")
-  bar_text_color = getColour(bar_text_color)
-  SetVariable("bar_text_color", bar_text_color)
-  draw_energy_bars ()
+
  elseif result == "22" then
-  if IsConnected() == true then
-   issue_gui = utils.inputbox ( "What is the issue you are having?", "Report an Issue", default, font, fontsize, { prompt_height = 24 } )
-   if issue_gui == nil then
-    print("Report an issue has been canceled.")
-   else
-    Send("note to Fumino")
-    Send("note subject Issue with Msdp Sidebar v", PLUGIN_VERSION)
-    Send("note + ", issue_gui)
-	ColourNote("white", "blue", "If everything is correct, please type ",
-	  "lime", "blue", "note post")
-   end -- issue_gui
-  else
-   print("You must be connected to the server to report an issue.")
-  end -- IsConnected
+  DeleteVariable("terrain_type")
+  DeleteVariable("terrain_color")
+  create_minimap_window ()
  elseif result == "23" then
+  terrain_color = getColour(terrain_color)
+  SetVariable("terrain_color", terrain_color)
+  create_minimap_window ()
+ elseif result == "24" then
+  SetVariable("terrain_type", "nomoon")
+  create_minimap_window ()
+ elseif result == "25" then
+  SetVariable("terrain_type", "graymoon")
+  create_minimap_window ()
+ elseif result == "26" then
+  SetVariable("terrain_type", "bluemoon")
+  create_minimap_window ()
+
+ elseif result == "27" then
+  OpenBrowser ("https://github.com/TFC-Fumino/MUSHclient_Plugins/issues")
+ elseif result == "28" then
   print("")
   ColourNote("white", "blue", "Connecting to the server and checking for updates.")
   ColourNote("white", "blue", "Please wait..")
@@ -1522,6 +1655,7 @@ end -- result
  DrawThemed3DRect(titlebar_window, 65, 0, 104, 13)
  outlined_text (colourWhite, titlebar_window, "settings", 5, 68, 2, 0)
  Redraw()
+ Activate()
 end -- function settings_click_menu
 
 function MouseDown_button(flags, hotspot_id)
@@ -1553,7 +1687,7 @@ function build_prompt_bars ()
  -- make a miniwindow under the text
  WindowCreate (health_window,   -- window ID
     HEALTH_BAR_LEFT_POSITION,            -- left
-    bars_bottom - 4,            -- top
+    bars_bottom - 3,            -- top
     100,           -- width
     20,            -- depth
     12,            -- center it (ignored anyway) 
@@ -1564,7 +1698,7 @@ function build_prompt_bars ()
  -- make a miniwindow under the text
  WindowCreate (mana_window,   -- window ID
     MANA_BAR_LEFT_POSITION,            -- left
-    bars_bottom - 4,           -- top
+    bars_bottom - 3,           -- top
     100,           -- width
     20,            -- depth
     12,            -- center it (ignored anyway) 
@@ -1575,7 +1709,7 @@ function build_prompt_bars ()
  -- make a miniwindow under the text
  WindowCreate (movement_window,   -- window ID
     MOVE_BAR_LEFT_POSITION,            -- left
-    bars_bottom - 4,           -- top
+    bars_bottom - 3,           -- top
     100,           -- width
     20,            -- depth
     12,            -- center it (ignored anyway) 
@@ -1586,7 +1720,7 @@ function build_prompt_bars ()
  -- make a miniwindow under the text
  WindowCreate (exp_window,   -- window ID
     ENEM_BAR_LEFT_POSITION,            -- left
-    bars_bottom - 4,           -- top
+    bars_bottom - 3,           -- top
     100,           -- width
     20,            -- depth
     12,            -- center it (ignored anyway) 
@@ -1631,7 +1765,13 @@ function draw_room (x, y, type_room)
  if type_room == "O" then
   terrain_image = "terrain_city"
  end -- if
- WindowDrawImage (minimap_window, terrain_image, x-12, y-6, x+20, y+20, 3)  -- draw the terrain
+ if GetVariable("terrain_type") == "nomoon" then
+  if type_room == "C" then
+   WindowDrawImage (minimap_window, terrain_image, x-12, y-6, x+20, y+20, 3)  -- draw the door
+  end -- type_room
+ else
+  WindowDrawImage (minimap_window, terrain_image, x-12, y-6, x+20, y+20, 3)  -- draw the terrain
+ end -- terrain_type
 end -- draw_room
 
 -- draw the minimap
@@ -1649,32 +1789,75 @@ function draw_minimap ()
  end -- bgColour
  draw_room (mapCentre, mapCentre, "O")
  -- draw any surrounding rooms
- if ExitCount > 0 then
+ if ExitCount > 0 and curRoom_exits ~= nil then
   WindowCircleOp (minimap_window, 4, 0, 0, 110, 114,   -- pie
         ColourNameToRGB("silver"), 0, 1, ColourNameToRGB("cyan"), 1, 
         0, 0, 0, 0)
+ if GetVariable("terrain_color") == nil then
+  colourMap = ColourNameToRGB("white")
+ else
+  colourMap = GetVariable("terrain_color")
+ end -- terrain_color
   for i=1,ExitCount,1 do
-   if RoomExit[i] == "north" then
-    draw_room(mapCentre, mapCentre-30, RoomType[i])
-    outlined_text (colourWhite, minimap_window, "n", 9, mapCentre+6, mapCentre-28, 0)
-   elseif RoomExit[i] == "south" then
-    draw_room(mapCentre, mapCentre+30, RoomType[i])
-    outlined_text (colourWhite, minimap_window, "s", 9, mapCentre+6, mapCentre+33, 0)
-   elseif RoomExit[i] == "east" then
-    draw_room(mapCentre+26, mapCentre, RoomType[i])
-    outlined_text (colourWhite, minimap_window, "e", 9, mapCentre+32, mapCentre+2, 0)
-   elseif RoomExit[i] == "west" then
-    draw_room(mapCentre-26, mapCentre, RoomType[i])
-    outlined_text (colourWhite, minimap_window, "w", 9, mapCentre-22, mapCentre+3, 0)
-   elseif RoomExit[i] == "up" then
-    draw_room(mapCentre+26, mapCentre-30, RoomType[i])
-    outlined_text (colourWhite, minimap_window, "u", 9, mapCentre+32, mapCentre-28, 0)
-   elseif RoomExit[i] == "down" then
-    draw_room(mapCentre+26, mapCentre+30, RoomType[i])
-    outlined_text (colourWhite, minimap_window, "d", 9, mapCentre+32, mapCentre+33, 0)
-   end -- if
-  end -- for
- end -- if
+   for k, v in pairs (curRoom_exits) do
+    if RoomExit[i] == "north" then
+	 if RoomType[i] == "C" then
+      draw_room(mapCentre, mapCentre-30, RoomType[i])
+      outlined_text (colourMap, minimap_window, "n", 9, mapCentre+6, mapCentre-28, 0)
+	 end -- RoomType
+	 if v == "north" then
+	  draw_room(mapCentre, mapCentre-30, RoomType[i])
+      outlined_text (colourMap, minimap_window, "n", 9, mapCentre+6, mapCentre-28, 0)
+	 end -- v north
+    elseif RoomExit[i] == "south" then
+	 if RoomType[i] == "C" then
+      draw_room(mapCentre, mapCentre+30, RoomType[i])
+      outlined_text (colourMap, minimap_window, "s", 9, mapCentre+6, mapCentre+33, 0)
+     end -- RoomType
+	 if v == "south" then
+      draw_room(mapCentre, mapCentre+30, RoomType[i])
+      outlined_text (colourMap, minimap_window, "s", 9, mapCentre+6, mapCentre+33, 0)	 
+     end -- v south
+	elseif RoomExit[i] == "east" then
+	 if RoomType[i] == "C" then
+      draw_room(mapCentre+26, mapCentre, RoomType[i])
+      outlined_text (colourMap, minimap_window, "e", 9, mapCentre+32, mapCentre+2, 0)
+	 end -- RoomType
+	 if v == "east" then
+      draw_room(mapCentre+26, mapCentre, RoomType[i])
+      outlined_text (colourMap, minimap_window, "e", 9, mapCentre+32, mapCentre+2, 0)
+     end -- v east	  
+    elseif RoomExit[i] == "west" then
+	 if RoomType[i] == "C" then
+      draw_room(mapCentre-26, mapCentre, RoomType[i])
+      outlined_text (colourMap, minimap_window, "w", 9, mapCentre-22, mapCentre+3, 0)
+	 end -- RoomType
+	 if v == "west" then
+      draw_room(mapCentre-26, mapCentre, RoomType[i])
+      outlined_text (colourMap, minimap_window, "w", 9, mapCentre-22, mapCentre+3, 0)
+	 end -- v west
+    elseif RoomExit[i] == "up" then
+	 if RoomType[i] == "C" then
+      draw_room(mapCentre+26, mapCentre-30, RoomType[i])
+      outlined_text (colourMap, minimap_window, "u", 9, mapCentre+32, mapCentre-28, 0)
+	 end -- RoomType
+	 if v == "up" then
+      draw_room(mapCentre+26, mapCentre-30, RoomType[i])
+      outlined_text (colourMap, minimap_window, "u", 9, mapCentre+32, mapCentre-28, 0)
+	 end -- v up
+    elseif RoomExit[i] == "down" then
+	 if RoomType[i] == "C" then
+      draw_room(mapCentre+26, mapCentre+30, RoomType[i])
+      outlined_text (colourMap, minimap_window, "d", 9, mapCentre+32, mapCentre+33, 0)
+	 end -- RoomType
+	 if v == "down" then
+      draw_room(mapCentre+26, mapCentre+30, RoomType[i])
+      outlined_text (colourMap, minimap_window, "d", 9, mapCentre+32, mapCentre+33, 0)
+     end -- v down	  
+    end -- if both readings match
+   end -- for k v
+  end -- for i
+ end -- if ExitCount and curRoom_exits
 end -- draw_minimap
 
 -- fill the three energy bars
@@ -2093,8 +2276,14 @@ function create_minimap_window ()
  -- show the window and its border
  WindowShow (minimap_window, true)
  -- load the terrain images
- check (WindowLoadImage (minimap_window, "terrain_city", GetInfo (66) .. "Generic/maps/terrain_city.png"))
- check (WindowLoadImage (minimap_window, "terrain_dark", GetInfo (66) .. "Generic/maps/terrain_dark.png"))
+ if GetVariable("terrain_type") == "bluemoon" then
+  custom_map = GetInfo (66) .. "Generic/maps/terrain_city_blue.png"
+  WindowLoadImage (minimap_window, "terrain_city", custom_map)
+ elseif GetVariable("terrain_type") == "graymoon" or GetVariable("terrain_type") == nil then
+  custom_map = GetInfo (66) .. "Generic/maps/terrain_city.png"
+  WindowLoadImage (minimap_window, "terrain_city", custom_map)
+ end -- terrain_type
+ WindowLoadImage (minimap_window, "terrain_dark", GetInfo (66) .. "Generic/maps/terrain_dark.png")
  -- draw the map
  draw_minimap ()
 end -- function create_minimap_window
@@ -2156,6 +2345,8 @@ function MouseUp_sidebar_button(flags, hotspot_id)
    CHATS_LEFT_POSITION = CHATS_LEFT_POSITION - 10
    WINDOW_WIDTH = WINDOW_WIDTH + 10
    init(true)
+   build_chatLine ()
+   build_promptLine ()
    if CHAT_HIDDEN ~= false then
     WindowShow( Win, false )
    end -- chat_closing
@@ -2196,6 +2387,8 @@ function MouseUp_sidebar_button_op(flags, hotspot_id)
    CHATS_LEFT_POSITION = CHATS_LEFT_POSITION + 10
    WINDOW_WIDTH = WINDOW_WIDTH - 10
    init(true)
+   build_chatLine ()
+   build_promptLine ()
    if CHAT_HIDDEN ~= false then
     WindowShow( Win, false )
    end -- chat_closing
@@ -2218,7 +2411,7 @@ Redraw()
 if CHAT_VISIBILITY == true then
  chat_closing = true
  while chat_closing do
-  if CHATS_TOP_POSITION < -65 then
+  if CHATS_TOP_POSITION < -75 then
    chat_closing = false
    WindowShow( Win, false )
    CHAT_HIDDEN = true
@@ -2227,6 +2420,8 @@ if CHAT_VISIBILITY == true then
    init(true)
    top = top - 5
    main_text_area ()
+   sepOne_top = sepOne_top - 5
+   build_chatLine ()
    Repaint()
   end -- CHATS_TOP_POSITION 
  end  -- while loop sidebar_closing
@@ -2243,6 +2438,8 @@ if CHAT_VISIBILITY == false then
    init(true)
    top = top + 5
    main_text_area ()
+   sepOne_top = sepOne_top + 5
+   build_chatLine ()
    Repaint()
   end -- CHATS_TOP_POSITION 
  end  -- while loop sidebar_closing
@@ -2260,7 +2457,7 @@ else
  outlined_text (colourTFC, titlebar_window, "Prompt Bars", 5, 110, 62, 0)
 end -- PROMPT_BARS_VISIBILITY
 Redraw()
-bars_orig = GetInfo (280)
+bars_orig = GetInfo (280) + 2
 if PROMPT_BARS_VISIBILITY == true then
  bars_closing = true
  while bars_closing do
@@ -2268,11 +2465,12 @@ if PROMPT_BARS_VISIBILITY == true then
    bars_closing = false
    main_text_area ()
   else
-   bars_bottom = bars_bottom + 2
+   bars_bottom = bars_bottom + 3
    build_prompt_bars ()
    draw_energy_bars ()
-   bottom = bottom + 2
+   bottom = bottom + 3
    main_text_area ()
+   build_promptLine ()
    Repaint()
   end -- bars_bottom 
  end  -- while loop bars_closing
@@ -2285,16 +2483,29 @@ if PROMPT_BARS_VISIBILITY == false then
    bars_closing = false
    main_text_area ()
   else
-   bars_bottom = bars_bottom - 2
+   bars_bottom = bars_bottom - 3
    build_prompt_bars ()
    draw_energy_bars ()
-   bottom = bottom - 2
+   bottom = bottom - 3
    main_text_area ()
+   build_promptLine ()
    Repaint()
   end -- bars_bottom 
  end  -- while loop bars_closing
 end -- PROMPT_BARS_VISIBILITY
 end -- function MouseUp_bars
+----/ Chat line seperator /----
+function build_chatLine ()
+ WindowCreate(line_sepOne, CHATS_LEFT_POSITION, sepOne_top, WINDOW_WIDTH, 4, 4, 6, 0x000000)
+ WindowLine (line_sepOne, 0, 2, WINDOW_WIDTH, 2, ColourNameToRGB ("white"), miniwin.pen_solid, 1)
+ WindowShow( line_sepOne, true)
+end -- function build_chatLine
+----/ Prompt line seperator /----
+function build_promptLine ()
+ WindowCreate(line_sepTwo, ENEM_BAR_LEFT_POSITION, bars_bottom - 4, 615, 1, 4, 6, 0x000000)
+ WindowLine (line_sepTwo, 0, 0, 615, 0, ColourNameToRGB ("white"), miniwin.pen_solid, 1)
+ WindowShow( line_sepTwo, true)
+end -- function build_promptLine
 ----/ MSDP negotiation /----
 local MSDP = 69
 function OnPluginTelnetRequest (type_msdp, data)
@@ -2420,6 +2631,33 @@ function raw_get(retval, page, status, headers, full_status, request_url)
   SetVariable("plugin_updating", "false")
  end 
 end -- function raw_get
+----/ Special DC logger /----
+function dc_log (name, line, wildcards, styles)
+ if GetVariable("starLog_tsType") == "tsType_a" then
+  AppendToNotepad ("Star_Log_Test", os.date("[%X] ") .. line)
+ elseif GetVariable("starLog_tsType") == "tsType_b" then
+  AppendToNotepad ("Star_Log_Test", os.date("%b %d %Y [%I:%M:%S%p] ") .. line)
+ elseif GetVariable("starLog_tsType") == "tsType_c" then
+  AppendToNotepad ("Star_Log_Test", os.date("[%H:%M:%S] ") .. line)
+ elseif GetVariable("starLog_tsType") == "tsType_d" then
+  AppendToNotepad ("Star_Log_Test", os.date("%d %b [%I:%M:%S%p] ") .. line)
+ elseif GetVariable("starLog_tsType") == "tsType_e" then
+  AppendToNotepad ("Star_Log_Test", os.date("%d %b [%H:%M:%S] ") .. line)
+ else
+  AppendToNotepad ("Star_Log_Test", line)
+ end -- starLog_tsType
+ AppendToNotepad ("Star_Log_Test", "\r\n")
+ Activate()
+end  -- function dc_log
+
+function starLog_prev ()
+ local line, total_lines
+ total_lines = GetLinesInBufferCount ()
+ for line = 1, total_lines do
+  AppendToNotepad ("Star_Log_Test", os.date("[%I:%M:%S%p]", GetLineInfo(line,9)) .. ": " .. GetLineInfo (line, 1))
+  AppendToNotepad ("Star_Log_Test", "\r\n")
+ end -- for
+end -- function starLog_prev
 ]]>
 </script>
 </muclient>
