@@ -489,70 +489,35 @@ FUTURE PLANS:
   sequence="100">
  </alias>
  ----/ Star Logger /----
-  <alias
-  match="^star log (on|off)$"
+ <alias
+  script="alias_star_logger_rec"
+  match="star logger rec"
   enabled="y"
-  regexp="y"
-  send_to="12"
   sequence="100">
-  <send>if "%1" == "on" then
-   starLog_timestamp = { 
-    tsType_a = "[1:22:06 PM]", 
-    tsType_b = "Jan 01 2016 [08:00:15AM]", 
-    tsType_c = "[13:29:08]", 
-    tsType_d = "01 Jan [01:20:12PM]",
-    tsType_e = "01 Jan [13:29:08]",
-    tsType_f = "No Timestamp"
-    } 
-  result_timestamp = utils.choose ("Choose a Timestamp", "Timestamp options: ", starLog_timestamp, "tsType_f")
-   if result_timestamp ~= nil then
-    SetVariable("starLog_tsType", result_timestamp)
-   end -- result_timestamp
-  result_prevLines = utils.msgbox ("Would you like to log previous lines?", "Star Logger", "yesno", "?")
-  result_filename = utils.inputbox ("What would you like the filename to be?", "Star Logger", "goobers042216", "Courier", 9)
-  if result_filename ~= nil then
-   SetVariable("starLog_filename", result_filename)
-  end -- result_filename
-  if result_prevLines == "yes" then
-   starLog_prev ()
-  end -- result_prevLines  
-   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Activated")
-   EnableTrigger("starlogger", true)
-  elseif "%1" == "off" then
-   EnableTrigger("starlogger", false)
-   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Deactivated")
-  if GetVariable("starLog_filename") ~= nil then
-   Star_Log = GetVariable("starLog_filename")
-  else
-   DC_logName = "%b %d %Y [%I_%M_%S%p]"
-   Star_Log = os.date (DC_logName)
-  end -- starLog_filename
-   if GetVariable("starlog_folder") ~= nil then
-    SaveNotepad ("Star_Log_Test", GetVariable("starlog_folder") .. "\\\\" .. Star_Log .. ".txt")
-    CloseNotepad ("Star_Log_Test", 0)
-    ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Log file saved to ", "red", "", GetVariable("starlog_folder") .. "\\\\" .. Star_Log .. ".txt")
-   else
-    SaveNotepad ("Star_Log_Test", GetInfo (66) .. "logs/" .. Star_Log .. ".txt", 0)
-    CloseNotepad ("Star_Log_Test", 0)
-    ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Log file saved to ", "red", "", GetInfo (66) .. "logs\\\\" .. Star_Log .. ".txt")
-   end -- starlog_folder
-  else
-   ColourNote ("red", "", "Error: ", "silver", "", "Must pick on or off")
-  end -- star log
-  </send>
  </alias>
-  <alias
-  match="^star log folder$"
+ <alias
+  script="alias_star_logger_set_folder"
+  match="star logger set folder"
   enabled="y"
-  regexp="y"
-  send_to="12"
   sequence="100">
-  <send>directoryname = utils.directorypicker ("Folder to put logs into", GetInfo (66) .. "\logs")
-  if directoryname ~= nil then
-   SetVariable("starlog_folder", directoryname)
-   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Logs will now save to ", "red", "", directoryname)
-  end -- directoryname
-  </send>
+ </alias>
+ <alias
+  script="alias_star_logger_set_filename"
+  match="star logger set filename"
+  enabled="y"
+  sequence="100">
+ </alias>
+ <alias
+  script="alias_star_logger_open_folder"
+  match="star logger open folder"
+  enabled="y"
+  sequence="100">
+ </alias>
+ <alias
+  script="alias_star_logger_prev_lines"
+  match="star logger prev lines"
+  enabled="y"
+  sequence="100">
  </alias>
 </aliases>
 <!--  Get our standard constants -->
@@ -1395,9 +1360,104 @@ function settings_click_menu ()
   [49] = "<",
   [50] = "<",
   [51] = "-",
-  [52] = "Report an issue",
-  [53] = "-",
-  [54] = "Check and Update Plugin"
+  [52] = ">Star Logger",
+  [53] = "Record",
+  [54] = "-",
+  [55] = "Log previous lines",
+  [56] = "Remove prompt bars",
+  [57] = "-",
+  [58] = ">Set Timestamp",
+  [59] = "No Timestamp",
+  [60] = "-",
+  [61] = ">12 Hour",
+  [62] = "Jan 25 2016 [08:00:15AM]",
+  [63] = "Jan 25 16 [08:00:15AM]",
+  [64] = "Jan 25 [08:00:15AM]",
+  [65] = "-",
+  [66] = "01 25 2016 [08:00:15AM]",
+  [67] = "01 25 16 [08:00:15AM]",
+  [68] = "01 25 [08:00:15AM]",
+  [69] = "-",
+  [70] = "2016 25 Jan [08:00:15AM]",
+  [71] = "16 25 Jan [08:00:15AM]",
+  [72] = "25 Jan [08:00:15AM]",
+  [73] = "-",
+  [74] = "2016 25 01 [08:00:15AM]",
+  [75] = "16 25 01 [08:00:15AM]",
+  [76] = "25 01 [08:00:15AM]",
+  [77] = "-",
+  [78] = "[08:00:15AM]",
+  [79] = "<",
+  [80] = ">24 Hour",
+  [81] = "Jan 25 2016 [18:00:15]",
+  [82] = "Jan 25 16 [18:00:15]",
+  [83] = "Jan 25 [18:00:15]",
+  [84] = "-",
+  [85] = "01 25 2016 [18:00:15]",
+  [86] = "01 25 16 [18:00:15]",
+  [87] = "01 25 [18:00:15]",
+  [88] = "-",
+  [89] = "2016 25 Jan [18:00:15]",
+  [90] = "16 25 Jan [18:00:15]",
+  [91] = "25 Jan [18:00:15]",
+  [92] = "-",
+  [93] = "2016 25 01 [18:00:15]",
+  [94] = "16 25 01 [18:00:15]",
+  [95] = "25 01 [18:00:15]",
+  [96] = "-",
+  [97] = "[18:00:15]",
+  [98] = "<",
+  [99] = "<",
+  [100] = ">Set Filename",
+  [101] = "Custom",
+  [102] = "-",
+  [103] = ">Timestamp 12 Hour",
+  [104] = "Jan 25 2016 [08_00_15AM]",
+  [105] = "Jan 25 16 [08_00_15AM]",
+  [106] = "Jan 25 [08_00_15AM]",
+  [107] = "-",
+  [108] = "01 25 2016 [08_00_15AM]",
+  [109] = "01 25 16 [08_00_15AM]",
+  [110] = "01 25 [08_00_15AM]",
+  [111] = "-",
+  [112] = "2016 25 Jan [08_00_15AM]",
+  [113] = "16 25 Jan [08_00_15AM]",
+  [114] = "25 Jan [08_00_15AM]",
+  [115] = "-",
+  [116] = "2016 25 01 [08_00_15AM]",
+  [117] = "16 25 01 [08_00_15AM]",
+  [118] = "25 01 [08_00_15AM]",
+  [119] = "-",
+  [120] = "[08_00_15AM]",
+  [121] = "<",
+  [122] = ">Timestamp 24 Hour",
+  [123] = "Jan 25 2016 [18_00_15]",
+  [124] = "Jan 25 16 [18_00_15]",
+  [125] = "Jan 25 [18_00_15]",
+  [126] = "-",
+  [127] = "01 25 2016 [18_00_15AM]",
+  [128] = "01 25 16 [18_00_15AM]",
+  [129] = "01 25 [18_00_15AM]",
+  [130] = "-",
+  [131] = "2016 25 Jan [18_00_15]",
+  [132] = "16 25 Jan [18_00_15]",
+  [133] = "25 Jan [18_00_15]",
+  [134] = "-",
+  [135] = "2016 25 01 [18_00_15AM]",
+  [136] = "16 25 01 [18_00_15AM]",
+  [137] = "25 01 [18_00_15AM]",
+  [138] = "-",
+  [139] = "[18_00_15]",
+  [140] = "<",
+  [141] = "<",
+  [142] = "-",
+  [143] = "Set Logs Folder",
+  [144] = "Open Logs Folder",
+  [145] = "<",
+  [146] = "-",
+  [147] = "Report an issue",
+  [148] = "-",
+  [149] = "Check and Update Plugin"
  }
  if GetVariable("avatar_checked") == "one" or GetVariable("avatar_checked") == nil then
   checkItem (2)
@@ -1482,6 +1542,132 @@ function settings_click_menu ()
  if GetVariable("terrain_color") ~= nil then
   checkItem (43)
  end -- terrain_color
+ 
+ if GetVariable("starLog_isRec") == "true" then
+  checkItem (53)
+  menu [53] = menu [53] .. " [Logging]"
+ end -- starLog_isRec
+ if GetVariable("starLog_recPrev") == "true" then
+  checkItem (55)
+ end -- starLog_recPrev
+ if GetVariable("starLog_tsType") == "%b %d %Y [%I:%M:%S%p] " then
+  checkItem (62)
+ elseif GetVariable("starLog_tsType") == "%b %d %y [%I:%M:%S%p] " then
+  checkItem (63)
+ elseif GetVariable("starLog_tsType") == "%b %d [%I:%M:%S%p] " then
+  checkItem (64)
+ elseif GetVariable("starLog_tsType") == "%m %d %Y [%I:%M:%S%p] " then
+  checkItem (66)
+ elseif GetVariable("starLog_tsType") == "%m %d %y [%I:%M:%S%p] " then
+  checkItem (67)
+ elseif GetVariable("starLog_tsType") == "%m %d [%I:%M:%S%p] " then
+  checkItem (68)
+ elseif GetVariable("starLog_tsType") == "%Y %d %b [%I:%M:%S%p] " then
+  checkItem (70)
+ elseif GetVariable("starLog_tsType") == "%y %d %b [%I:%M:%S%p] " then
+  checkItem (71)
+ elseif GetVariable("starLog_tsType") == "%d %b [%I:%M:%S%p] " then
+  checkItem (72)
+ elseif GetVariable("starLog_tsType") == "%Y %d %m [%I:%M:%S%p] " then
+  checkItem (74)
+ elseif GetVariable("starLog_tsType") == "%y %d %m [%I:%M:%S%p] " then
+  checkItem (75)
+ elseif GetVariable("starLog_tsType") == "%d %m [%I:%M:%S%p] " then
+  checkItem (76)
+ elseif GetVariable("starLog_tsType") == "[%I:%M:%S%p] " then
+  checkItem (78)
+ elseif GetVariable("starLog_tsType") == "%b %d %Y [%H:%M:%S] " then
+  checkItem (81)
+ elseif GetVariable("starLog_tsType") == "%b %d %y [%H:%M:%S] " then
+  checkItem (82)
+ elseif GetVariable("starLog_tsType") == "%b %d [%H:%M:%S] " then
+  checkItem (83)
+ elseif GetVariable("starLog_tsType") == "%m %d %Y [%H:%M:%S] " then
+  checkItem (85)
+ elseif GetVariable("starLog_tsType") == "%m %d %y [%H:%M:%S] " then
+  checkItem (86)
+ elseif GetVariable("starLog_tsType") == "%m %d [%H:%M:%S] " then
+  checkItem (87)
+ elseif GetVariable("starLog_tsType") == "%Y %d %b [%H:%M:%S] " then
+  checkItem (89)
+ elseif GetVariable("starLog_tsType") == "%y %d %b [%H:%M:%S] " then
+  checkItem (90)
+ elseif GetVariable("starLog_tsType") == "%d %b [%H:%M:%S] " then
+  checkItem (91)
+ elseif GetVariable("starLog_tsType") == "%Y %d %m [%H:%M:%S] " then
+  checkItem (93)
+ elseif GetVariable("starLog_tsType") == "%y %d %m [%H:%M:%S] " then
+  checkItem (94)
+ elseif GetVariable("starLog_tsType") == "%d %m [%H:%M:%S] " then
+  checkItem (95)
+ elseif GetVariable("starLog_tsType") == "[%H:%M:%S] " then
+  checkItem (97)
+ else
+  checkItem (59)
+ end -- starLog_tsType
+ 
+ if GetVariable("starLog_fnTs") == "%b %d %Y [%I_%M_%S%p]" then
+  checkItem (104)
+ elseif GetVariable("starLog_fnTs") == "%b %d %y [%I_%M_%S%p]" then
+  checkItem (105)
+ elseif GetVariable("starLog_fnTs") == "%b %d [%I_%M_%S%p]" then
+  checkItem (106)
+ elseif GetVariable("starLog_fnTs") == "%m %d %Y [%I_%M_%S%p]" then
+  checkItem (108)
+ elseif GetVariable("starLog_fnTs") == "%m %d %y [%I_%M_%S%p]" then
+  checkItem (109)
+ elseif GetVariable("starLog_fnTs") == "%m %d [%I_%M_%S%p]" then
+  checkItem (110)
+ elseif GetVariable("starLog_fnTs") == "%Y %d %b [%I_%M_%S%p]" then
+  checkItem (112)
+ elseif GetVariable("starLog_fnTs") == "%y %d %b [%I_%M_%S%p]" then
+  checkItem (113)
+ elseif GetVariable("starLog_fnTs") == "%d %b [%I_%M_%S%p]" then
+  checkItem (114)
+ elseif GetVariable("starLog_fnTs") == "%Y %d %m [%I_%M_%S%p]" then
+  checkItem (116)
+ elseif GetVariable("starLog_fnTs") == "%y %d %m [%I_%M_%S%p]" then
+  checkItem (117)
+ elseif GetVariable("starLog_fnTs") == "%d %m [%I_%M_%S%p]" then
+  checkItem (118)
+ elseif GetVariable("starLog_fnTs") == "[%I_%M_%S%p]" then
+  checkItem (120)
+ elseif GetVariable("starLog_fnTs") == "%b %d %Y [%H_%M_%S]" then
+  checkItem (123)
+ elseif GetVariable("starLog_fnTs") == "%b %d %y [%H_%M_%S]" then
+  checkItem (124)
+ elseif GetVariable("starLog_fnTs") == "%b %d [%H_%M_%S]" then
+  checkItem (125)
+ elseif GetVariable("starLog_fnTs") == "%m %d %Y [%H_%M_%S]" then
+  checkItem (127)
+ elseif GetVariable("starLog_fnTs") == "%m %d %y [%H_%M_%S]" then
+  checkItem (128)
+ elseif GetVariable("starLog_fnTs") == "%m %d [%H_%M_%S]" then
+  checkItem (129)
+ elseif GetVariable("starLog_fnTs") == "%Y %d %b [%H_%M_%S]" then
+  checkItem (131)
+ elseif GetVariable("starLog_fnTs") == "%y %d %b [%H_%M_%S]" then
+  checkItem (132)
+ elseif GetVariable("starLog_fnTs") == "%d %b [%H_%M_%S]" then
+  checkItem (133)
+ elseif GetVariable("starLog_fnTs") == "%Y %d %m [%H_%M_%S]" then
+  checkItem (135)
+ elseif GetVariable("starLog_fnTs") == "%y %d %m [%H_%M_%S]" then
+  checkItem (136)
+ elseif GetVariable("starLog_fnTs") == "%d %m [%H_%M_%S]" then
+  checkItem (137)
+ elseif GetVariable("starLog_fnTs") == "[%H_%M_%S]" then
+  checkItem (139)
+ else
+  if GetVariable("starLog_fnTs") == nil then
+   checkItem (104)
+  end -- starLog_fnTs
+  if GetVariable("result_filename") ~= nil then
+   checkItem (101)
+   menu [101] = menu [101] .. " [ " .. GetVariable("starLog_fnTs") .. " ]"
+  end -- result_filename
+ end -- starLog_fnTs
+ 
  result = WindowMenu (titlebar_window, 65, 15, table.concat (menu, "|"))
  if result == "1" then
   avatar_filename = nil
@@ -1625,7 +1811,6 @@ function settings_click_menu ()
   enemy_colorB = getColour(enemy_colorB)
   SetVariable("enemy_colorB", enemy_colorB)
   draw_energy_bars ()
-
  elseif result == "22" then
   DeleteVariable("terrain_type")
   DeleteVariable("terrain_color")
@@ -1642,16 +1827,187 @@ function settings_click_menu ()
   create_minimap_window ()
  elseif result == "26" then
   SetVariable("terrain_type", "bluemoon")
-  create_minimap_window ()
-
+  create_minimap_window () 
  elseif result == "27" then
-  OpenBrowser ("https://github.com/TFC-Fumino/MUSHclient_Plugins/issues")
+  if GetVariable("starLog_isRec") == nil then
+   starLog_isRec = false
+   SetVariable("starLog_isRec", "false")
+  end -- starLog_isRec  
+  starLog_isRec = not starLog_isRec  
+  if starLog_isRec then
+   SetVariable("starLog_isRec", "true")
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Activated")
+   if GetVariable("starLog_recPrev") == "true" then
+    starLog_prev ()
+   end -- starLog_recPrev  
+   EnableTrigger("starlogger", true)
+  else
+   EnableTrigger("starlogger", false)
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Deactivated")
+   if GetVariable("starlog_folder") ~= nil then
+    if GetVariable("starLog_fnTs") ~= nil then
+     SaveNotepad ("Star_Log_Test", GetVariable("starlog_folder") .. "\\" .. os.date(GetVariable("starLog_fnTs")) .. ".txt")
+     CloseNotepad ("Star_Log_Test", 0)
+     ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Log file saved to ", "red", "", GetVariable("starlog_folder") .. "\\" .. os.date(GetVariable("starLog_fnTs")) .. ".txt")	 
+    else
+     SaveNotepad ("Star_Log_Test", GetVariable("starlog_folder") .. "\\" .. os.date("%b %d %Y [%I_%M_%S%p]") .. ".txt")
+     CloseNotepad ("Star_Log_Test", 0)
+     ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "silver", "", "Filename has not been set, saving file with default format name.")
+     ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Log file saved to ", "red", "", GetVariable("starlog_folder") .. "\\" .. os.date("%b %d %Y [%I_%M_%S%p]") .. ".txt")
+    end -- starlog_folder
+   else
+    SaveNotepad ("Star_Log_Test", GetInfo (58) .. "\\" .. os.date("%b %d %Y [%I_%M_%S%p]") .. ".txt")
+    CloseNotepad ("Star_Log_Test", 0)
+    ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "silver", "", "Folder and Filename has not been set, saving file at default location with default name.")
+    ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Log file saved to ", "red", "", GetInfo (58) .. "\\" .. os.date("%b %d %Y [%I_%M_%S%p]") .. ".txt")
+   end -- starlog_folder
+   SetVariable("starLog_isRec", "false")
+  end -- starLog_isRec
  elseif result == "28" then
+  if GetVariable("starLog_recPrev") == "true" then
+   starLog_recPrev = true
+  elseif GetVariable("starLog_recPrev") == "false" then
+   starLog_recPrev = false
+  else
+   starLog_recPrev = false
+   SetVariable("starLog_recPrev", "false")
+  end -- starLog_recPrev
+  starLog_recPrev = not starLog_recPrev
+  if starLog_recPrev then
+   SetVariable("starLog_recPrev", "true")
+  else
+   SetVariable("starLog_recPrev", "false")
+  end -- starLog_recPrev
+ elseif result == "29" then
+  print("This feature has yet to be implemented. This is next on the list to add.")
+ elseif result == "30" then
+  DeleteVariable("starLog_tsType")
+ elseif result == "31" then
+  SetVariable("starLog_tsType", "%b %d %Y [%I:%M:%S%p] ")
+ elseif result == "32" then
+  SetVariable("starLog_tsType", "%b %d %y [%I:%M:%S%p] ")
+ elseif result == "33" then
+  SetVariable("starLog_tsType", "%b %d [%I:%M:%S%p] ")
+ elseif result == "34" then
+  SetVariable("starLog_tsType", "%m %d %Y [%I:%M:%S%p] ")
+ elseif result == "35" then
+  SetVariable("starLog_tsType", "%m %d %y [%I:%M:%S%p] ")
+ elseif result == "36" then
+  SetVariable("starLog_tsType", "%m %d [%I:%M:%S%p] ")
+ elseif result == "37" then
+  SetVariable("starLog_tsType", "%Y %d %b [%I:%M:%S%p] ")
+ elseif result == "38" then
+  SetVariable("starLog_tsType", "%y %d %b [%I:%M:%S%p] ")
+ elseif result == "39" then
+  SetVariable("starLog_tsType", "%d %b [%I:%M:%S%p] ")
+ elseif result == "40" then
+  SetVariable("starLog_tsType", "%Y %d %m [%I:%M:%S%p] ")
+ elseif result == "41" then
+  SetVariable("starLog_tsType", "%y %d %m [%I:%M:%S%p] ")
+ elseif result == "42" then
+  SetVariable("starLog_tsType", "%d %m [%I:%M:%S%p] ")
+ elseif result == "43" then
+  SetVariable("starLog_tsType", "[%I:%M:%S%p] ")
+ elseif result == "44" then
+  SetVariable("starLog_tsType", "%b %d %Y [%H:%M:%S] ")
+ elseif result == "45" then
+  SetVariable("starLog_tsType", "%b %d %y [%H:%M:%S] ")
+ elseif result == "46" then
+  SetVariable("starLog_tsType", "%b %d [%H:%M:%S] ")
+ elseif result == "47" then
+  SetVariable("starLog_tsType", "%m %d %Y [%H:%M:%S] ")
+ elseif result == "48" then
+  SetVariable("starLog_tsType", "%m %d %y [%H:%M:%S] ")
+ elseif result == "49" then
+  SetVariable("starLog_tsType", "%m %d [%H:%M:%S] ")
+ elseif result == "50" then
+  SetVariable("starLog_tsType", "%Y %d %b [%H:%M:%S] ")
+ elseif result == "51" then
+  SetVariable("starLog_tsType", "%y %d %b [%H:%M:%S] ")
+ elseif result == "52" then
+  SetVariable("starLog_tsType", "%d %b [%H:%M:%S] ")
+ elseif result == "53" then
+  SetVariable("starLog_tsType", "%Y %d %m [%H:%M:%S] ")
+ elseif result == "54" then
+  SetVariable("starLog_tsType", "%y %d %m [%H:%M:%S] ")
+ elseif result == "55" then
+  SetVariable("starLog_tsType", "%d %m [%H:%M:%S] ")
+ elseif result == "56" then
+  SetVariable("starLog_tsType", "[%H:%M:%S] ")
+ elseif result == "57" then
+  result_filename = utils.inputbox ("What would you like the filename to be?", "Star Logger", "The Final Challenge Log", "Courier", 9)
+  SetVariable("result_filename", result_filename)
+  SetVariable("starLog_fnTs", result_filename)
+ elseif result == "58" then
+  SetVariable("starLog_fnTs", "%b %d %Y [%I_%M_%S%p]")
+ elseif result == "59" then
+  SetVariable("starLog_fnTs", "%b %d %y [%I_%M_%S%p]")
+ elseif result == "60" then
+  SetVariable("starLog_fnTs", "%b %d [%I_%M_%S%p]")
+ elseif result == "61" then
+  SetVariable("starLog_fnTs", "%m %d %Y [%I_%M_%S%p]")
+ elseif result == "62" then
+  SetVariable("starLog_fnTs", "%m %d %y [%I_%M_%S%p]")
+ elseif result == "63" then
+  SetVariable("starLog_fnTs", "%m %d [%I_%M_%S%p]")
+ elseif result == "64" then
+  SetVariable("starLog_fnTs", "%Y %d %b [%I_%M_%S%p]")
+ elseif result == "65" then
+  SetVariable("starLog_fnTs", "%y %d %b [%I_%M_%S%p]")
+ elseif result == "66" then
+  SetVariable("starLog_fnTs", "%d %b [%I_%M_%S%p]")
+ elseif result == "67" then
+  SetVariable("starLog_fnTs", "%Y %d %m [%I_%M_%S%p]")
+ elseif result == "68" then
+  SetVariable("starLog_fnTs", "%y %d %m [%I_%M_%S%p]")
+ elseif result == "69" then
+  SetVariable("starLog_fnTs", "%d %m [%I_%M_%S%p]")
+ elseif result == "70" then
+  SetVariable("starLog_fnTs", "[%I_%M_%S%p]")
+ elseif result == "71" then
+  SetVariable("starLog_fnTs", "%b %d %Y [%H_%M_%S]")
+ elseif result == "72" then
+  SetVariable("starLog_fnTs", "%b %d %y [%H_%M_%S]")
+ elseif result == "73" then
+  SetVariable("starLog_fnTs", "%b %d [%H_%M_%S]")
+ elseif result == "74" then
+  SetVariable("starLog_fnTs", "%m %d %Y [%H_%M_%S]")
+ elseif result == "75" then
+  SetVariable("starLog_fnTs", "%m %d %y [%H_%M_%S]")
+ elseif result == "76" then
+  SetVariable("starLog_fnTs", "%m %d [%H_%M_%S]")
+ elseif result == "77" then
+  SetVariable("starLog_fnTs", "%Y %d %b [%H_%M_%S]")
+ elseif result == "78" then
+  SetVariable("starLog_fnTs", "%y %d %b [%H_%M_%S]")
+ elseif result == "79" then
+  SetVariable("starLog_fnTs", "%d %b [%H_%M_%S]")
+ elseif result == "80" then
+  SetVariable("starLog_fnTs", "%Y %d %m [%H_%M_%S]")
+ elseif result == "81" then
+  SetVariable("starLog_fnTs", "%y %d %m [%H_%M_%S]")
+ elseif result == "82" then
+  SetVariable("starLog_fnTs", "%d %m [%H_%M_%S]")
+ elseif result == "83" then
+  SetVariable("starLog_fnTs", "[%H_%M_%S]")
+ elseif result == "84" then
+  directoryname = utils.directorypicker ("Folder to put logs into", GetInfo (58))
+  SetVariable("starlog_folder", directoryname)
+  ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Logs will now save to ", "red", "", directoryname)
+ elseif result == "85" then
+  if GetVariable("starlog_folder") then
+   os.execute ("explorer " .. GetVariable("starlog_folder") )
+  else
+   os.execute ("explorer " .. GetInfo (58) )
+  end -- starlog_folder
+ elseif result == "86" then
+  OpenBrowser ("https://github.com/TFC-Fumino/MUSHclient_Plugins/issues")
+ elseif result == "87" then
   print("")
   ColourNote("white", "blue", "Connecting to the server and checking for updates.")
   ColourNote("white", "blue", "Please wait..")
   update_plugin ()
-end -- result
+ end -- result
  DrawThemed3DRect(titlebar_window, 65, 0, 104, 13)
  outlined_text (colourWhite, titlebar_window, "settings", 5, 68, 2, 0)
  Redraw()
@@ -2631,18 +2987,10 @@ function raw_get(retval, page, status, headers, full_status, request_url)
   SetVariable("plugin_updating", "false")
  end 
 end -- function raw_get
-----/ Special DC logger /----
+----/ Star logger main functions /----
 function dc_log (name, line, wildcards, styles)
- if GetVariable("starLog_tsType") == "tsType_a" then
-  AppendToNotepad ("Star_Log_Test", os.date("[%X] ") .. line)
- elseif GetVariable("starLog_tsType") == "tsType_b" then
-  AppendToNotepad ("Star_Log_Test", os.date("%b %d %Y [%I:%M:%S%p] ") .. line)
- elseif GetVariable("starLog_tsType") == "tsType_c" then
-  AppendToNotepad ("Star_Log_Test", os.date("[%H:%M:%S] ") .. line)
- elseif GetVariable("starLog_tsType") == "tsType_d" then
-  AppendToNotepad ("Star_Log_Test", os.date("%d %b [%I:%M:%S%p] ") .. line)
- elseif GetVariable("starLog_tsType") == "tsType_e" then
-  AppendToNotepad ("Star_Log_Test", os.date("%d %b [%H:%M:%S] ") .. line)
+ if GetVariable("starLog_tsType") ~= nil then
+  AppendToNotepad ("Star_Log_Test", os.date(GetVariable("starLog_tsType")) .. line)
  else
   AppendToNotepad ("Star_Log_Test", line)
  end -- starLog_tsType
@@ -2654,10 +3002,92 @@ function starLog_prev ()
  local line, total_lines
  total_lines = GetLinesInBufferCount ()
  for line = 1, total_lines do
-  AppendToNotepad ("Star_Log_Test", os.date("[%I:%M:%S%p]", GetLineInfo(line,9)) .. ": " .. GetLineInfo (line, 1))
+  if GetVariable("starLog_tsType") ~= nil then
+   AppendToNotepad ("Star_Log_Test", os.date(GetVariable("starLog_tsType"), GetLineInfo(line,9)) .. GetLineInfo (line, 1))
+  else
+   AppendToNotepad ("Star_Log_Test", GetLineInfo (line, 1))
+  end -- starLog_tsType
   AppendToNotepad ("Star_Log_Test", "\r\n")
  end -- for
+ Activate()
 end -- function starLog_prev
+----/ Star logger alias functions /----
+function alias_star_logger_rec ()
+  if GetVariable("starLog_isRec") == nil then
+   starLog_isRec = false
+   SetVariable("starLog_isRec", "false")
+  end -- starLog_isRec  
+  starLog_isRec = not starLog_isRec  
+  if starLog_isRec then
+   SetVariable("starLog_isRec", "true")
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Activated")
+   if GetVariable("starLog_recPrev") == "true" then
+    starLog_prev ()
+   end -- starLog_recPrev  
+   EnableTrigger("starlogger", true)
+  else
+   EnableTrigger("starlogger", false)
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Deactivated")
+   if GetVariable("starlog_folder") ~= nil then
+    if GetVariable("starLog_fnTs") ~= nil then
+     SaveNotepad ("Star_Log_Test", GetVariable("starlog_folder") .. "\\" .. os.date(GetVariable("starLog_fnTs")) .. ".txt")
+     CloseNotepad ("Star_Log_Test", 0)
+     ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Log file saved to ", "red", "", GetVariable("starlog_folder") .. "\\" .. os.date(GetVariable("starLog_fnTs")) .. ".txt")	 
+    else
+     SaveNotepad ("Star_Log_Test", GetVariable("starlog_folder") .. "\\" .. os.date("%b %d %Y [%I_%M_%S%p]") .. ".txt")
+     CloseNotepad ("Star_Log_Test", 0)
+     ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "silver", "", "Filename has not been set, saving file with default format name.")
+     ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Log file saved to ", "red", "", GetVariable("starlog_folder") .. "\\" .. os.date("%b %d %Y [%I_%M_%S%p]") .. ".txt")
+    end -- starlog_folder
+   else
+    SaveNotepad ("Star_Log_Test", GetInfo (58) .. "\\" .. os.date("%b %d %Y [%I_%M_%S%p]") .. ".txt")
+    CloseNotepad ("Star_Log_Test", 0)
+    ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "silver", "", "Folder and Filename has not been set, saving file at default location with default name.")
+    ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Log file saved to ", "red", "", GetInfo (58) .. "\\" .. os.date("%b %d %Y [%I_%M_%S%p]") .. ".txt")
+   end -- starlog_folder
+   SetVariable("starLog_isRec", "false")
+  end -- starLog_isRec
+end -- function alias_star_logger_rec
+
+function alias_star_logger_set_folder()
+  directoryname = utils.directorypicker ("Folder to put logs into", GetInfo (58))
+  SetVariable("starlog_folder", directoryname)
+  ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Logs will now save to ", "red", "", directoryname)
+end -- function alias_star_logger_set_folder()
+
+function alias_star_logger_set_filename()
+  result_filename = utils.inputbox ("What would you like the filename to be?", "Star Logger", "The Final Challenge Log", "Courier", 9)
+  SetVariable("result_filename", result_filename)
+  SetVariable("starLog_fnTs", result_filename)
+  ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Logs will now save as ", "red", "", result_filename)
+end -- function alias_star_logger_set_filename
+
+function alias_star_logger_open_folder()
+  if GetVariable("starlog_folder") then
+   os.execute ("explorer " .. GetVariable("starlog_folder") )
+  else
+   os.execute ("explorer " .. GetInfo (58) )
+  end -- starlog_folder
+end -- function alias_star_logger_open_folder
+
+function alias_star_logger_prev_lines()
+  if GetVariable("starLog_recPrev") == "true" then
+   starLog_recPrev = true
+  elseif GetVariable("starLog_recPrev") == "false" then
+   starLog_recPrev = false
+  else
+   starLog_recPrev = false
+   SetVariable("starLog_recPrev", "false")
+  end -- starLog_recPrev
+  starLog_recPrev = not starLog_recPrev
+  if starLog_recPrev then
+   SetVariable("starLog_recPrev", "true")
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Previous lines will now also be recorded once logging has started.")
+  else
+   SetVariable("starLog_recPrev", "false")
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Previous lines will no longer be recorded before logging has started.")
+  end -- starLog_recPrev
+end -- alias_star_logger_prev_lines
 ]]>
 </script>
 </muclient>
