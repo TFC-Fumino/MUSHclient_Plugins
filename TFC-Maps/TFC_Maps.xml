@@ -1,0 +1,942 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE muclient>
+
+<muclient>
+<plugin
+   name="TFC_Maps"
+   author="Fumino"
+   id="ae7f84a0a912ef3362dd5f4d"
+   language="Lua"
+   purpose="Map list and viewer for The Final Challenge"
+   date_written="2016-02-02 00:49:31"
+   requires="4.51"
+   version="1.0"
+   >
+<description trim="y">
+
+</description>
+
+</plugin>
+
+<aliases>
+
+<alias
+   match="^view map (.+?)$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+  >
+  <send>if page_two == true then
+ if tonumber(%1) > 37 then
+  ColourNote ("red", "", "Error! TFC Maps Page 2 - Map Number '%1' doesn't exist!")
+ else
+  map_selected = (links_two [tonumber(%1)].map_selected)
+  map_selected_small = (links_two [tonumber(%1)].map_selected_small)
+  Execute("last map")
+ end -- error check
+end -- page_two
+if page_three == true then
+ if tonumber(%1) > 37 then
+  ColourNote ("red", "", "Error! TFC Maps Page 3 - Map Number '%1' doesn't exist!")
+ else
+  map_selected = (links_three [tonumber(%1)].map_selected)
+  map_selected_small = (links_three [tonumber(%1)].map_selected_small)
+  Execute("last map")
+ end -- error check
+end -- page_three
+if page_four == true then
+ if tonumber(%1) > 31 then
+  ColourNote ("red", "", "Error! TFC Maps Page 4 - Map Number '%1' doesn't exist!")
+ else
+  map_selected = (links_four [tonumber(%1)].map_selected)
+  map_selected_small = (links_four [tonumber(%1)].map_selected_small)
+  Execute("last map")
+ end -- error check
+end -- page_four
+if page_two ~= true and page_three ~= true and page_four ~= true then
+ if tonumber(%1) > 37 then
+  ColourNote ("red", "", "Error! TFC Maps Page 1 - Map Number '%1' doesn't exist!")
+ else
+  map_selected = (links [tonumber(%1)].map_selected)
+  map_selected_small = (links [tonumber(%1)].map_selected_small)
+  Execute("last map")
+ end -- error check
+end -- page_two page_three page_four</send>
+  </alias>
+
+<alias
+   match="^view page (.+?)$"
+   enabled="y"
+   regexp="y"
+   send_to="12"
+   sequence="100"
+  >
+  <send>if tonumber(%1) == 1 then
+ page_two = false
+ page_three = false
+ page_four = false
+  show_map_list ()
+elseif tonumber(%1) == 2 then
+ page_two = true
+ page_three = false
+ page_four = false
+  show_map_list ()
+elseif tonumber(%1) == 3 then
+ page_two = false
+ page_three = true
+ page_four = false
+  show_map_list ()
+elseif tonumber(%1) == 4 then
+ page_two = false
+ page_three = false
+ page_four = true
+  show_map_list ()
+else
+  ColourNote ("red", "", "Error! TFC Maps Page '%1' doesn't exist!")
+end -- page number</send>
+  </alias>
+
+  <alias
+   script="show_map_list"
+   match="map list"
+   enabled="y"
+   sequence="100"
+  >
+  </alias>
+
+  <alias
+   script="hide_map_list"
+   match="close map list"
+   enabled="y"
+   sequence="100"
+  >
+  </alias>
+
+  <alias
+   script="show_map"
+   match="last map"
+   enabled="y"
+   sequence="100"
+  >
+  </alias>
+
+  <alias
+   script="hide_map"
+   match="close map"
+   enabled="y"
+   sequence="100"
+  >
+  </alias>
+
+</aliases>
+
+<script>
+<![CDATA[
+
+
+win = GetPluginID () .. "_MapList"
+map_window = GetPluginID () .. "_MapViewer"
+font = "f"
+font_map = "v"
+map_selected, map_selected_small = nil, nil
+-----------------------------------------
+-- one entry for each hyperlink you want drawn
+-----------------------------------------
+links = {
+ { text = " 1 Ant Colony", tip = "View Ant Colony Map", map_selected = "TFC_Maps/Ant_colony.png", map_selected_small = "TFC_Maps/Ant_colony_small.png"  },
+ { text = " 2 Aran and The Cliffs of Aran", tip = "View Aran and The Cliffs of Aran Map", map_selected = "TFC_Maps/CliffsAran.png", map_selected_small = "TFC_Maps/CliffsAran_small.png"  },
+ { text = " 3 Altibia", tip = "View Altibia Map", map_selected = "TFC_Maps/New_Altibia.png", map_selected_small = "TFC_Maps/New_Altibia_small.png"  },
+ { text = " 4 Castle of Baron Marel and Old Marsh", tip = "View Castle of Baron Marel and Old Marsh Map", map_selected = "TFC_Maps/Baron.png", map_selected_small = "TFC_Maps/Baron_small.png"  },
+ { text = " 5 Candlespyre Mountain", tip = "View Candlespyre Mountain Map", map_selected = "TFC_Maps/Candlespyre.png", map_selected_small = "TFC_Maps/Candlespyre_small.png"  },
+ { text = " 6 Caves of the Spirit", tip = "View Caves of the Spirit Map", map_selected = "TFC_Maps/Caves_of_the_Spirit.png", map_selected_small = "TFC_Maps/Caves_of_the_Spirit_small.png"  },
+ { text = " 7 Cillidellia", tip = "View Cillidellia Map", map_selected = "TFC_Maps/Cillidellia.png", map_selected_small = "TFC_Maps/Cillidellia_small.png"  },
+ { text = " 8 The Cymraeg", tip = "View The Cymraeg Map", map_selected = "TFC_Maps/Cymraeg.png", map_selected_small = "TFC_Maps/Cymraeg_small.png"  },
+ { text = " 9 Dauskdraug Spawning Caves", tip = "View Dauskdraug Spawning Caves Map", map_selected = "TFC_Maps/Dauskdraug.png", map_selected_small = "TFC_Maps/Dauskdraug_small.png"  },
+ { text = "10 The Deepwood", tip = "View The Deepwood Map", map_selected = "TFC_Maps/Deepwood.png", map_selected_small = "TFC_Maps/Deepwood_small.png"  },
+ { text = "11 Demon Realm", tip = "View Demon Realm Map", map_selected = "TFC_Maps/Demon_Realm.png", map_selected_small = "TFC_Maps/Demon_Realm_small.png"  },
+ { text = "12 Dream Realm", tip = "View Dream Realm Map", map_selected = "TFC_Maps/Dream_realm.png", map_selected_small = "TFC_Maps/Dream_realm_small.png"  },
+ { text = "13 Dwarvenhold", tip = "View Dwarvenhold Map", map_selected = "TFC_Maps/Dwarvenhold.png", map_selected_small = "TFC_Maps/Dwarvenhold_small.png"  },
+ { text = "14 Elven Homestead", tip = "View Elven Homestead Map", map_selected = "TFC_Maps/Elven_homestead.png", map_selected_small = "TFC_Maps/Elven_homestead_small.png"  },
+ { text = "15 EmDeeville", tip = "View EmDeeville Map", map_selected = "TFC_Maps/EmDeeVille.png", map_selected_small = "TFC_Maps/EmDeeVille_small.png"  },
+ { text = "16 The Great Eastern Desert", tip = "View The Great Eastern Desert Map", map_selected = "TFC_Maps/GEDesert.png", map_selected_small = "TFC_Maps/GEDesert_small.png"  },
+ { text = "17 Gla Shorns Realm and Guru", tip = "View Gla Shorns Realm and Guru Map", map_selected = "TFC_Maps/Gla_Shorn.png", map_selected_small = "TFC_Maps/Gla_Shorn_small.png"  },
+ { text = "18 Hall of Memory", tip = "View Hall of Memory Map", map_selected = "TFC_Maps/Hall_of_memory.png", map_selected_small = "TFC_Maps/Hall_of_memory_small.png"  },
+ { text = "19 HaonDor Lower Loth Lorien and Half Elf Camp", tip = "View HaonDor Lower Loth Lorien and Half Elf Camp Map", map_selected = "TFC_Maps/HaonDor.png", map_selected_small = "TFC_Maps/HaonDor_small.png"  },
+ { text = "20 Hovelton", tip = "View Hovelton Map", map_selected = "TFC_Maps/Hovelton.png", map_selected_small = "TFC_Maps/Hovelton_small.png"  },
+ { text = "21 Icy Wastelands", tip = "View Icy Wastelands Map", map_selected = "TFC_Maps/IcyWastelands.png", map_selected_small = "TFC_Maps/IcyWastelands_small.png"  },
+ { text = "22 The Inzerre", tip = "View The Inzerre Map", map_selected = "TFC_Maps/Inzerre.png", map_selected_small = "TFC_Maps/Inzerre_small.png"  },
+ { text = "23 Temple of Isiira", tip = "View Temple of Isiira Map", map_selected = "TFC_Maps/Isiira.png", map_selected_small = "TFC_Maps/Isiira_small.png"  },
+ { text = "24 The Isle and Meadow", tip = "View The Isle and Meadow Map", map_selected = "TFC_Maps/The_Isle_Map.png", map_selected_small = "TFC_Maps/The_Isle_Map_small.png"  },
+ { text = "25 Kuroth and Lookout Tower", tip = "View Kuroth and Lookout Tower Map", map_selected = "TFC_Maps/Kuroth_LookoutTower.png", map_selected_small = "TFC_Maps/Kuroth_LookoutTower_small.png"  },
+ { text = "26 Longship", tip = "View Longship Map", map_selected = "TFC_Maps/Longship.png", map_selected_small = "TFC_Maps/Longship_small.png"  },
+ { text = "27 Lost in the Foliage", tip = "View Lost in the Foliage Map", map_selected = "TFC_Maps/LostinFoliage.png", map_selected_small = "TFC_Maps/LostinFoliage_small.png"  },
+ { text = "28 Village of Malenest", tip = "View Village of Malenest Map", map_selected = "TFC_Maps/Malenest_Map.png", map_selected_small = "TFC_Maps/Malenest_Map_small.png"  },
+ { text = "29 The Northern Continent", tip = "View The Northern Continent Map", map_selected = "TFC_Maps/Map_NC_vtwo.png", map_selected_small = "TFC_Maps/Map_NC_vtwo_small.png"  },
+ { text = "30 The Southern Continent", tip = "View The Southern Continent Map", map_selected = "TFC_Maps/Map_SC_Soloban.png", map_selected_small = "TFC_Maps/Map_SC_Soloban_small.png"  },
+ { text = "31 The Maelmordian Seas", tip = "View The Maelmordian Seas Map", map_selected = "TFC_Maps/Map_Sea.png", map_selected_small = "TFC_Maps/Map_Sea_small.png"  },
+ { text = "32 Midgaard", tip = "View Midgaard Map", map_selected = "TFC_Maps/MG_Map.png", map_selected_small = "TFC_Maps/MG_Map_small.png"  },
+ { text = "33 The Kingdom of Mider", tip = "View The Kingdom of Mider Map", map_selected = "TFC_Maps/Mider.png", map_selected_small = "TFC_Maps/Mider_small.png"  },
+ { text = "34 Mithas", tip = "View Mithas Map", map_selected = "TFC_Maps/Mithas.png", map_selected_small = "TFC_Maps/Mithas_small.png"  },
+ { text = "35 Molotov Island", tip = "View Molotov Island Map", map_selected = "TFC_Maps/Molotov.png", map_selected_small = "TFC_Maps/Molotov_small.png"  },
+ { text = "36 Molotov Volcano", tip = "View Molotov Volcano Map", map_selected = "TFC_Maps/Molotovvolcano.png", map_selected_small = "TFC_Maps/Molotovvolcano_small.png"  },
+ { text = "37 Moose Hunter Camp", tip = "View Moose Hunter Camp Map", map_selected = "TFC_Maps/MooseHunterCamp.png", map_selected_small = "TFC_Maps/MooseHunterCamp_small.png"  }
+
+ } -- end of links table
+
+links_two = {
+ { text = " 1 Mountain of Knowledge", tip = "View Mountain of Knowledge Map", map_selected = "TFC_Maps/Mok.png", map_selected_small = "TFC_Maps/Mok_small.png"  },
+ { text = " 2 Mystic Woods and Cyrenian Gardens", tip = "View Mystic Woods and Cyrenian Gardens Map", map_selected = "TFC_Maps/Mystic_Woods_Map.png", map_selected_small = "TFC_Maps/Mystic_Woods_Map_small.png"  },
+ { text = " 3 The Northern Stronghold", tip = "View The Northern Stronghold Map", map_selected = "TFC_Maps/Northernstronghold.png", map_selected_small = "TFC_Maps/Northernstronghold_small.png"  },
+ { text = " 4 Nydia and The Loch Lower Ramsay Island", tip = "View Nydia and The Loch Lower Ramsay Island Map", map_selected = "TFC_Maps/Nydia_Map.png", map_selected_small = "TFC_Maps/Nydia_Map_small.png"  },
+ { text = " 5 Oakheart Inn", tip = "View Oakheart Inn Map", map_selected = "TFC_Maps/Oakheart_Inn.png", map_selected_small = "TFC_Maps/Oakheart_Inn_small.png"  },
+ { text = " 6 Outland Frontier", tip = "View Outland Frontier Map", map_selected = "TFC_Maps/Outland_Frontier.png", map_selected_small = "TFC_Maps/Outland_Frontier_small.png"  },
+ { text = " 7 Riverhold", tip = "View Riverhold Map", map_selected = "TFC_Maps/Riverhold_Map.png", map_selected_small = "TFC_Maps/Riverhold_Map_small.png"  },
+ { text = " 8 River of Despair", tip = "View River of Despair Map", map_selected = "TFC_Maps/RiverDespair.png", map_selected_small = "TFC_Maps/RiverDespair_small.png"  },
+ { text = " 9 Skelos", tip = "View Skelos Map", map_selected = "TFC_Maps/Skelos.png", map_selected_small = "TFC_Maps/Skelos_small.png"  },
+ { text = "10 Skull Top Spire", tip = "View Skull Top Spire Map", map_selected = "TFC_Maps/SkullSpire.png", map_selected_small = "TFC_Maps/SkullSpire_small.png"  },
+ { text = "11 The Southern Continent 2", tip = "View The Southern Continent 2 Map", map_selected = "TFC_Maps/South_Continent.png", map_selected_small = "TFC_Maps/South_Continent_small.png"  },
+ { text = "12 The Jungle", tip = "View The Jungle Map", map_selected = "TFC_Maps/TheJungle.png", map_selected_small = "TFC_Maps/TheJungle_small.png"  },
+ { text = "13 The West", tip = "View The West Map", map_selected = "TFC_Maps/TheWest.png", map_selected_small = "TFC_Maps/TheWest_small.png"  },
+ { text = "14 Thistlerock", tip = "View Thistlerock Map", map_selected = "TFC_Maps/Thistlerock.png", map_selected_small = "TFC_Maps/Thistlerock_small.png"  },
+ { text = "15 Tiber River", tip = "View Tiber River Map", map_selected = "TFC_Maps/Tiber.png", map_selected_small = "TFC_Maps/Tiber_small.png"  },
+ { text = "16 Dessert Island and Tier ShHalen", tip = "View Dessert Island and Tier ShHalen Map", map_selected = "TFC_Maps/Tier_and_Dessert.png", map_selected_small = "TFC_Maps/Tier_and_Dessert_small.png"  },
+ { text = "17 Tirens Rock and Jellyfish Garden", tip = "View Tirens Rock and Jellyfish Garden Map", map_selected = "TFC_Maps/Tirens.png", map_selected_small = "TFC_Maps/Tirens_small.png"  },
+ { text = "18 Towering Trees", tip = "View Towering Trees Map", map_selected = "TFC_Maps/ToweringTrees.png", map_selected_small = "TFC_Maps/ToweringTrees_small.png"  },
+ { text = "19 Treehouse", tip = "View Treehouse Map", map_selected = "TFC_Maps/Treehouse.png", map_selected_small = "TFC_Maps/Treehouse_small.png"  },
+ { text = "20 The Tulgey Wood", tip = "View The Tulgey Wood Map", map_selected = "TFC_Maps/Tugley_wood.png", map_selected_small = "TFC_Maps/Tugley_wood_small.png"  },
+ { text = "21 Turtle Den", tip = "View Turtle Den Map", map_selected = "TFC_Maps/Turtle_Den.png", map_selected_small = "TFC_Maps/Turtle_Den_small.png"  },
+ { text = "22 The Cavern of Vile Rune", tip = "View The Cavern of Vile Rune Map", map_selected = "TFC_Maps/Vilerune.png", map_selected_small = "TFC_Maps/Vilerune_small.png"  },
+ { text = "23 Mutant Area", tip = "View Mutant Area Map", map_selected = "TFC_Maps/Mutant_Area.png", map_selected_small = "TFC_Maps/Mutant_Area_small.png"  },
+ { text = "24 Mountain Aire", tip = "View Mountain Aire Map", map_selected = "TFC_Maps/Mountain_Aire.png", map_selected_small = "TFC_Maps/Mountain_Aire_small.png"  },
+ { text = "25 The Tower of Penfold", tip = "View The Tower of Penfold Map", map_selected = "TFC_Maps/Penfolds_Tower.png", map_selected_small = "TFC_Maps/Penfolds_Tower_small.png"  },
+ { text = "26 Blackthorne Forest", tip = "View Blackthorne Forest Map", map_selected = "TFC_Maps/Blackthorne.png", map_selected_small = "TFC_Maps/Blackthorne_small.png"  },
+ { text = "27 Tribal Sands", tip = "View Tribal Sands Map", map_selected = "TFC_Maps/Tribal.png", map_selected_small = "TFC_Maps/Tribal_small.png"  },
+ { text = "28 Cursed Circus", tip = "View Cursed Circus Map", map_selected = "TFC_Maps/Cursed_circus.png", map_selected_small = "TFC_Maps/Cursed_circus_small.png"  },
+ { text = "29 The Triton Halls", tip = "View The Triton Halls Map", map_selected = "TFC_Maps/Triton_halls.png", map_selected_small = "TFC_Maps/Triton_halls_small.png"  },
+ { text = "30 Trading Post", tip = "View Trading Post Map", map_selected = "TFC_Maps/Trading_Post.png", map_selected_small = "TFC_Maps/Trading_Post_small.png"  },
+ { text = "31 The Keep of Mahn Tor", tip = "View The Keep of Mahn Tor Map", map_selected = "TFC_Maps/The_Keep_of_Mahn_Tor.png", map_selected_small = "TFC_Maps/The_Keep_of_Mahn_Tor_small.png"  },
+ { text = "32 Dragons Lair", tip = "View Dragons Lair Map", map_selected = "TFC_Maps/Dragons_Lair.png", map_selected_small = "TFC_Maps/Dragons_Lair_small.png"  },
+ { text = "33 Sacred Shrine", tip = "View Sacred Shrine Map", map_selected = "TFC_Maps/Sacred_Shrine.png", map_selected_small = "TFC_Maps/Sacred_Shrine_small.png"  },
+ { text = "34 Gerteks Tomb", tip = "View Gerteks Tomb Map", map_selected = "TFC_Maps/Gertek.png", map_selected_small = "TFC_Maps/Gertek_small.png"  },
+ { text = "35 Eastern Plains", tip = "View Eastern Plains Map", map_selected = "TFC_Maps/Eastern_Plains.png", map_selected_small = "TFC_Maps/Eastern_Plains_small.png"  },
+ { text = "36 Uls Valley", tip = "View Uls Valley Map", map_selected = "TFC_Maps/UlsValley.png", map_selected_small = "TFC_Maps/UlsValley_small.png"  },
+ { text = "37 Cillidellian Wood", tip = "View Cillidellian Wood Map", map_selected = "TFC_Maps/UlsValley.png", map_selected_small = "TFC_Maps/UlsValley_small.png"  }
+
+} -- end of links_two table
+
+links_three = {
+ { text = " 1 Abbey", tip = "View Abbey Map", map_selected = "TFC_Maps/Abby.png", map_selected_small = "TFC_Maps/Abby_small.png"  },
+ { text = " 2 The Blue Savannah", tip = "View The Blue Savannah Map", map_selected = "TFC_Maps/BlueSav.png", map_selected_small = "TFC_Maps/BlueSav_small.png"  },
+ { text = " 3 Braddlebury", tip = "View Braddlebury Map", map_selected = "TFC_Maps/Braddlebury.png", map_selected_small = "TFC_Maps/Braddlebury_small.png"  },
+ { text = " 4 Cannibal Island", tip = "View Cannibal Island Map", map_selected = "TFC_Maps/Cannibal.png", map_selected_small = "TFC_Maps/Cannibal_small.png"  },
+ { text = " 5 The Caverns of N Kai", tip = "View The Caverns of N Kai Map", map_selected = "TFC_Maps/NKai.png", map_selected_small = "TFC_Maps/NKai_small.png"  },
+ { text = " 6 The Dark Manor", tip = "View The Dark Manor Map", map_selected = "TFC_Maps/DarkManor.png", map_selected_small = "TFC_Maps/DarkManor_small.png"  },
+ { text = " 7 Dhuvrad", tip = "View Dhuvrad Map", map_selected = "TFC_Maps/Dhuvrad.png", map_selected_small = "TFC_Maps/Dhuvrad_small.png"  },
+ { text = " 8 Druids Sanctuary", tip = "View Druids Sanctuary Map", map_selected = "TFC_Maps/Druid_Sanctuary.png", map_selected_small = "TFC_Maps/Druid_Sanctuary_small.png"  },
+ { text = " 9 Duergar Area", tip = "View Duergar Area Map", map_selected = "TFC_Maps/Dwarvenhold_mines.png", map_selected_small = "TFC_Maps/Dwarvenhold_mines_small.png"  },
+ { text = "10 Dwarvenhold Mines", tip = "View Dwarvenhold Mines Map", map_selected = "TFC_Maps/Dwarvenhold_mines.png", map_selected_small = "TFC_Maps/Dwarvenhold_mines_small.png"  },
+ { text = "11 The Ent Forest", tip = "View The Ent Forest Map", map_selected = "TFC_Maps/Ent.png", map_selected_small = "TFC_Maps/Ent_small.png"  },
+ { text = "12 Fastwater", tip = "View Fastwater Map", map_selected = "TFC_Maps/Fastwater_Map.png", map_selected_small = "TFC_Maps/Fastwater_Map_small.png"  },
+ { text = "13 The Great Plains", tip = "View The Great Plains Map", map_selected = "TFC_Maps/GreatPlains.png", map_selected_small = "TFC_Maps/GreatPlains_small.png"  },
+ { text = "14 Gronk", tip = "View Gronk Map", map_selected = "TFC_Maps/Gronk_Map.png", map_selected_small = "TFC_Maps/Gronk_Map_small.png"  },
+ { text = "15 Kharad Delving", tip = "View Kharad Delving Map", map_selected = "TFC_Maps/Delving.png", map_selected_small = "TFC_Maps/Delving_small.png"  },
+ { text = "16 Lineaoth Valley", tip = "View Lineaoth Valley Map", map_selected = "TFC_Maps/Lineaoth_valley.png", map_selected_small = "TFC_Maps/Lineaoth_valley_small.png"  },
+ { text = "17 A Mountain Pass", tip = "View A Mountain Pass Map", map_selected = "TFC_Maps/MtPass.png", map_selected_small = "TFC_Maps/MtPass_small.png"  },
+ { text = "18 The Nest", tip = "View The Nest Map", map_selected = "TFC_Maps/Nest.png", map_selected_small = "TFC_Maps/Nest_small.png"  },
+ { text = "19 OG and The Bog", tip = "View OG and The Bog Map", map_selected = "TFC_Maps/Og.png", map_selected_small = "TFC_Maps/Og_small.png"  },
+ { text = "20 Outland Frontier", tip = "View Outland Frontier Map", map_selected = "TFC_Maps/Map_Outland_Frontier.png", map_selected_small = "TFC_Maps/Map_Outland_Frontier_small.png"  },
+ { text = "21 Ramsay Island", tip = "View Ramsay Island Map", map_selected = "TFC_Maps/RamsayMap.png", map_selected_small = "TFC_Maps/RamsayMap_small.png"  },
+ { text = "22 Riverdale Plantation", tip = "View Riverdale Plantation Map", map_selected = "TFC_Maps/Riverdale_Map.png", map_selected_small = "TFC_Maps/Riverdale_Map_small.png"  },
+ { text = "23 Rowen Bay", tip = "View Rowen Bay Map", map_selected = "TFC_Maps/RowenBay.png", map_selected_small = "TFC_Maps/RowenBay_small.png"  },
+ { text = "24 Ruins of Ofcol", tip = "View Ruins of Ofcol Map", map_selected = "TFC_Maps/Ofcol_Map.png", map_selected_small = "TFC_Maps/Ofcol_Map_small.png"  },
+ { text = "25 Safehaven", tip = "View Safehaven Map", map_selected = "TFC_Maps/Safehaven.png", map_selected_small = "TFC_Maps/Safehaven_small.png"  },
+ { text = "26 Sailing Ship", tip = "View Sailing Ship Map", map_selected = "TFC_Maps/Sailing_ship.png", map_selected_small = "TFC_Maps/Sailing_ship_small.png"  },
+ { text = "27 Sanguinaa and Keep", tip = "View Sanguinaa and Keep Map", map_selected = "TFC_Maps/Sanguinna_Map.png", map_selected_small = "TFC_Maps/Sanguinna_Map_small.png"  },
+ { text = "28 Shadowed Valley", tip = "View Shadowed Valley Map", map_selected = "TFC_Maps/Shadowed_Map.png", map_selected_small = "TFC_Maps/Shadowed_Map_small.png"  },
+ { text = "29 Northern Sava River", tip = "View Northern Sava River Map", map_selected = "TFC_Maps/NorthSava.png", map_selected_small = "TFC_Maps/NorthSava_small.png"  },
+ { text = "30 Southern Sava River", tip = "View Southern Sava River Map", map_selected = "TFC_Maps/SouthSava.png", map_selected_small = "TFC_Maps/SouthSava_small.png"  },
+ { text = "31 Shipwreck", tip = "View Shipwreck Map", map_selected = "TFC_Maps/Shipwreck.png", map_selected_small = "TFC_Maps/Shipwreck_small.png"  },
+ { text = "32 The Swimming Hole", tip = "View The Swimming Hole Map", map_selected = "TFC_Maps/Swimming_Hole.png", map_selected_small = "TFC_Maps/Swimming_Hole_small.png"  },
+ { text = "33 Temples", tip = "View Temples Map", map_selected = "TFC_Maps/Temples.png", map_selected_small = "TFC_Maps/Temples_small.png"  },
+ { text = "34 Thalos and Rickety Dock", tip = "View Thalos and Rickety Dock Map", map_selected = "TFC_Maps/Thalos_Map.png", map_selected_small = "TFC_Maps/Thalos_Map_small.png"  },
+ { text = "35 Tharlodins Vein", tip = "View Tharlodins Vein Map", map_selected = "TFC_Maps/TharlodinsVein.png", map_selected_small = "TFC_Maps/TharlodinsVein_small.png"  },
+ { text = "36 Villa En Asni", tip = "View Villa En Asni Map", map_selected = "TFC_Maps/VillaEnAsni.png", map_selected_small = "TFC_Maps/VillaEnAsni_small.png"  },
+ { text = "37 Warloovs Fortress", tip = "View Warloovs Fortress Map", map_selected = "TFC_Maps/Warloov_Map.png", map_selected_small = "TFC_Maps/Warloov_Map_small.png"  },
+
+} -- end of links_three table 
+
+links_four = {
+ { text = " 1 Goblin Mines", tip = "View Goblin Mines Map", map_selected = "TFC_Maps/goblin_mines.png", map_selected_small = "TFC_Maps/goblin_mines_small.png"  },
+ { text = " 2 Galkeks Hoard", tip = "View Galkeks Hoard Map", map_selected = "TFC_Maps/Galkek.png", map_selected_small = "TFC_Maps/Galkek_small.png"  },
+ { text = " 3 The Valley of Dhraxx", tip = "View The Valley of Dhraxx Map", map_selected = "TFC_Maps/Dhraxx.png", map_selected_small = "TFC_Maps/Dhraxx_small.png"  },
+ { text = " 4 Skorlanis", tip = "View Skorlanis Map", map_selected = "TFC_Maps/Skorlanis_Spirt_Map.png", map_selected_small = "TFC_Maps/Skorlanis_Spirt_Map_small.png"  },
+ { text = " 5 Caves of the Spirit", tip = "View Caves of the Spirit Map", map_selected = "TFC_Maps/Skorlanis_Spirt_Map.png", map_selected_small = "TFC_Maps/Skorlanis_Spirt_Map_small.png"  },
+ { text = " 6 Ruins of the Citadel", tip = "View Ruins of the Citadel Map", map_selected = "TFC_Maps/Ruins_of_the_Citadel_Map.png", map_selected_small = "TFC_Maps/Ruins_of_the_Citadel_Map_small.png"  },
+ { text = " 7 Plains of the North", tip = "View Plains of the North Map", map_selected = "TFC_Maps/Plains_of_the_North_Map.png", map_selected_small = "TFC_Maps/Plains_of_the_North_Map_small.png"  },
+ { text = " 8 Aarakocran City", tip = "View Aarakocran City Map", map_selected = "TFC_Maps/Aarakocran_City_Map.png", map_selected_small = "TFC_Maps/Aarakocran_City_Map_small.png"  },
+ { text = " 9 Wolftooth Gorge", tip = "View Wolftooth Gorge Map", map_selected = "TFC_Maps/Wolftooth_Map.png", map_selected_small = "TFC_Maps/Wolftooth_Map_small.png"  },
+ { text = "10 The Lost Pyramid of Scyra", tip = "View The Lost Pyramid of Scyra Map", map_selected = "TFC_Maps/Pyramid_Map.png", map_selected_small = "TFC_Maps/Pyramid_Map_small.png"  },
+ { text = "11 The Bazaar", tip = "View The Bazaar Map", map_selected = "TFC_Maps/Bazaar_Map.png", map_selected_small = "TFC_Maps/Bazaar_Map_small.png"  },
+ { text = "12 DNal NTor", tip = "View DNal NTor Map", map_selected = "TFC_Maps/Dnal.png", map_selected_small = "TFC_Maps/Dnal_small.png"  },
+ { text = "13 Kobold Mines", tip = "View Kobold Mines Map", map_selected = "TFC_Maps/Kobold_mines.png", map_selected_small = "TFC_Maps/Kobold_mines_small.png"  },
+ { text = "14 Seaside", tip = "View Seaside Map", map_selected = "TFC_Maps/Seaside.png", map_selected_small = "TFC_Maps/Seaside_small.png"  },
+ { text = "15 Adventurers Guild", tip = "View Adventurers Guild Map", map_selected = "TFC_Maps/Guild.png", map_selected_small = "TFC_Maps/Guild_small.png"  },
+ { text = "16 Loth Llorien", tip = "View Loth Llorien Map", map_selected = "TFC_Maps/LothLlorien.png", map_selected_small = "TFC_Maps/LothLlorien_small.png"  },
+ { text = "17 Lizard Swamp", tip = "View Lizard Swamp Map", map_selected = "TFC_Maps/Lizard_map_Corri.png", map_selected_small = "TFC_Maps/Lizard_map_Corri_small.png"  },
+ { text = "18 Jesters Keep", tip = "View Jesters Keep Map", map_selected = "TFC_Maps/Jesters.png", map_selected_small = "TFC_Maps/Jesters_small.png"  },
+ { text = "19 Coliseum and Gallery", tip = "View Coliseum and Gallery Map", map_selected = "TFC_Maps/Coliseum_Lleheibwen.png", map_selected_small = "TFC_Maps/Coliseum_Lleheibwen_small.png"  },
+ { text = "20 Lleheibwen", tip = "View Lleheibwen Map", map_selected = "TFC_Maps/Coliseum_Lleheibwen.png", map_selected_small = "TFC_Maps/Coliseum_Lleheibwen_small.png"  },
+ { text = "21 Barbegazi", tip = "View Barbegazi Map", map_selected = "TFC_Maps/Barbegazi.png", map_selected_small = "TFC_Maps/Barbegazi_small.png"  },
+ { text = "22 Dwarven Kingdom", tip = "View Dwarven Kingdom Map", map_selected = "TFC_Maps/Dwarven_Kingdom.png", map_selected_small = "TFC_Maps/Dwarven_Kingdom_small.png"  },
+ { text = "23 Dwarven Catacombs", tip = "View Dwarven Catacombs Map", map_selected = "TFC_Maps/Dwarven_Kingdom.png", map_selected_small = "TFC_Maps/Dwarven_Kingdom_small.png"  },
+ { text = "24 Moria", tip = "View Moria Map", map_selected = "TFC_Maps/Moria_Map.png", map_selected_small = "TFC_Maps/Moria_Map_small.png"  },
+ { text = "25 Wyverns Tower", tip = "View Wyverns Tower Map", map_selected = "TFC_Maps/Wyverns.png", map_selected_small = "TFC_Maps/Wyverns_small.png"  },
+ { text = "26 Camp Tolanrael", tip = "View Camp Tolanrael Map", map_selected = "TFC_Maps/Camp_Tolanrael.png", map_selected_small = "TFC_Maps/Camp_Tolanrael_small.png"  },
+ { text = "27 Living Lands", tip = "View Living Lands Map", map_selected = "TFC_Maps/LivingLands.png", map_selected_small = "TFC_Maps/LivingLands_small.png"  },
+ { text = "28 Ghost Town", tip = "View Ghost Town Map", map_selected = "TFC_Maps/Ghost_Town_Map.png", map_selected_small = "TFC_Maps/Ghost_Town_Map_small.png"  },
+ { text = "29 Forgotten Catacombs", tip = "View Forgotten Catacombs Map", map_selected = "TFC_Maps/Ghost_Town_Map.png", map_selected_small = "TFC_Maps/Ghost_Town_Map_small.png"  },
+ { text = "30 Landrus Keep", tip = "View Landrus Keep Map", map_selected = "TFC_Maps/Landru_Map.png", map_selected_small = "TFC_Maps/Landru_Map_small.png"  },
+ { text = "31 Sahaugin", tip = "View Sahaugin Map", map_selected = "TFC_Maps/Sahaugin_City.png", map_selected_small = "TFC_Maps/Sahaugin_City_small.png"  }
+
+
+} -- end of links_four table
+
+
+-----------------------------------------
+-- draw hyperlink text in required colour
+-----------------------------------------
+function drawText (which, colour)
+  Redraw ()
+
+  return WindowText (win, font, which.text, which.x, which.y, 0, 0, ColourNameToRGB  (colour))
+end -- drawText
+ 
+-----------------------------------------
+-- mouse up
+-----------------------------------------
+function mouseup_hyperlink (flags, hotspotid)
+if page_two == true then
+  map_selected = (links_two [tonumber (hotspotid)].map_selected)
+  map_selected_small = (links_two [tonumber (hotspotid)].map_selected_small)
+  show_map()
+elseif page_three == true then
+  map_selected = (links_three [tonumber (hotspotid)].map_selected)
+  map_selected_small = (links_three [tonumber (hotspotid)].map_selected_small)
+  show_map()
+elseif page_four == true then
+  map_selected = (links_four [tonumber (hotspotid)].map_selected)
+  map_selected_small = (links_four [tonumber (hotspotid)].map_selected_small)
+  show_map()
+else
+  map_selected = (links [tonumber (hotspotid)].map_selected)
+  map_selected_small = (links [tonumber (hotspotid)].map_selected_small)
+  show_map()
+end -- page_two
+end -- mouseup_hyperlink
+
+-----------------------------------------
+-- mouse over
+-----------------------------------------
+function mouseover_hyperlink (flags, hotspotid)
+
+if page_two == true then
+  drawText (links_two [tonumber (hotspotid)], "blue")
+elseif page_three == true then
+  drawText (links_three [tonumber (hotspotid)], "blue")
+elseif page_four == true then
+  drawText (links_four [tonumber (hotspotid)], "blue")
+else
+  drawText (links [tonumber (hotspotid)], "blue")
+end -- page_two
+end -- mouseover_hyperlink
+
+-----------------------------------------
+-- cancel mouse over
+-----------------------------------------
+function cancel_mouseover_hyperlink (flags, hotspotid)
+
+if page_two == true then
+  drawText (links_two [tonumber (hotspotid)], "#99CCFF")
+elseif page_three == true then
+  drawText (links_three [tonumber (hotspotid)], "#99CCFF")
+elseif page_four == true then
+  drawText (links_four [tonumber (hotspotid)], "#99CCFF")
+else
+  drawText (links [tonumber (hotspotid)], "#99CCFF")
+end -- page_two
+
+end -- cancel_mouseover_hyperlink
+
+-----------------------------------------
+-- mouse down
+-----------------------------------------
+function mousedown_hyperlink (flags, hotspotid)
+if page_two == true then
+  drawText (links_two [tonumber (hotspotid)], "white")
+elseif page_three == true then
+  drawText (links_three [tonumber (hotspotid)], "white")
+elseif page_four == true then
+  drawText (links_four [tonumber (hotspotid)], "white")
+else
+  drawText (links [tonumber (hotspotid)], "white")
+end -- page_two
+end -- mousedown_hyperlink
+
+-----------------------------------------
+-- cancel mouse down
+-----------------------------------------
+function cancel_mousedown_hyperlink (flags, hotspotid)
+
+if page_two == true then
+  drawText (links_two [tonumber (hotspotid)], "yellow")
+elseif page_three == true then
+  drawText (links_three [tonumber (hotspotid)], "yellow")
+elseif page_four == true then
+  drawText (links_four [tonumber (hotspotid)], "yellow")
+else
+  drawText (links [tonumber (hotspotid)], "yellow")
+end -- page_two
+end -- cancel_mousedown_hyperlink
+
+-----------------------------------------
+-- make one hyperlink at current x,y location
+-----------------------------------------
+function MakeHyperlink (item, which)
+ 
+  -- remember current x and y in the links table
+  which.x = x
+  which.y = y
+ 
+  width = drawText (which, "#99CCFF")
+  WindowAddHotspot (win, item, which.x, which.y, which.x + width, which.y + font_height, 
+                    "mouseover_hyperlink", -- MouseOver 
+                    "cancel_mouseover_hyperlink", -- CancelMouseOver 
+                    "mousedown_hyperlink", -- MouseDown 
+                    "cancel_mousedown_hyperlink", -- CancelMouseDown 
+                    "mouseup_hyperlink", -- MouseUp 
+                    which.tip, 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+-- WindowRectOp(win, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+
+  y = y + font_height
+
+end -- MakeHyperlink
+
+function OnPluginInstall ()
+  
+  -- make window so I can grab the font info
+  WindowCreate (win, 0, 0, 0, 0, miniwin.pos_top_right, 0, 0)
+  
+  -- add the font                 
+  WindowFont (win, font, "Trebuchet MS", 7) 
+  
+  -- find its height
+  font_height = WindowFontInfo (win, font, 1)  -- height
+
+
+end -- OnPluginInstall
+
+function show_map_list ()
+  -- position for first hyperlink  
+  x = 0    -- all text indented this far in
+  y = 0    -- first hyperlink this far down
+                 
+  maxTextWidth = 0
+  
+  -- find maximum width 
+if page_two == true then
+  for k, v in ipairs (links_two) do
+    maxTextWidth = math.max (maxTextWidth, WindowTextWidth(win, font, v.text))
+  end -- for
+elseif page_three == true then
+  for k, v in ipairs (links_three) do
+    maxTextWidth = math.max (maxTextWidth, WindowTextWidth(win, font, v.text))
+  end -- for
+elseif page_four == true then
+  for k, v in ipairs (links_four) do
+    maxTextWidth = math.max (maxTextWidth, WindowTextWidth(win, font, v.text))
+  end -- for
+else
+  for k, v in ipairs (links) do
+    maxTextWidth = math.max (maxTextWidth, WindowTextWidth(win, font, v.text))
+  end -- for
+end -- page_two
+
+  -- make the proper window
+  WindowCreate (win, 
+               784, -- left
+               78, -- top 
+               213, 
+               500,
+               3,   
+               6,
+               ColourNameToRGB "black")
+  
+                 
+  
+
+  -- first line
+if page_two == true then
+  WindowText (win, font, "[X]", 191, 0, 0, 0, ColourNameToRGB  "red")
+  WindowAddHotspot (win, "close", 191, 0, 229, 8, 
+                    "mouseover_close", -- MouseOver 
+                    "cancel_mouseover_close", -- CancelMouseOver 
+                    "mousedown_close", -- MouseDown 
+                    "cancel_mousedown_close", -- CancelMouseDown 
+                    "mouseup_close", -- MouseUp 
+                    "Close map list", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+  WindowText (win, font, "[ PAGE 2 ]", 72, 448, 0, 0, ColourNameToRGB  "darkgray")
+  -- navigation links
+  WindowText (win, font, "Page 1 -", 13, 448, 0, 0, ColourNameToRGB  "white")
+  WindowAddHotspot (win, "nav", 13, 448, 71, 460, 
+                    "mouseover_nav", -- MouseOver 
+                    "cancel_mouseover_nav", -- CancelMouseOver 
+                    "mousedown_nav", -- MouseDown 
+                    "cancel_mousedown_nav", -- CancelMouseDown 
+                    "mouseup_nav", -- MouseUp 
+                    "View page 1 of maps", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+  WindowText (win, font, "- Page 3", 150, 448, 0, 0, ColourNameToRGB  "white")
+  WindowAddHotspot (win, "nav_two", 150, 448, 208, 460, 
+                    "mouseover_nav_two", -- MouseOver 
+                    "cancel_mouseover_nav_two", -- CancelMouseOver 
+                    "mousedown_nav_two", -- MouseDown 
+                    "cancel_mousedown_nav_two", -- CancelMouseDown 
+                    "mouseup_nav_two", -- MouseUp 
+                    "View page 3 of maps", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+elseif page_three == true then
+  WindowText (win, font, "[X]", 191, 0, 0, 0, ColourNameToRGB  "red")
+  WindowAddHotspot (win, "close", 191, 0, 229, 8, 
+                    "mouseover_close", -- MouseOver 
+                    "cancel_mouseover_close", -- CancelMouseOver 
+                    "mousedown_close", -- MouseDown 
+                    "cancel_mousedown_close", -- CancelMouseDown 
+                    "mouseup_close", -- MouseUp 
+                    "Close map list", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+  WindowText (win, font, "[ PAGE 3 ]", 72, 448, 0, 0, ColourNameToRGB  "darkgray")
+  -- navigation links
+  WindowText (win, font, "Page 2 -", 13, 448, 0, 0, ColourNameToRGB  "white")
+  WindowAddHotspot (win, "nav", 13, 448, 71, 460, 
+                    "mouseover_nav", -- MouseOver 
+                    "cancel_mouseover_nav", -- CancelMouseOver 
+                    "mousedown_nav", -- MouseDown 
+                    "cancel_mousedown_nav", -- CancelMouseDown 
+                    "mouseup_nav", -- MouseUp 
+                    "View page 2 of maps", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+  WindowText (win, font, "- Page 4", 150, 448, 0, 0, ColourNameToRGB  "white")
+  WindowAddHotspot (win, "nav_two", 150, 448, 208, 460, 
+                    "mouseover_nav_two", -- MouseOver 
+                    "cancel_mouseover_nav_two", -- CancelMouseOver 
+                    "mousedown_nav_two", -- MouseDown 
+                    "cancel_mousedown_nav_two", -- CancelMouseDown 
+                    "mouseup_nav_two", -- MouseUp 
+                    "View page 4 of maps", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+elseif page_four == true then
+  WindowText (win, font, "[X]", 191, 0, 0, 0, ColourNameToRGB  "red")
+  WindowAddHotspot (win, "close", 191, 0, 229, 8, 
+                    "mouseover_close", -- MouseOver 
+                    "cancel_mouseover_close", -- CancelMouseOver 
+                    "mousedown_close", -- MouseDown 
+                    "cancel_mousedown_close", -- CancelMouseDown 
+                    "mouseup_close", -- MouseUp 
+                    "Close map list", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+  WindowText (win, font, "[ PAGE 4 ]", 72, 448, 0, 0, ColourNameToRGB  "darkgray")
+  -- navigation links
+  WindowText (win, font, "Page 3 -", 13, 448, 0, 0, ColourNameToRGB  "white")
+  WindowAddHotspot (win, "nav", 13, 448, 71, 460, 
+                    "mouseover_nav", -- MouseOver 
+                    "cancel_mouseover_nav", -- CancelMouseOver 
+                    "mousedown_nav", -- MouseDown 
+                    "cancel_mousedown_nav", -- CancelMouseDown 
+                    "mouseup_nav", -- MouseUp 
+                    "View page 3 of maps", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+else
+  WindowText (win, font, "[X]", 191, 0, 0, 0, ColourNameToRGB  "red")
+  WindowAddHotspot (win, "close", 191, 0, 229, 8, 
+                    "mouseover_close", -- MouseOver 
+                    "cancel_mouseover_close", -- CancelMouseOver 
+                    "mousedown_close", -- MouseDown 
+                    "cancel_mousedown_close", -- CancelMouseDown 
+                    "mouseup_close", -- MouseUp 
+                    "Close map list", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+  WindowText (win, font, "[ PAGE 1 ]", 72, 448, 0, 0, ColourNameToRGB  "darkgray")
+  -- navigation links
+  WindowText (win, font, "- Page 2", 150, 448, 0, 0, ColourNameToRGB  "white")
+  WindowAddHotspot (win, "nav", 150, 448, 208, 460, 
+                    "mouseover_nav", -- MouseOver 
+                    "cancel_mouseover_nav", -- CancelMouseOver 
+                    "mousedown_nav", -- MouseDown 
+                    "cancel_mousedown_nav", -- CancelMouseDown 
+                    "mouseup_nav", -- MouseUp 
+                    "View page 2 of maps", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+end -- page_two
+-----------------------------------------
+-- mouse up close
+-----------------------------------------
+function mouseup_close (flags, hotspotid)
+  WindowText (win, font, "[X]", 191, 0, 0, 0, ColourNameToRGB  "gray")
+  WindowShow (win, false)
+CallPlugin ("9232cf74f97637b76afe76c7", "close_map_list")
+Redraw ()
+end -- mouseup_close
+-----------------------------------------
+-- mouse over close
+-----------------------------------------
+function mouseover_close (flags, hotspotid)
+  WindowText (win, font, "[X]", 191, 0, 0, 0, ColourNameToRGB  "green")
+Redraw ()
+end -- mouseover_close
+-----------------------------------------
+-- cancel mouse over close
+-----------------------------------------
+function cancel_mouseover_close (flags, hotspotid)
+  WindowText (win, font, "[X]", 191, 0, 0, 0, ColourNameToRGB  "red")
+Redraw ()
+end -- cancel_mouseover_close
+-----------------------------------------
+-- mouse down close
+-----------------------------------------
+function mousedown_close (flags, hotspotid)
+  WindowText (win, font, "[X]", 191, 0, 0, 0, ColourNameToRGB  "gray")
+Redraw ()
+end -- mouseover_close
+-----------------------------------------
+-- cancel mouse down close
+-----------------------------------------
+function cancel_mousedown_close (flags, hotspotid)
+  WindowText (win, font, "[X]", 191, 0, 0, 0, ColourNameToRGB  "red")
+Redraw ()
+end -- cancel_mouseover_close
+-----------------------------------------
+-- mouse up nav
+-----------------------------------------
+function mouseup_nav (flags, hotspotid)
+if page_two == true then
+  WindowText (win, font, "Page 1 -", 13, 448, 0, 0, ColourNameToRGB  "white")
+page_two = false
+elseif page_three == true then
+  WindowText (win, font, "Page 2 -", 13, 448, 0, 0, ColourNameToRGB  "white")
+page_three = false
+page_two = true
+elseif page_four == true then
+  WindowText (win, font, "Page 3 -", 13, 448, 0, 0, ColourNameToRGB  "white")
+page_four = false
+page_three = true
+else
+  WindowText (win, font, "- Page 2", 150, 448, 0, 0, ColourNameToRGB  "white")
+page_two = true
+end -- page_two
+
+  show_map_list ()
+  Redraw ()
+end -- mouseup_nav
+
+-----------------------------------------
+-- mouse over nav
+-----------------------------------------
+function mouseover_nav (flags, hotspotid)
+if page_two == true then
+  WindowText (win, font, "Page 1 -", 13, 448, 0, 0, ColourNameToRGB  "blue")
+elseif page_three == true then
+  WindowText (win, font, "Page 2 -", 13, 448, 0, 0, ColourNameToRGB  "blue")
+elseif page_four == true then
+  WindowText (win, font, "Page 3 -", 13, 448, 0, 0, ColourNameToRGB  "blue")
+else
+  WindowText (win, font, "- Page 2", 150, 448, 0, 0, ColourNameToRGB  "blue")
+end -- page_two
+  Redraw ()
+end -- mouseover_nav
+
+-----------------------------------------
+-- cancel mouse over nav
+-----------------------------------------
+function cancel_mouseover_nav (flags, hotspotid)
+if page_two == true then
+  WindowText (win, font, "Page 1 -", 13, 448, 0, 0, ColourNameToRGB  "white")
+elseif page_three == true then
+  WindowText (win, font, "Page 2 -", 13, 448, 0, 0, ColourNameToRGB  "white")
+elseif page_four == true then
+  WindowText (win, font, "Page 3 -", 13, 448, 0, 0, ColourNameToRGB  "white")
+else
+  WindowText (win, font, "- Page 2", 150, 448, 0, 0, ColourNameToRGB  "white")
+end -- page_two
+  Redraw ()
+end -- cancel_mouseover_nav
+
+-----------------------------------------
+-- mouse down nav
+-----------------------------------------
+function mousedown_nav (flags, hotspotid)
+if page_two == true then
+  WindowText (win, font, "Page 1 -", 13, 448, 0, 0, ColourNameToRGB  "gray")
+elseif page_three == true then
+  WindowText (win, font, "Page 2 -", 13, 448, 0, 0, ColourNameToRGB  "gray")
+elseif page_four == true then
+  WindowText (win, font, "Page 3 -", 13, 448, 0, 0, ColourNameToRGB  "gray")
+else
+  WindowText (win, font, "- Page 2", 150, 448, 0, 0, ColourNameToRGB  "gray")
+end -- page_two
+  Redraw ()
+end -- mousedown_nav
+
+-----------------------------------------
+-- cancel mouse down nav
+-----------------------------------------
+function cancel_mousedown_nav (flags, hotspotid)
+if page_two == true then
+  WindowText (win, font, "Page 1 -", 13, 448, 0, 0, ColourNameToRGB  "white")
+elseif page_three == true then
+  WindowText (win, font, "Page 2 -", 13, 448, 0, 0, ColourNameToRGB  "white")
+elseif page_four == true then
+  WindowText (win, font, "Page 3 -", 13, 448, 0, 0, ColourNameToRGB  "white")
+else
+  WindowText (win, font, "- Page 2", 150, 448, 0, 0, ColourNameToRGB  "white")
+end -- page_two
+  Redraw ()
+end -- cancel_mousedown_nav
+----------------------------------- 
+-- NAV TWO
+-----------------------------------
+-----------------------------------------
+-- mouse up nav two
+-----------------------------------------
+function mouseup_nav_two (flags, hotspotid)
+if page_two == true then
+  WindowText (win, font, "- Page 3", 150, 448, 0, 0, ColourNameToRGB  "white")
+  page_two = false
+  page_three = true
+elseif page_three == true then
+  WindowText (win, font, "- Page 4", 150, 448, 0, 0, ColourNameToRGB  "white")
+  page_three = false
+  page_four = true
+end -- page_two
+
+  show_map_list ()
+  Redraw ()
+end -- mouseup_nav_two
+
+-----------------------------------------
+-- mouse over nav two
+-----------------------------------------
+function mouseover_nav_two (flags, hotspotid)
+if page_two == true then
+  WindowText (win, font, "- Page 3", 150, 448, 0, 0, ColourNameToRGB  "blue")
+elseif page_three == true then
+  WindowText (win, font, "- Page 4", 150, 448, 0, 0, ColourNameToRGB  "blue")
+end -- page_two
+  Redraw ()
+end -- mouseover_nav_two
+
+-----------------------------------------
+-- cancel mouse over nav two
+-----------------------------------------
+function cancel_mouseover_nav_two (flags, hotspotid)
+if page_two == true then
+  WindowText (win, font, "- Page 3", 150, 448, 0, 0, ColourNameToRGB  "white")
+elseif page_three == true then
+  WindowText (win, font, "- Page 4", 150, 448, 0, 0, ColourNameToRGB  "white")
+end -- page_two
+  Redraw ()
+end -- cancel_mouseover_nav_two
+
+-----------------------------------------
+-- mouse down nav two
+-----------------------------------------
+function mousedown_nav_two (flags, hotspotid)
+if page_two == true then
+  WindowText (win, font, "- Page 3", 150, 448, 0, 0, ColourNameToRGB  "gray")
+elseif page_three == true then
+  WindowText (win, font, "- Page 4", 150, 448, 0, 0, ColourNameToRGB  "gray")
+end -- page_two
+  Redraw ()
+end -- mousedown_nav_two
+
+-----------------------------------------
+-- cancel mouse down nav two
+-----------------------------------------
+function cancel_mousedown_nav_two (flags, hotspotid)
+if page_two == true then
+  WindowText (win, font, "- Page 3", 150, 448, 0, 0, ColourNameToRGB  "white")
+elseif page_three == true then
+  WindowText (win, font, "- Page 4", 150, 448, 0, 0, ColourNameToRGB  "white")
+end -- page_two
+  Redraw ()
+end -- cancel_mousedown_nav_two
+
+  -- add all hyperlinks  
+
+if page_two == true then
+  for k, v in ipairs (links_two) do
+    MakeHyperlink (k, v)
+  end -- for
+elseif page_three == true then
+  for k, v in ipairs (links_three) do
+    MakeHyperlink (k, v)
+  end -- for
+elseif page_four == true then
+  for k, v in ipairs (links_four) do
+    MakeHyperlink (k, v)
+  end -- for
+else
+  for k, v in ipairs (links) do
+    MakeHyperlink (k, v)
+  end -- for
+end -- page_two
+
+WindowShow (win, true)
+
+end -- show map list
+
+
+function OnPluginSaveState ()
+  -- save window current location for next time  
+  movewindow.save_state (win)
+end -- function OnPluginSaveState
+
+function show_map ()
+-----------------------------------------
+-- Build TFC Map Viewer Window
+-----------------------------------------
+if map_selected == nil and map_selected_small == nil then
+  return ColourNote ("red", "", "Error! No Previous map. Please select one from the map list first.")
+else
+  
+  -- make window so I can grab the font info
+  WindowCreate (map_window, 0, 0, 0, 0, miniwin.pos_top_left, 0, 0)
+  
+  -- add the font                 
+  WindowFont (map_window, font_map, "MS Sans Serif", 9) 
+  
+  -- find its height
+  font_height_map = 0  -- height
+  x_map = 10
+
+  map_width, map_height = 605, 476 + font_height_map + 2
+
+  check (WindowCreate (map_window,   -- window ID
+                170,   -- left
+                77,   -- top
+                map_width, -- width
+                map_height, -- depth
+                3,  -- center it (ignored anyway) 
+                2,          
+                ColourNameToRGB "black"))  -- background colour
+  
+  
+
+
+  -- load the map image
+  check (WindowLoadImage (map_window, "map", GetInfo (66) .. map_selected))
+  check (WindowLoadImage (map_window, "map_small", GetInfo (66) .. map_selected_small))
+
+  -- draw it
+ offset_x, offset_y = 0, font_height_map
+  check (WindowDrawImage (map_window, "map_small", offset_x, offset_y, 0, 0, 1))  -- draw it
+  small_view = true
+  -- drag hotspot
+check (WindowAddHotspot(map_window, "map1", 0, 0, map_width,map_height, "", "", "MouseDown", "", "MouseUp", "", 10, 0))
+check (WindowDragHandler (map_window, "map1", "dragmove", "", 0))
+
+  -- draw a border
+  WindowRectOp (map_window, miniwin.rect_draw_edge, 0, 0, 0, 0, 
+                miniwin.rect_edge_raised, 
+                miniwin.rect_edge_at_all + miniwin.rect_option_softer_buttons) -- draw border
+
+  -- show the window
+  WindowShow (map_window, true)
+
+end -- map_selected and map_selected_Small
+end -- show_map
+
+function MouseDown(flags, hotspot_id)
+  original_x, original_y = GetInfo(283), GetInfo(284)
+end  -- function MouseDown
+
+function dragmove(flags, hotspot_id)
+ current_x, current_y = GetInfo(283), GetInfo(284)
+ delta_x, delta_y = current_x-original_x+offset_x, current_y-original_y+offset_y
+ WindowRectOp (map_window, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+
+ if small_view == true then
+
+  WindowTransformImage (map_window, "map_small", delta_x, delta_y, miniwin.image_copy, 1, 0, 0, 1) 
+ else
+  WindowTransformImage (map_window, "map", delta_x, delta_y, miniwin.image_copy, 1, 0, 0, 1) 
+ end -- view
+
+  WindowRectOp (map_window, miniwin.rect_draw_edge, 0, 0, 0, 0, 
+                miniwin.rect_edge_raised, 
+                miniwin.rect_edge_at_all + miniwin.rect_option_softer_buttons) -- draw border
+ Redraw ()
+end  -- function dragmove
+
+function MouseUp(flags, hotspot_id)
+ offset_x, offset_y = delta_x, delta_y
+    if (flags == miniwin.hotspot_got_rh_mouse) then
+     right_click_menu()
+    end -- if
+end -- function MouseUp
+
+function hide_map ()
+ WindowShow (map_window, false)
+end -- hide_map
+
+function hide_map_list ()
+  WindowShow (win, false)
+end -- hide_map_list
+
+function right_click_menu ()
+    menustring ="Large view|Small view| - |Close Map"  
+    
+    result = WindowMenu (map_window, 
+        WindowInfo (map_window, 14),  -- x position
+        WindowInfo (map_window, 15),   -- y position
+        menustring) -- content
+    if result == "Large view" then
+     small_view = false
+     offset_x, offset_y = 0, 0
+     WindowRectOp (map_window, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+     WindowDrawImage (map_window, "map", 0, font_height_map, 0, 0, 1)
+     WindowRectOp (map_window, miniwin.rect_draw_edge, 0, 0, 0, 0, 
+                miniwin.rect_edge_raised, 
+                miniwin.rect_edge_at_all + miniwin.rect_option_softer_buttons) -- draw border
+     Redraw ()
+    elseif result == "Small view" then
+     small_view = true
+     offset_x, offset_y = 0, 0
+     WindowRectOp (map_window, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+     WindowDrawImage (map_window, "map_small", 0, font_height_map, 0, 0, 1)
+     WindowRectOp (map_window, miniwin.rect_draw_edge, 0, 0, 0, 0, 
+                miniwin.rect_edge_raised, 
+                miniwin.rect_edge_at_all + miniwin.rect_option_softer_buttons) -- draw border
+     Redraw ()
+    elseif result == "Close Map" then
+     WindowShow (map_window, false)
+   end -- result
+end -- function right_click_menu
+
+]]>
+</script>
+
+</muclient>
