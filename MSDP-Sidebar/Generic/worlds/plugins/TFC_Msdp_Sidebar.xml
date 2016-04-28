@@ -9,7 +9,7 @@
    purpose="A graphical user interface sidebar for The Final Challenge MUD"
    date_written="2016-04-22 00:49:31"
    requires="4.51"
-   version="1.5"
+   version="1.6"
    save_state="y"
    >
 <description trim="y">
@@ -485,6 +485,18 @@ FUTURE PLANS:
  <alias
   script="update_plugin"
   match="update plugin"
+  enabled="y"
+  sequence="100">
+ </alias>
+ <alias
+  script="promptConvert"
+  match="convert"
+  enabled="y"
+  sequence="100">
+ </alias>
+ <alias
+  script="promptConvert_regex"
+  match="convert regex"
   enabled="y"
   sequence="100">
  </alias>
@@ -1364,7 +1376,7 @@ function settings_click_menu ()
   [53] = "Record",
   [54] = "-",
   [55] = "Log previous lines",
-  [56] = "Remove prompt bars",
+  [56] = "Remove prompt",
   [57] = "-",
   [58] = ">Set Timestamp",
   [59] = "No Timestamp",
@@ -1879,7 +1891,7 @@ function settings_click_menu ()
    SetVariable("starLog_recPrev", "false")
   end -- starLog_recPrev
  elseif result == "29" then
-  print("This feature has yet to be implemented. This is next on the list to add.")
+  print("This feature has yet to be implemented.")
  elseif result == "30" then
   DeleteVariable("starLog_tsType")
  elseif result == "31" then
@@ -1936,8 +1948,12 @@ function settings_click_menu ()
   SetVariable("starLog_tsType", "[%H:%M:%S] ")
  elseif result == "57" then
   result_filename = utils.inputbox ("What would you like the filename to be?", "Star Logger", "The Final Challenge Log", "Courier", 9)
-  SetVariable("result_filename", result_filename)
-  SetVariable("starLog_fnTs", result_filename)
+  if result_filename ~= nil then
+   SetVariable("result_filename", result_filename)
+   SetVariable("starLog_fnTs", result_filename)
+  else
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Custom filename has been canceled.")
+  end -- result_filename
  elseif result == "58" then
   SetVariable("starLog_fnTs", "%b %d %Y [%I_%M_%S%p]")
  elseif result == "59" then
@@ -1992,8 +2008,12 @@ function settings_click_menu ()
   SetVariable("starLog_fnTs", "[%H_%M_%S]")
  elseif result == "84" then
   directoryname = utils.directorypicker ("Folder to put logs into", GetInfo (58))
-  SetVariable("starlog_folder", directoryname)
-  ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Logs will now save to ", "red", "", directoryname)
+  if directoryname ~= nil then
+   SetVariable("starlog_folder", directoryname)
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Logs will now save to ", "red", "", directoryname)
+  else
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Custom folder has been canceled.")
+  end -- directoryname
  elseif result == "85" then
   if GetVariable("starlog_folder") then
    os.execute ("explorer " .. GetVariable("starlog_folder") )
@@ -3088,6 +3108,24 @@ function alias_star_logger_prev_lines()
    ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Previous lines will no longer be recorded before logging has started.")
   end -- starLog_recPrev
 end -- alias_star_logger_prev_lines
+
+function promptConvert ()
+ prompt = utils.inputbox ("Paste your full prompt into the box below", "Prompt Converter BASIC", "", "Courier", 9)
+ if prompt ~= nil then 
+   promptResult = string.gsub (prompt, "[%%%]%^%-$().<>:[*+?]", "%\\%1")
+   promptResults = string.gsub (promptResult, "%d+", "%*") .. " "
+   print(promptResults)
+ end -- prompt
+end -- function promptConvert
+
+function promptConvert_regex ()
+ prompt = utils.inputbox ("Paste your full prompt into the box below", "Prompt Converter REGEX", "", "Courier", 9)
+ if prompt ~= nil then 
+   promptResult = string.gsub (prompt, "[%%%]%^%-$().[*+?]", "%%%1")
+   promptResults = string.gsub (promptResult, "%d+", "%%d") .. " "
+   print(promptResults)
+ end -- prompt
+end -- function promptConvert
 ]]>
 </script>
 </muclient>
