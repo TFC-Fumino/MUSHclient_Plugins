@@ -9,48 +9,10 @@
    purpose="A graphical user interface sidebar for The Final Challenge MUD"
    date_written="2016-04-22 00:49:31"
    requires="4.51"
-   version="1.6"
+   version="1.7"
    save_state="y"
    >
 <description trim="y">
-VERSION:
-
- Alpha 1.5
-
- * Pre-release with built in stat workaround
- * Not all spell icons have been created, so some use a generic one. You can still see 
-    what spell it is by hovering your mouse over the icon.
- * Minimap does not work in all rooms, however, it is 
-    still useful to see where doors are in the rooms.
-   This is a server-sided issue that cannot be fixed client-side, 
-    however a workaround may be in a future update to fix this issue.
- * Some affected by spells show multiple times. This is also a server-sided issue.
-
-USAGE:
-
- Adapted, Redesigned, and Customized for The Final Challenge by Fumino
- Sample Mud Server Data Protocol (Msdp) GUI supplied by kaVir
-
- * Equipment stat totals show after checking your equipment.
- 
-FEATURES:
-
- * Know exactly how many ticks every affected by spell lasts.
- * See your equipment stats totaled up. 
- * Graphical Minimap. See where doors are without having to look.
- * Know when you successfully hide and sneak 
- * Live Health/Mana/Move/Enemy bars
- * Use your own Avatar or background image
- * Customize your prompt bar colors
- * View the chat channels in a seperate window
-  
-FUTURE PLANS:
-
- * Add the rest of the spell icons.
- * Add weather graphics based on in-game weather. (may place as background for an analog clock, yet to be decided)
- * Add more failsafes when players resize the client to prevent stuck windows
- * Combine non-graphical msdp gui features to this plugin (like the stationary prompt bar)
- 
 </description>
 </plugin>
 ------------/  TRIGGERS  /------------
@@ -110,6 +72,7 @@ FUTURE PLANS:
    SetVariable("eqstatcheck", "false")
    EnableTrigger ("additup", false)
    show_equip_list ()
+   start_of_equip_list ()
   end -- eqstatcheck</send>
  </trigger>
  ----/ Chat Channel Triggers /----
@@ -440,6 +403,18 @@ FUTURE PLANS:
   script="dc_log"
   sequence="100">
  </trigger>
+ ----/ Stationary Prompt /----
+ <trigger
+  enabled="n"
+  match="*"
+  name="stationaryP_trig"
+  script="sPrompt_echo"
+  omit_from_output="y"
+  send_to="12"
+  sequence="100"
+ >
+  <send>width_e = 0</send>
+ </trigger>
 </triggers>
 ------------/  ALIASES  /------------
 <aliases>
@@ -488,18 +463,6 @@ FUTURE PLANS:
   enabled="y"
   sequence="100">
  </alias>
- <alias
-  script="promptConvert"
-  match="convert"
-  enabled="y"
-  sequence="100">
- </alias>
- <alias
-  script="promptConvert_regex"
-  match="convert regex"
-  enabled="y"
-  sequence="100">
- </alias>
  ----/ Star Logger /----
  <alias
   script="alias_star_logger_rec"
@@ -531,7 +494,20 @@ FUTURE PLANS:
   enabled="y"
   sequence="100">
  </alias>
+ 
+
+
+  <alias
+   match="close orbit window"
+   enabled="y"
+   send_to="12"
+   sequence="100"
+  >
+  <send>WindowShow("test_window", false)</send>
+  </alias>
+  
 </aliases>
+
 <!--  Get our standard constants -->
 <include name="constants.lua"/>
 <!--  Script  -->
@@ -1236,7 +1212,23 @@ function start_of_equip_list (name, line, wildcards)
   if string.match (k, "^attrib_") then
    DeleteVariable (k)
   end -- one of the attrib_* variables
- end
+ end -- for
+stats = {
+ str = '0',
+ hr = '0',
+ int = '0',
+ dmg = '0',
+ wis = '0',
+ chr = '0',
+ dex = '0',
+ luc = '0',
+ con = '0',
+ svs = '0',
+ da = '0',
+ mr = '0',
+ hp = '0',
+ ma = '0'
+}
 end -- start_of_equip_list
 
 function show_equip_list ()
@@ -1373,7 +1365,7 @@ function settings_click_menu ()
   [50] = "<",
   [51] = "-",
   [52] = ">Star Logger",
-  [53] = "Record",
+  [53] = "Record [Start logging]",
   [54] = "-",
   [55] = "Log previous lines",
   [56] = "Remove prompt",
@@ -1469,7 +1461,9 @@ function settings_click_menu ()
   [146] = "-",
   [147] = "Report an issue",
   [148] = "-",
-  [149] = "Check and Update Plugin"
+  [149] = "Check and Update Plugin",
+  [150] = "-",
+  [151] = "^Stationary Prompt [Experimental]"
  }
  if GetVariable("avatar_checked") == "one" or GetVariable("avatar_checked") == nil then
   checkItem (2)
@@ -1553,11 +1547,10 @@ function settings_click_menu ()
  end -- terrain_type
  if GetVariable("terrain_color") ~= nil then
   checkItem (43)
- end -- terrain_color
- 
+ end -- terrain_color 
  if GetVariable("starLog_isRec") == "true" then
+  menu [53] = "Recording [Stop logging]"
   checkItem (53)
-  menu [53] = menu [53] .. " [Logging]"
  end -- starLog_isRec
  if GetVariable("starLog_recPrev") == "true" then
   checkItem (55)
@@ -1617,7 +1610,6 @@ function settings_click_menu ()
  else
   checkItem (59)
  end -- starLog_tsType
- 
  if GetVariable("starLog_fnTs") == "%b %d %Y [%I_%M_%S%p]" then
   checkItem (104)
  elseif GetVariable("starLog_fnTs") == "%b %d %y [%I_%M_%S%p]" then
@@ -1679,7 +1671,12 @@ function settings_click_menu ()
    menu [101] = menu [101] .. " [ " .. GetVariable("starLog_fnTs") .. " ]"
   end -- result_filename
  end -- starLog_fnTs
- 
+ if GetVariable("starLog_remPrompt") == "true" then
+  checkItem (56)
+ end -- starLog_remPrompt
+ if GetVariable("stationaryP") == "true" then
+  checkItem (151)
+ end -- stationaryP
  result = WindowMenu (titlebar_window, 65, 15, table.concat (menu, "|"))
  if result == "1" then
   avatar_filename = nil
@@ -1887,11 +1884,28 @@ function settings_click_menu ()
   starLog_recPrev = not starLog_recPrev
   if starLog_recPrev then
    SetVariable("starLog_recPrev", "true")
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Previous lines will now be logged.")
   else
    SetVariable("starLog_recPrev", "false")
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Previous lines will no longer be logged.")
   end -- starLog_recPrev
  elseif result == "29" then
-  print("This feature has yet to be implemented.")
+  if GetVariable("starLog_remPrompt") == "true" then
+   starLog_remPrompt = true
+  elseif GetVariable("starLog_remPrompt") == "false" then
+   starLog_remPrompt = false
+  else
+   starLog_remPrompt = false
+   SetVariable("starLog_remPrompt", "false")
+  end -- starLog_remPrompt
+  starLog_remPrompt = not starLog_remPrompt
+  if starLog_remPrompt then
+   SetVariable("starLog_remPrompt", "true")
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Prompt will now be removed from logs.")
+  else
+   SetVariable("starLog_remPrompt", "false")
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Prompt will no longer be removed from logs.")
+  end -- starLog_remPrompt
  elseif result == "30" then
   DeleteVariable("starLog_tsType")
  elseif result == "31" then
@@ -2027,6 +2041,24 @@ function settings_click_menu ()
   ColourNote("white", "blue", "Connecting to the server and checking for updates.")
   ColourNote("white", "blue", "Please wait..")
   update_plugin ()
+ elseif result == "88" then
+  if GetVariable("stationaryP") == "true" then
+   stationaryP = true
+  elseif GetVariable("stationaryP") == "false" then
+   stationaryP = false
+  else
+   stationaryP = false
+   SetVariable("stationaryP", "false")
+  end -- stationaryP
+  stationaryP = not stationaryP
+  if stationaryP then
+   SetVariable("stationaryP", "true")
+   EnableTrigger("stationaryP_trig", true)
+  else
+   SetVariable("stationaryP", "false")
+   EnableTrigger("stationaryP_trig", false)
+   
+  end -- stationaryP
  end -- result
  DrawThemed3DRect(titlebar_window, 65, 0, 104, 13)
  outlined_text (colourWhite, titlebar_window, "settings", 5, 68, 2, 0)
@@ -2166,14 +2198,11 @@ function draw_minimap ()
  draw_room (mapCentre, mapCentre, "O")
  -- draw any surrounding rooms
  if ExitCount > 0 and curRoom_exits ~= nil then
-  WindowCircleOp (minimap_window, 4, 0, 0, 110, 114,   -- pie
-        ColourNameToRGB("silver"), 0, 1, ColourNameToRGB("cyan"), 1, 
-        0, 0, 0, 0)
- if GetVariable("terrain_color") == nil then
-  colourMap = ColourNameToRGB("white")
- else
-  colourMap = GetVariable("terrain_color")
- end -- terrain_color
+  if GetVariable("terrain_color") == nil then
+   colourMap = ColourNameToRGB("white")
+  else
+   colourMap = GetVariable("terrain_color")
+  end -- terrain_color
   for i=1,ExitCount,1 do
    for k, v in pairs (curRoom_exits) do
     if RoomExit[i] == "north" then
@@ -3010,11 +3039,28 @@ end -- function raw_get
 ----/ Star logger main functions /----
 function dc_log (name, line, wildcards, styles)
  if GetVariable("starLog_tsType") ~= nil then
-  AppendToNotepad ("Star_Log_Test", os.date(GetVariable("starLog_tsType")) .. line)
+  if GetVariable("starLog_remPrompt") == "true" then
+   if string.find(line, "<") and string.find(line, ">") then
+   else
+    AppendToNotepad ("Star_Log_Test", os.date(GetVariable("starLog_tsType")) .. line)
+	AppendToNotepad ("Star_Log_Test", "\r\n")
+   end -- line string match
+  else
+   AppendToNotepad ("Star_Log_Test", os.date(GetVariable("starLog_tsType")) .. line)
+   AppendToNotepad ("Star_Log_Test", "\r\n")
+  end -- starLog_remPrompt
  else
-  AppendToNotepad ("Star_Log_Test", line)
+  if GetVariable("starLog_remPrompt") == "true" then
+   if string.find(line, "<") and string.find(line, ">") then
+   else
+    AppendToNotepad ("Star_Log_Test", line)
+	AppendToNotepad ("Star_Log_Test", "\r\n")
+   end -- line string match
+  else
+   AppendToNotepad ("Star_Log_Test", line)
+   AppendToNotepad ("Star_Log_Test", "\r\n")
+  end -- starLog_remPrompt
  end -- starLog_tsType
- AppendToNotepad ("Star_Log_Test", "\r\n")
  Activate()
 end  -- function dc_log
 
@@ -3023,11 +3069,28 @@ function starLog_prev ()
  total_lines = GetLinesInBufferCount ()
  for line = 1, total_lines do
   if GetVariable("starLog_tsType") ~= nil then
-   AppendToNotepad ("Star_Log_Test", os.date(GetVariable("starLog_tsType"), GetLineInfo(line,9)) .. GetLineInfo (line, 1))
+   if GetVariable("starLog_remPrompt") == "true" then
+    if string.find(GetLineInfo (line, 1), "<") and string.find(GetLineInfo (line, 1), ">") then
+    else
+     AppendToNotepad ("Star_Log_Test", os.date(GetVariable("starLog_tsType"), GetLineInfo(line,9)) .. GetLineInfo (line, 1))
+     AppendToNotepad ("Star_Log_Test", "\r\n")
+	end -- line string match
+   else
+    AppendToNotepad ("Star_Log_Test", os.date(GetVariable("starLog_tsType"), GetLineInfo(line,9)) .. GetLineInfo (line, 1))
+    AppendToNotepad ("Star_Log_Test", "\r\n")
+   end -- starLog_remPrompt
   else
-   AppendToNotepad ("Star_Log_Test", GetLineInfo (line, 1))
-  end -- starLog_tsType
-  AppendToNotepad ("Star_Log_Test", "\r\n")
+   if GetVariable("starLog_remPrompt") == "true" then
+    if string.find(GetLineInfo (line, 1), "<") and string.find(GetLineInfo (line, 1), ">") then
+    else
+     AppendToNotepad ("Star_Log_Test", GetLineInfo (line, 1))
+	 AppendToNotepad ("Star_Log_Test", "\r\n")
+    end -- line string match
+   else
+    AppendToNotepad ("Star_Log_Test", GetLineInfo (line, 1))
+	AppendToNotepad ("Star_Log_Test", "\r\n")
+   end -- starLog_remPrompt
+  end -- starLog_tsType 
  end -- for
  Activate()
 end -- function starLog_prev
@@ -3102,30 +3165,42 @@ function alias_star_logger_prev_lines()
   starLog_recPrev = not starLog_recPrev
   if starLog_recPrev then
    SetVariable("starLog_recPrev", "true")
-   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Previous lines will now also be recorded once logging has started.")
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Previous lines will now be logged.")
   else
    SetVariable("starLog_recPrev", "false")
-   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Previous lines will no longer be recorded before logging has started.")
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Previous lines will no longer be logged.")
   end -- starLog_recPrev
 end -- alias_star_logger_prev_lines
 
-function promptConvert ()
- prompt = utils.inputbox ("Paste your full prompt into the box below", "Prompt Converter BASIC", "", "Courier", 9)
- if prompt ~= nil then 
-   promptResult = string.gsub (prompt, "[%%%]%^%-$().<>:[*+?]", "%\\%1")
-   promptResults = string.gsub (promptResult, "%d+", "%*") .. " "
-   print(promptResults)
- end -- prompt
-end -- function promptConvert
 
-function promptConvert_regex ()
- prompt = utils.inputbox ("Paste your full prompt into the box below", "Prompt Converter REGEX", "", "Courier", 9)
- if prompt ~= nil then 
-   promptResult = string.gsub (prompt, "[%%%]%^%-$().[*+?]", "%%%1")
-   promptResults = string.gsub (promptResult, "%d+", "%%d") .. " "
-   print(promptResults)
- end -- prompt
-end -- function promptConvert
+-- Experimental function to create a stationary prompt while removing the prompt
+function sPrompt_echo (name, line, wildcards, styles)
+ -- fixes the exits and auras when echoing so it shows it all on one line
+ if wildcards[1] == "" then
+  Note("")
+ end
+ -- keeps exits and auras on one line
+ if string.find(line, ".Exits.") or string.find(line, "%(.* Aura%)") then
+  for _, style in ipairs (styles) do
+   ColourTell (RGBColourToName (style.textcolour),RGBColourToName (style.backcolour),style.text)
+  end -- for each style run
+ else
+  if string.find(line, "<") and string.find(line, ">") then
+  -- useless spot now but may use it for something else
+  -- MUD server sends data stupidly when colors are turned on
+  else
+  -- echos everything else since all lines are being removed 
+  -- in order to remove the prompt since it cant be done the normal way
+  -- because the server doesnt force a new line after the prompt
+   for _, style in ipairs (styles) do
+    ColourTell (RGBColourToName (style.textcolour),RGBColourToName (style.backcolour),style.text)
+    Note ("")  -- wrap up line
+   end -- for each style run
+  end -- find prompt
+ end -- find exits
+
+end -- function sPrompt_echo
 ]]>
 </script>
+
 </muclient>
