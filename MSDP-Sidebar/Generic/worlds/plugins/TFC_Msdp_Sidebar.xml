@@ -7,9 +7,9 @@
    id="9232cf74f97637b76afe76c7"
    language="Lua"
    purpose="A graphical user interface sidebar for The Final Challenge MUD"
-   date_written="2016-04-22 00:49:31"
+   date_written="2016-05-05 00:49:31"
    requires="4.51"
-   version="1.7"
+   version="1.8"
    save_state="y"
    >
 <description trim="y">
@@ -403,18 +403,6 @@
   script="dc_log"
   sequence="100">
  </trigger>
- ----/ Stationary Prompt /----
- <trigger
-  enabled="n"
-  match="*"
-  name="stationaryP_trig"
-  script="sPrompt_echo"
-  omit_from_output="y"
-  send_to="12"
-  sequence="100"
- >
-  <send>width_e = 0</send>
- </trigger>
 </triggers>
 ------------/  ALIASES  /------------
 <aliases>
@@ -494,8 +482,27 @@
   enabled="y"
   sequence="100">
  </alias>
+ ----/ Orbiter testing aliases /----
+  <alias
+  script="test_orbit"
+  match="orbit test"
+  enabled="y"
+  sequence="100">
+ </alias>
  
-
+   <alias
+  script="orbit"
+  match="orbit one"
+  enabled="y"
+  sequence="100">
+ </alias>
+ 
+   <alias
+  script="build_test_window"
+  match="open orbit window"
+  enabled="y"
+  sequence="100">
+ </alias>
 
   <alias
    match="close orbit window"
@@ -521,7 +528,7 @@ PROMPT_BARS_VISIBILITY = false
 AVATAR_LEFT_POSITION = 25
 SIDEBAR_LEFT_POSITION = 160
 TITLEBAR_LEFT_POSITION = 0
-MINIMAP_LEFT_POSITION = 28
+MINIMAP_LEFT_POSITION = 0
 SPELLS_LEFT_POSITION = 14
 SPELLSCOOLDOWN_LEFT_POSITION = 3
 CHATS_LEFT_POSITION = 176
@@ -1352,118 +1359,121 @@ function settings_click_menu ()
   [37] = "Enemy Color Empty",
   [38] = "<",
   [39] = "<",
-  [40] = ">Exits Minimap",
+  [40] = ">Compass",
   [41] = "Default [reset]",
   [42] = "-",
-  [43] = "Font Color",
-  [44] = "-",
-  [45] = ">Background",
-  [46] = "Disable",
-  [47] = "Gray moon",
-  [48] = "Blue moon",
-  [49] = "<",
+  [43] = ">Main colors",
+  [44] = "Set Primary",
+  [45] = "Set Secondary",
+  [46] = "<",
+  [47] = ">Open room colors",
+  [48] = "Set Primary",
+  [49] = "Set Secondary",
   [50] = "<",
-  [51] = "-",
-  [52] = ">Star Logger",
-  [53] = "Record [Start logging]",
-  [54] = "-",
-  [55] = "Log previous lines",
-  [56] = "Remove prompt",
-  [57] = "-",
-  [58] = ">Set Timestamp",
-  [59] = "No Timestamp",
-  [60] = "-",
-  [61] = ">12 Hour",
-  [62] = "Jan 25 2016 [08:00:15AM]",
-  [63] = "Jan 25 16 [08:00:15AM]",
-  [64] = "Jan 25 [08:00:15AM]",
+  [51] = ">Closed room colors",
+  [52] = "Set Primary",
+  [53] = "Set Secondary",
+  [54] = "<",
+  [55] = "<",
+  [56] = "-",
+  [57] = ">Star Logger",
+  [58] = "Record [Start logging]",
+  [59] = "-",
+  [60] = "Log previous lines",
+  [61] = "Remove prompt",
+  [62] = "-",
+  [63] = ">Set Timestamp",
+  [64] = "No Timestamp",
   [65] = "-",
-  [66] = "01 25 2016 [08:00:15AM]",
-  [67] = "01 25 16 [08:00:15AM]",
-  [68] = "01 25 [08:00:15AM]",
-  [69] = "-",
-  [70] = "2016 25 Jan [08:00:15AM]",
-  [71] = "16 25 Jan [08:00:15AM]",
-  [72] = "25 Jan [08:00:15AM]",
-  [73] = "-",
-  [74] = "2016 25 01 [08:00:15AM]",
-  [75] = "16 25 01 [08:00:15AM]",
-  [76] = "25 01 [08:00:15AM]",
-  [77] = "-",
-  [78] = "[08:00:15AM]",
-  [79] = "<",
-  [80] = ">24 Hour",
-  [81] = "Jan 25 2016 [18:00:15]",
-  [82] = "Jan 25 16 [18:00:15]",
-  [83] = "Jan 25 [18:00:15]",
-  [84] = "-",
-  [85] = "01 25 2016 [18:00:15]",
-  [86] = "01 25 16 [18:00:15]",
-  [87] = "01 25 [18:00:15]",
-  [88] = "-",
-  [89] = "2016 25 Jan [18:00:15]",
-  [90] = "16 25 Jan [18:00:15]",
-  [91] = "25 Jan [18:00:15]",
-  [92] = "-",
-  [93] = "2016 25 01 [18:00:15]",
-  [94] = "16 25 01 [18:00:15]",
-  [95] = "25 01 [18:00:15]",
-  [96] = "-",
-  [97] = "[18:00:15]",
-  [98] = "<",
-  [99] = "<",
-  [100] = ">Set Filename",
-  [101] = "Custom",
-  [102] = "-",
-  [103] = ">Timestamp 12 Hour",
-  [104] = "Jan 25 2016 [08_00_15AM]",
-  [105] = "Jan 25 16 [08_00_15AM]",
-  [106] = "Jan 25 [08_00_15AM]",
+  [66] = ">12 Hour",
+  [67] = "Jan 25 2016 [08:00:15AM]",
+  [68] = "Jan 25 16 [08:00:15AM]",
+  [69] = "Jan 25 [08:00:15AM]",
+  [70] = "-",
+  [71] = "01 25 2016 [08:00:15AM]",
+  [72] = "01 25 16 [08:00:15AM]",
+  [73] = "01 25 [08:00:15AM]",
+  [74] = "-",
+  [75] = "2016 25 Jan [08:00:15AM]",
+  [76] = "16 25 Jan [08:00:15AM]",
+  [77] = "25 Jan [08:00:15AM]",
+  [78] = "-",
+  [79] = "2016 25 01 [08:00:15AM]",
+  [80] = "16 25 01 [08:00:15AM]",
+  [81] = "25 01 [08:00:15AM]",
+  [82] = "-",
+  [83] = "[08:00:15AM]",
+  [84] = "<",
+  [85] = ">24 Hour",
+  [86] = "Jan 25 2016 [18:00:15]",
+  [87] = "Jan 25 16 [18:00:15]",
+  [88] = "Jan 25 [18:00:15]",
+  [89] = "-",
+  [90] = "01 25 2016 [18:00:15]",
+  [91] = "01 25 16 [18:00:15]",
+  [92] = "01 25 [18:00:15]",
+  [93] = "-",
+  [94] = "2016 25 Jan [18:00:15]",
+  [95] = "16 25 Jan [18:00:15]",
+  [96] = "25 Jan [18:00:15]",
+  [97] = "-",
+  [98] = "2016 25 01 [18:00:15]",
+  [99] = "16 25 01 [18:00:15]",
+  [100] = "25 01 [18:00:15]",
+  [101] = "-",
+  [102] = "[18:00:15]",
+  [103] = "<",
+  [104] = "<",
+  [105] = ">Set Filename",
+  [106] = "Custom",
   [107] = "-",
-  [108] = "01 25 2016 [08_00_15AM]",
-  [109] = "01 25 16 [08_00_15AM]",
-  [110] = "01 25 [08_00_15AM]",
-  [111] = "-",
-  [112] = "2016 25 Jan [08_00_15AM]",
-  [113] = "16 25 Jan [08_00_15AM]",
-  [114] = "25 Jan [08_00_15AM]",
-  [115] = "-",
-  [116] = "2016 25 01 [08_00_15AM]",
-  [117] = "16 25 01 [08_00_15AM]",
-  [118] = "25 01 [08_00_15AM]",
-  [119] = "-",
-  [120] = "[08_00_15AM]",
-  [121] = "<",
-  [122] = ">Timestamp 24 Hour",
-  [123] = "Jan 25 2016 [18_00_15]",
-  [124] = "Jan 25 16 [18_00_15]",
-  [125] = "Jan 25 [18_00_15]",
-  [126] = "-",
-  [127] = "01 25 2016 [18_00_15AM]",
-  [128] = "01 25 16 [18_00_15AM]",
-  [129] = "01 25 [18_00_15AM]",
-  [130] = "-",
-  [131] = "2016 25 Jan [18_00_15]",
-  [132] = "16 25 Jan [18_00_15]",
-  [133] = "25 Jan [18_00_15]",
-  [134] = "-",
-  [135] = "2016 25 01 [18_00_15AM]",
-  [136] = "16 25 01 [18_00_15AM]",
-  [137] = "25 01 [18_00_15AM]",
-  [138] = "-",
-  [139] = "[18_00_15]",
-  [140] = "<",
-  [141] = "<",
-  [142] = "-",
-  [143] = "Set Logs Folder",
-  [144] = "Open Logs Folder",
+  [108] = ">Timestamp 12 Hour",
+  [109] = "Jan 25 2016 [08_00_15AM]",
+  [110] = "Jan 25 16 [08_00_15AM]",
+  [111] = "Jan 25 [08_00_15AM]",
+  [112] = "-",
+  [113] = "01 25 2016 [08_00_15AM]",
+  [114] = "01 25 16 [08_00_15AM]",
+  [115] = "01 25 [08_00_15AM]",
+  [116] = "-",
+  [117] = "2016 25 Jan [08_00_15AM]",
+  [118] = "16 25 Jan [08_00_15AM]",
+  [119] = "25 Jan [08_00_15AM]",
+  [120] = "-",
+  [121] = "2016 25 01 [08_00_15AM]",
+  [122] = "16 25 01 [08_00_15AM]",
+  [123] = "25 01 [08_00_15AM]",
+  [124] = "-",
+  [125] = "[08_00_15AM]",
+  [126] = "<",
+  [127] = ">Timestamp 24 Hour",
+  [128] = "Jan 25 2016 [18_00_15]",
+  [129] = "Jan 25 16 [18_00_15]",
+  [130] = "Jan 25 [18_00_15]",
+  [131] = "-",
+  [132] = "01 25 2016 [18_00_15AM]",
+  [133] = "01 25 16 [18_00_15AM]",
+  [134] = "01 25 [18_00_15AM]",
+  [135] = "-",
+  [136] = "2016 25 Jan [18_00_15]",
+  [137] = "16 25 Jan [18_00_15]",
+  [138] = "25 Jan [18_00_15]",
+  [139] = "-",
+  [140] = "2016 25 01 [18_00_15AM]",
+  [141] = "16 25 01 [18_00_15AM]",
+  [142] = "25 01 [18_00_15AM]",
+  [143] = "-",
+  [144] = "[18_00_15]",
   [145] = "<",
-  [146] = "-",
-  [147] = "Report an issue",
-  [148] = "-",
-  [149] = "Check and Update Plugin",
-  [150] = "-",
-  [151] = "^Stationary Prompt [Experimental]"
+  [146] = "<",
+  [147] = "-",
+  [148] = "Set Logs Folder",
+  [149] = "Open Logs Folder",
+  [150] = "<",
+  [151] = "-",
+  [152] = "Report an issue",
+  [153] = "-",
+  [154] = "Check and Update Plugin"
  }
  if GetVariable("avatar_checked") == "one" or GetVariable("avatar_checked") == nil then
   checkItem (2)
@@ -1533,150 +1543,163 @@ function settings_click_menu ()
   checkItem (18)
   menu [18] = menu [18] .. " [" .. RGBColourToName(GetVariable("bar_text_color")) .. "]"
  end -- bar_text_color
- if GetVariable("terrain_type") == nil then
-  if GetVariable("terrain_color") == nil then
-   checkItem (41)
-  end -- terrain_color
- elseif GetVariable("terrain_type") == "nomoon" then
-  checkItem (46)
-  menu [46] = menu [46] .. "d"
- elseif GetVariable("terrain_type") == "graymoon" then
-  checkItem (47)
- elseif GetVariable("terrain_type") == "bluemoon" then
+ 
+ 
+ if GetVariable("cColorLight") == nil and GetVariable("cColorDark") == nil and GetVariable("cColorLighto") == nil and GetVariable("cColorDarko") == nil and GetVariable("cColorLightc") == nil and GetVariable("cColorDarkc") == nil then
+  checkItem (41)
+ end -- basic reset
+ if GetVariable("cColorLight") ~= nil then
+  menu [44] = menu [44] .. " [" .. RGBColourToName(GetVariable("cColorLight")) .. "]"
+  checkItem (44)
+ end -- cColorLight main
+ if GetVariable("cColorDark") ~= nil then
+  menu [45] = menu [45] .. " [" .. RGBColourToName(GetVariable("cColorDark")) .. "]"
+  checkItem (45)
+ end -- cColorDark main
+ if GetVariable("cColorLighto") ~= nil then
+  menu [48] = menu [48] .. " [" .. RGBColourToName(GetVariable("cColorLighto")) .. "]"
   checkItem (48)
- end -- terrain_type
- if GetVariable("terrain_color") ~= nil then
-  checkItem (43)
- end -- terrain_color 
- if GetVariable("starLog_isRec") == "true" then
-  menu [53] = "Recording [Stop logging]"
+ end -- cColorLighto
+ if GetVariable("cColorDarko") ~= nil then
+  menu [49] = menu [49] .. " [" .. RGBColourToName(GetVariable("cColorDarko")) .. "]"
+  checkItem (49)
+ end -- cColorDarko
+ if GetVariable("cColorLightc") ~= nil then
+  menu [52] = menu [52] .. " [" .. RGBColourToName(GetVariable("cColorLightc")) .. "]"
+  checkItem (52)
+ end -- cColorLightc
+ if GetVariable("cColorDarkc") ~= nil then
+  menu [53] = menu [53] .. " [" .. RGBColourToName(GetVariable("cColorDark")) .. "]"
   checkItem (53)
+ end -- cColorDarkc
+  
+ 
+ if GetVariable("starLog_isRec") == "true" then
+  menu [58] = "Recording [Stop logging]"
+  checkItem (58)
  end -- starLog_isRec
  if GetVariable("starLog_recPrev") == "true" then
-  checkItem (55)
+  checkItem (60)
  end -- starLog_recPrev
  if GetVariable("starLog_tsType") == "%b %d %Y [%I:%M:%S%p] " then
-  checkItem (62)
- elseif GetVariable("starLog_tsType") == "%b %d %y [%I:%M:%S%p] " then
-  checkItem (63)
- elseif GetVariable("starLog_tsType") == "%b %d [%I:%M:%S%p] " then
-  checkItem (64)
- elseif GetVariable("starLog_tsType") == "%m %d %Y [%I:%M:%S%p] " then
-  checkItem (66)
- elseif GetVariable("starLog_tsType") == "%m %d %y [%I:%M:%S%p] " then
   checkItem (67)
- elseif GetVariable("starLog_tsType") == "%m %d [%I:%M:%S%p] " then
+ elseif GetVariable("starLog_tsType") == "%b %d %y [%I:%M:%S%p] " then
   checkItem (68)
- elseif GetVariable("starLog_tsType") == "%Y %d %b [%I:%M:%S%p] " then
-  checkItem (70)
- elseif GetVariable("starLog_tsType") == "%y %d %b [%I:%M:%S%p] " then
+ elseif GetVariable("starLog_tsType") == "%b %d [%I:%M:%S%p] " then
+  checkItem (69)
+ elseif GetVariable("starLog_tsType") == "%m %d %Y [%I:%M:%S%p] " then
   checkItem (71)
- elseif GetVariable("starLog_tsType") == "%d %b [%I:%M:%S%p] " then
+ elseif GetVariable("starLog_tsType") == "%m %d %y [%I:%M:%S%p] " then
   checkItem (72)
- elseif GetVariable("starLog_tsType") == "%Y %d %m [%I:%M:%S%p] " then
-  checkItem (74)
- elseif GetVariable("starLog_tsType") == "%y %d %m [%I:%M:%S%p] " then
+ elseif GetVariable("starLog_tsType") == "%m %d [%I:%M:%S%p] " then
+  checkItem (73)
+ elseif GetVariable("starLog_tsType") == "%Y %d %b [%I:%M:%S%p] " then
   checkItem (75)
- elseif GetVariable("starLog_tsType") == "%d %m [%I:%M:%S%p] " then
+ elseif GetVariable("starLog_tsType") == "%y %d %b [%I:%M:%S%p] " then
   checkItem (76)
- elseif GetVariable("starLog_tsType") == "[%I:%M:%S%p] " then
-  checkItem (78)
- elseif GetVariable("starLog_tsType") == "%b %d %Y [%H:%M:%S] " then
+ elseif GetVariable("starLog_tsType") == "%d %b [%I:%M:%S%p] " then
+  checkItem (77)
+ elseif GetVariable("starLog_tsType") == "%Y %d %m [%I:%M:%S%p] " then
+  checkItem (79)
+ elseif GetVariable("starLog_tsType") == "%y %d %m [%I:%M:%S%p] " then
+  checkItem (80)
+ elseif GetVariable("starLog_tsType") == "%d %m [%I:%M:%S%p] " then
   checkItem (81)
- elseif GetVariable("starLog_tsType") == "%b %d %y [%H:%M:%S] " then
-  checkItem (82)
- elseif GetVariable("starLog_tsType") == "%b %d [%H:%M:%S] " then
+ elseif GetVariable("starLog_tsType") == "[%I:%M:%S%p] " then
   checkItem (83)
- elseif GetVariable("starLog_tsType") == "%m %d %Y [%H:%M:%S] " then
-  checkItem (85)
- elseif GetVariable("starLog_tsType") == "%m %d %y [%H:%M:%S] " then
+ elseif GetVariable("starLog_tsType") == "%b %d %Y [%H:%M:%S] " then
   checkItem (86)
- elseif GetVariable("starLog_tsType") == "%m %d [%H:%M:%S] " then
+ elseif GetVariable("starLog_tsType") == "%b %d %y [%H:%M:%S] " then
   checkItem (87)
- elseif GetVariable("starLog_tsType") == "%Y %d %b [%H:%M:%S] " then
-  checkItem (89)
- elseif GetVariable("starLog_tsType") == "%y %d %b [%H:%M:%S] " then
+ elseif GetVariable("starLog_tsType") == "%b %d [%H:%M:%S] " then
+  checkItem (88)
+ elseif GetVariable("starLog_tsType") == "%m %d %Y [%H:%M:%S] " then
   checkItem (90)
- elseif GetVariable("starLog_tsType") == "%d %b [%H:%M:%S] " then
+ elseif GetVariable("starLog_tsType") == "%m %d %y [%H:%M:%S] " then
   checkItem (91)
- elseif GetVariable("starLog_tsType") == "%Y %d %m [%H:%M:%S] " then
-  checkItem (93)
- elseif GetVariable("starLog_tsType") == "%y %d %m [%H:%M:%S] " then
+ elseif GetVariable("starLog_tsType") == "%m %d [%H:%M:%S] " then
+  checkItem (92)
+ elseif GetVariable("starLog_tsType") == "%Y %d %b [%H:%M:%S] " then
   checkItem (94)
- elseif GetVariable("starLog_tsType") == "%d %m [%H:%M:%S] " then
+ elseif GetVariable("starLog_tsType") == "%y %d %b [%H:%M:%S] " then
   checkItem (95)
+ elseif GetVariable("starLog_tsType") == "%d %b [%H:%M:%S] " then
+  checkItem (96)
+ elseif GetVariable("starLog_tsType") == "%Y %d %m [%H:%M:%S] " then
+  checkItem (98)
+ elseif GetVariable("starLog_tsType") == "%y %d %m [%H:%M:%S] " then
+  checkItem (99)
+ elseif GetVariable("starLog_tsType") == "%d %m [%H:%M:%S] " then
+  checkItem (100)
  elseif GetVariable("starLog_tsType") == "[%H:%M:%S] " then
-  checkItem (97)
+  checkItem (102)
  else
-  checkItem (59)
+  checkItem (64)
  end -- starLog_tsType
  if GetVariable("starLog_fnTs") == "%b %d %Y [%I_%M_%S%p]" then
-  checkItem (104)
- elseif GetVariable("starLog_fnTs") == "%b %d %y [%I_%M_%S%p]" then
-  checkItem (105)
- elseif GetVariable("starLog_fnTs") == "%b %d [%I_%M_%S%p]" then
-  checkItem (106)
- elseif GetVariable("starLog_fnTs") == "%m %d %Y [%I_%M_%S%p]" then
-  checkItem (108)
- elseif GetVariable("starLog_fnTs") == "%m %d %y [%I_%M_%S%p]" then
   checkItem (109)
- elseif GetVariable("starLog_fnTs") == "%m %d [%I_%M_%S%p]" then
+ elseif GetVariable("starLog_fnTs") == "%b %d %y [%I_%M_%S%p]" then
   checkItem (110)
- elseif GetVariable("starLog_fnTs") == "%Y %d %b [%I_%M_%S%p]" then
-  checkItem (112)
- elseif GetVariable("starLog_fnTs") == "%y %d %b [%I_%M_%S%p]" then
+ elseif GetVariable("starLog_fnTs") == "%b %d [%I_%M_%S%p]" then
+  checkItem (111)
+ elseif GetVariable("starLog_fnTs") == "%m %d %Y [%I_%M_%S%p]" then
   checkItem (113)
- elseif GetVariable("starLog_fnTs") == "%d %b [%I_%M_%S%p]" then
+ elseif GetVariable("starLog_fnTs") == "%m %d %y [%I_%M_%S%p]" then
   checkItem (114)
- elseif GetVariable("starLog_fnTs") == "%Y %d %m [%I_%M_%S%p]" then
-  checkItem (116)
- elseif GetVariable("starLog_fnTs") == "%y %d %m [%I_%M_%S%p]" then
+ elseif GetVariable("starLog_fnTs") == "%m %d [%I_%M_%S%p]" then
+  checkItem (115)
+ elseif GetVariable("starLog_fnTs") == "%Y %d %b [%I_%M_%S%p]" then
   checkItem (117)
- elseif GetVariable("starLog_fnTs") == "%d %m [%I_%M_%S%p]" then
+ elseif GetVariable("starLog_fnTs") == "%y %d %b [%I_%M_%S%p]" then
   checkItem (118)
- elseif GetVariable("starLog_fnTs") == "[%I_%M_%S%p]" then
-  checkItem (120)
- elseif GetVariable("starLog_fnTs") == "%b %d %Y [%H_%M_%S]" then
+ elseif GetVariable("starLog_fnTs") == "%d %b [%I_%M_%S%p]" then
+  checkItem (119)
+ elseif GetVariable("starLog_fnTs") == "%Y %d %m [%I_%M_%S%p]" then
+  checkItem (121)
+ elseif GetVariable("starLog_fnTs") == "%y %d %m [%I_%M_%S%p]" then
+  checkItem (122)
+ elseif GetVariable("starLog_fnTs") == "%d %m [%I_%M_%S%p]" then
   checkItem (123)
- elseif GetVariable("starLog_fnTs") == "%b %d %y [%H_%M_%S]" then
-  checkItem (124)
- elseif GetVariable("starLog_fnTs") == "%b %d [%H_%M_%S]" then
+ elseif GetVariable("starLog_fnTs") == "[%I_%M_%S%p]" then
   checkItem (125)
- elseif GetVariable("starLog_fnTs") == "%m %d %Y [%H_%M_%S]" then
-  checkItem (127)
- elseif GetVariable("starLog_fnTs") == "%m %d %y [%H_%M_%S]" then
+ elseif GetVariable("starLog_fnTs") == "%b %d %Y [%H_%M_%S]" then
   checkItem (128)
- elseif GetVariable("starLog_fnTs") == "%m %d [%H_%M_%S]" then
+ elseif GetVariable("starLog_fnTs") == "%b %d %y [%H_%M_%S]" then
   checkItem (129)
- elseif GetVariable("starLog_fnTs") == "%Y %d %b [%H_%M_%S]" then
-  checkItem (131)
- elseif GetVariable("starLog_fnTs") == "%y %d %b [%H_%M_%S]" then
+ elseif GetVariable("starLog_fnTs") == "%b %d [%H_%M_%S]" then
+  checkItem (130)
+ elseif GetVariable("starLog_fnTs") == "%m %d %Y [%H_%M_%S]" then
   checkItem (132)
- elseif GetVariable("starLog_fnTs") == "%d %b [%H_%M_%S]" then
+ elseif GetVariable("starLog_fnTs") == "%m %d %y [%H_%M_%S]" then
   checkItem (133)
- elseif GetVariable("starLog_fnTs") == "%Y %d %m [%H_%M_%S]" then
-  checkItem (135)
- elseif GetVariable("starLog_fnTs") == "%y %d %m [%H_%M_%S]" then
+ elseif GetVariable("starLog_fnTs") == "%m %d [%H_%M_%S]" then
+  checkItem (134)
+ elseif GetVariable("starLog_fnTs") == "%Y %d %b [%H_%M_%S]" then
   checkItem (136)
- elseif GetVariable("starLog_fnTs") == "%d %m [%H_%M_%S]" then
+ elseif GetVariable("starLog_fnTs") == "%y %d %b [%H_%M_%S]" then
   checkItem (137)
+ elseif GetVariable("starLog_fnTs") == "%d %b [%H_%M_%S]" then
+  checkItem (138)
+ elseif GetVariable("starLog_fnTs") == "%Y %d %m [%H_%M_%S]" then
+  checkItem (140)
+ elseif GetVariable("starLog_fnTs") == "%y %d %m [%H_%M_%S]" then
+  checkItem (141)
+ elseif GetVariable("starLog_fnTs") == "%d %m [%H_%M_%S]" then
+  checkItem (142)
  elseif GetVariable("starLog_fnTs") == "[%H_%M_%S]" then
-  checkItem (139)
+  checkItem (144)
  else
   if GetVariable("starLog_fnTs") == nil then
-   checkItem (104)
+   checkItem (67)
   end -- starLog_fnTs
   if GetVariable("result_filename") ~= nil then
-   checkItem (101)
-   menu [101] = menu [101] .. " [ " .. GetVariable("starLog_fnTs") .. " ]"
+   checkItem (106)
+   menu [106] = menu [106] .. " [ " .. GetVariable("starLog_fnTs") .. " ]"
   end -- result_filename
  end -- starLog_fnTs
  if GetVariable("starLog_remPrompt") == "true" then
-  checkItem (56)
+  checkItem (61)
  end -- starLog_remPrompt
- if GetVariable("stationaryP") == "true" then
-  checkItem (151)
- end -- stationaryP
  result = WindowMenu (titlebar_window, 65, 15, table.concat (menu, "|"))
  if result == "1" then
   avatar_filename = nil
@@ -1820,24 +1843,48 @@ function settings_click_menu ()
   enemy_colorB = getColour(enemy_colorB)
   SetVariable("enemy_colorB", enemy_colorB)
   draw_energy_bars ()
+  
  elseif result == "22" then
-  DeleteVariable("terrain_type")
-  DeleteVariable("terrain_color")
+  --compass reset
+  DeleteVariable("cColorLight")
+  DeleteVariable("cColorDark")
+  DeleteVariable("cColorLighto")
+  DeleteVariable("cColorDarko")
+  DeleteVariable("cColorLightc")
+  DeleteVariable("cColorDarkc")
   create_minimap_window ()
  elseif result == "23" then
-  terrain_color = getColour(terrain_color)
-  SetVariable("terrain_color", terrain_color)
+ --compass main color primary
+  cColorLight = getColour(cColorLight)
+  SetVariable("cColorLight", cColorLight)
   create_minimap_window ()
  elseif result == "24" then
-  SetVariable("terrain_type", "nomoon")
+ --compass main color secondary
+  cColorDark = getColour(cColorDark)
+  SetVariable("cColorDark", cColorDark)
   create_minimap_window ()
  elseif result == "25" then
-  SetVariable("terrain_type", "graymoon")
+ --compass open room primary
+  cColorLighto = getColour(cColorLighto)
+  SetVariable("cColorLighto", cColorLighto)
   create_minimap_window ()
  elseif result == "26" then
-  SetVariable("terrain_type", "bluemoon")
-  create_minimap_window () 
+ --compass open room secondary
+  cColorDarko = getColour(cColorDarko)
+  SetVariable("cColorDarko", cColorDarko)
+  create_minimap_window ()
  elseif result == "27" then
+ --compass closed room primary
+  cColorLightc = getColour(cColorLightc)
+  SetVariable("cColorLightc", cColorLightc)
+  create_minimap_window ()
+ elseif result == "28" then
+ --compass closed room secondary
+  cColorDarkc = getColour(cColorDarkc)
+  SetVariable("cColorDarkc", cColorDarkc)
+  create_minimap_window ()
+  
+ elseif result == "29" then
   if GetVariable("starLog_isRec") == nil then
    starLog_isRec = false
    SetVariable("starLog_isRec", "false")
@@ -1872,7 +1919,7 @@ function settings_click_menu ()
    end -- starlog_folder
    SetVariable("starLog_isRec", "false")
   end -- starLog_isRec
- elseif result == "28" then
+ elseif result == "30" then
   if GetVariable("starLog_recPrev") == "true" then
    starLog_recPrev = true
   elseif GetVariable("starLog_recPrev") == "false" then
@@ -1889,7 +1936,7 @@ function settings_click_menu ()
    SetVariable("starLog_recPrev", "false")
    ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Previous lines will no longer be logged.")
   end -- starLog_recPrev
- elseif result == "29" then
+ elseif result == "31" then
   if GetVariable("starLog_remPrompt") == "true" then
    starLog_remPrompt = true
   elseif GetVariable("starLog_remPrompt") == "false" then
@@ -1906,61 +1953,61 @@ function settings_click_menu ()
    SetVariable("starLog_remPrompt", "false")
    ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Prompt will no longer be removed from logs.")
   end -- starLog_remPrompt
- elseif result == "30" then
-  DeleteVariable("starLog_tsType")
- elseif result == "31" then
-  SetVariable("starLog_tsType", "%b %d %Y [%I:%M:%S%p] ")
  elseif result == "32" then
-  SetVariable("starLog_tsType", "%b %d %y [%I:%M:%S%p] ")
+  DeleteVariable("starLog_tsType")
  elseif result == "33" then
-  SetVariable("starLog_tsType", "%b %d [%I:%M:%S%p] ")
+  SetVariable("starLog_tsType", "%b %d %Y [%I:%M:%S%p] ")
  elseif result == "34" then
-  SetVariable("starLog_tsType", "%m %d %Y [%I:%M:%S%p] ")
+  SetVariable("starLog_tsType", "%b %d %y [%I:%M:%S%p] ")
  elseif result == "35" then
-  SetVariable("starLog_tsType", "%m %d %y [%I:%M:%S%p] ")
+  SetVariable("starLog_tsType", "%b %d [%I:%M:%S%p] ")
  elseif result == "36" then
-  SetVariable("starLog_tsType", "%m %d [%I:%M:%S%p] ")
+  SetVariable("starLog_tsType", "%m %d %Y [%I:%M:%S%p] ")
  elseif result == "37" then
-  SetVariable("starLog_tsType", "%Y %d %b [%I:%M:%S%p] ")
+  SetVariable("starLog_tsType", "%m %d %y [%I:%M:%S%p] ")
  elseif result == "38" then
-  SetVariable("starLog_tsType", "%y %d %b [%I:%M:%S%p] ")
+  SetVariable("starLog_tsType", "%m %d [%I:%M:%S%p] ")
  elseif result == "39" then
-  SetVariable("starLog_tsType", "%d %b [%I:%M:%S%p] ")
+  SetVariable("starLog_tsType", "%Y %d %b [%I:%M:%S%p] ")
  elseif result == "40" then
-  SetVariable("starLog_tsType", "%Y %d %m [%I:%M:%S%p] ")
+  SetVariable("starLog_tsType", "%y %d %b [%I:%M:%S%p] ")
  elseif result == "41" then
-  SetVariable("starLog_tsType", "%y %d %m [%I:%M:%S%p] ")
+  SetVariable("starLog_tsType", "%d %b [%I:%M:%S%p] ")
  elseif result == "42" then
-  SetVariable("starLog_tsType", "%d %m [%I:%M:%S%p] ")
+  SetVariable("starLog_tsType", "%Y %d %m [%I:%M:%S%p] ")
  elseif result == "43" then
-  SetVariable("starLog_tsType", "[%I:%M:%S%p] ")
+  SetVariable("starLog_tsType", "%y %d %m [%I:%M:%S%p] ")
  elseif result == "44" then
-  SetVariable("starLog_tsType", "%b %d %Y [%H:%M:%S] ")
+  SetVariable("starLog_tsType", "%d %m [%I:%M:%S%p] ")
  elseif result == "45" then
-  SetVariable("starLog_tsType", "%b %d %y [%H:%M:%S] ")
+  SetVariable("starLog_tsType", "[%I:%M:%S%p] ")
  elseif result == "46" then
-  SetVariable("starLog_tsType", "%b %d [%H:%M:%S] ")
+  SetVariable("starLog_tsType", "%b %d %Y [%H:%M:%S] ")
  elseif result == "47" then
-  SetVariable("starLog_tsType", "%m %d %Y [%H:%M:%S] ")
+  SetVariable("starLog_tsType", "%b %d %y [%H:%M:%S] ")
  elseif result == "48" then
-  SetVariable("starLog_tsType", "%m %d %y [%H:%M:%S] ")
+  SetVariable("starLog_tsType", "%b %d [%H:%M:%S] ")
  elseif result == "49" then
-  SetVariable("starLog_tsType", "%m %d [%H:%M:%S] ")
+  SetVariable("starLog_tsType", "%m %d %Y [%H:%M:%S] ")
  elseif result == "50" then
-  SetVariable("starLog_tsType", "%Y %d %b [%H:%M:%S] ")
+  SetVariable("starLog_tsType", "%m %d %y [%H:%M:%S] ")
  elseif result == "51" then
-  SetVariable("starLog_tsType", "%y %d %b [%H:%M:%S] ")
+  SetVariable("starLog_tsType", "%m %d [%H:%M:%S] ")
  elseif result == "52" then
-  SetVariable("starLog_tsType", "%d %b [%H:%M:%S] ")
+  SetVariable("starLog_tsType", "%Y %d %b [%H:%M:%S] ")
  elseif result == "53" then
-  SetVariable("starLog_tsType", "%Y %d %m [%H:%M:%S] ")
+  SetVariable("starLog_tsType", "%y %d %b [%H:%M:%S] ")
  elseif result == "54" then
-  SetVariable("starLog_tsType", "%y %d %m [%H:%M:%S] ")
+  SetVariable("starLog_tsType", "%d %b [%H:%M:%S] ")
  elseif result == "55" then
-  SetVariable("starLog_tsType", "%d %m [%H:%M:%S] ")
+  SetVariable("starLog_tsType", "%Y %d %m [%H:%M:%S] ")
  elseif result == "56" then
-  SetVariable("starLog_tsType", "[%H:%M:%S] ")
+  SetVariable("starLog_tsType", "%y %d %m [%H:%M:%S] ")
  elseif result == "57" then
+  SetVariable("starLog_tsType", "%d %m [%H:%M:%S] ")
+ elseif result == "58" then
+  SetVariable("starLog_tsType", "[%H:%M:%S] ")
+ elseif result == "59" then
   result_filename = utils.inputbox ("What would you like the filename to be?", "Star Logger", "The Final Challenge Log", "Courier", 9)
   if result_filename ~= nil then
    SetVariable("result_filename", result_filename)
@@ -1968,59 +2015,59 @@ function settings_click_menu ()
   else
    ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Custom filename has been canceled.")
   end -- result_filename
- elseif result == "58" then
-  SetVariable("starLog_fnTs", "%b %d %Y [%I_%M_%S%p]")
- elseif result == "59" then
-  SetVariable("starLog_fnTs", "%b %d %y [%I_%M_%S%p]")
  elseif result == "60" then
-  SetVariable("starLog_fnTs", "%b %d [%I_%M_%S%p]")
+  SetVariable("starLog_fnTs", "%b %d %Y [%I_%M_%S%p]")
  elseif result == "61" then
-  SetVariable("starLog_fnTs", "%m %d %Y [%I_%M_%S%p]")
+  SetVariable("starLog_fnTs", "%b %d %y [%I_%M_%S%p]")
  elseif result == "62" then
-  SetVariable("starLog_fnTs", "%m %d %y [%I_%M_%S%p]")
+  SetVariable("starLog_fnTs", "%b %d [%I_%M_%S%p]")
  elseif result == "63" then
-  SetVariable("starLog_fnTs", "%m %d [%I_%M_%S%p]")
+  SetVariable("starLog_fnTs", "%m %d %Y [%I_%M_%S%p]")
  elseif result == "64" then
-  SetVariable("starLog_fnTs", "%Y %d %b [%I_%M_%S%p]")
+  SetVariable("starLog_fnTs", "%m %d %y [%I_%M_%S%p]")
  elseif result == "65" then
-  SetVariable("starLog_fnTs", "%y %d %b [%I_%M_%S%p]")
+  SetVariable("starLog_fnTs", "%m %d [%I_%M_%S%p]")
  elseif result == "66" then
-  SetVariable("starLog_fnTs", "%d %b [%I_%M_%S%p]")
+  SetVariable("starLog_fnTs", "%Y %d %b [%I_%M_%S%p]")
  elseif result == "67" then
-  SetVariable("starLog_fnTs", "%Y %d %m [%I_%M_%S%p]")
+  SetVariable("starLog_fnTs", "%y %d %b [%I_%M_%S%p]")
  elseif result == "68" then
-  SetVariable("starLog_fnTs", "%y %d %m [%I_%M_%S%p]")
+  SetVariable("starLog_fnTs", "%d %b [%I_%M_%S%p]")
  elseif result == "69" then
-  SetVariable("starLog_fnTs", "%d %m [%I_%M_%S%p]")
+  SetVariable("starLog_fnTs", "%Y %d %m [%I_%M_%S%p]")
  elseif result == "70" then
-  SetVariable("starLog_fnTs", "[%I_%M_%S%p]")
+  SetVariable("starLog_fnTs", "%y %d %m [%I_%M_%S%p]")
  elseif result == "71" then
-  SetVariable("starLog_fnTs", "%b %d %Y [%H_%M_%S]")
+  SetVariable("starLog_fnTs", "%d %m [%I_%M_%S%p]")
  elseif result == "72" then
-  SetVariable("starLog_fnTs", "%b %d %y [%H_%M_%S]")
+  SetVariable("starLog_fnTs", "[%I_%M_%S%p]")
  elseif result == "73" then
-  SetVariable("starLog_fnTs", "%b %d [%H_%M_%S]")
+  SetVariable("starLog_fnTs", "%b %d %Y [%H_%M_%S]")
  elseif result == "74" then
-  SetVariable("starLog_fnTs", "%m %d %Y [%H_%M_%S]")
+  SetVariable("starLog_fnTs", "%b %d %y [%H_%M_%S]")
  elseif result == "75" then
-  SetVariable("starLog_fnTs", "%m %d %y [%H_%M_%S]")
+  SetVariable("starLog_fnTs", "%b %d [%H_%M_%S]")
  elseif result == "76" then
-  SetVariable("starLog_fnTs", "%m %d [%H_%M_%S]")
+  SetVariable("starLog_fnTs", "%m %d %Y [%H_%M_%S]")
  elseif result == "77" then
-  SetVariable("starLog_fnTs", "%Y %d %b [%H_%M_%S]")
+  SetVariable("starLog_fnTs", "%m %d %y [%H_%M_%S]")
  elseif result == "78" then
-  SetVariable("starLog_fnTs", "%y %d %b [%H_%M_%S]")
+  SetVariable("starLog_fnTs", "%m %d [%H_%M_%S]")
  elseif result == "79" then
-  SetVariable("starLog_fnTs", "%d %b [%H_%M_%S]")
+  SetVariable("starLog_fnTs", "%Y %d %b [%H_%M_%S]")
  elseif result == "80" then
-  SetVariable("starLog_fnTs", "%Y %d %m [%H_%M_%S]")
+  SetVariable("starLog_fnTs", "%y %d %b [%H_%M_%S]")
  elseif result == "81" then
-  SetVariable("starLog_fnTs", "%y %d %m [%H_%M_%S]")
+  SetVariable("starLog_fnTs", "%d %b [%H_%M_%S]")
  elseif result == "82" then
-  SetVariable("starLog_fnTs", "%d %m [%H_%M_%S]")
+  SetVariable("starLog_fnTs", "%Y %d %m [%H_%M_%S]")
  elseif result == "83" then
-  SetVariable("starLog_fnTs", "[%H_%M_%S]")
+  SetVariable("starLog_fnTs", "%y %d %m [%H_%M_%S]")
  elseif result == "84" then
+  SetVariable("starLog_fnTs", "%d %m [%H_%M_%S]")
+ elseif result == "85" then
+  SetVariable("starLog_fnTs", "[%H_%M_%S]")
+ elseif result == "86" then
   directoryname = utils.directorypicker ("Folder to put logs into", GetInfo (58))
   if directoryname ~= nil then
    SetVariable("starlog_folder", directoryname)
@@ -2028,37 +2075,19 @@ function settings_click_menu ()
   else
    ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Custom folder has been canceled.")
   end -- directoryname
- elseif result == "85" then
+ elseif result == "87" then
   if GetVariable("starlog_folder") then
    os.execute ("explorer " .. GetVariable("starlog_folder") )
   else
    os.execute ("explorer " .. GetInfo (58) )
   end -- starlog_folder
- elseif result == "86" then
+ elseif result == "88" then
   OpenBrowser ("https://github.com/TFC-Fumino/MUSHclient_Plugins/issues")
- elseif result == "87" then
+ elseif result == "89" then
   print("")
   ColourNote("white", "blue", "Connecting to the server and checking for updates.")
   ColourNote("white", "blue", "Please wait..")
   update_plugin ()
- elseif result == "88" then
-  if GetVariable("stationaryP") == "true" then
-   stationaryP = true
-  elseif GetVariable("stationaryP") == "false" then
-   stationaryP = false
-  else
-   stationaryP = false
-   SetVariable("stationaryP", "false")
-  end -- stationaryP
-  stationaryP = not stationaryP
-  if stationaryP then
-   SetVariable("stationaryP", "true")
-   EnableTrigger("stationaryP_trig", true)
-  else
-   SetVariable("stationaryP", "false")
-   EnableTrigger("stationaryP_trig", false)
-   
-  end -- stationaryP
  end -- result
  DrawThemed3DRect(titlebar_window, 65, 0, 104, 13)
  outlined_text (colourWhite, titlebar_window, "settings", 5, 68, 2, 0)
@@ -2175,10 +2204,12 @@ function draw_room (x, y, type_room)
  end -- if
  if GetVariable("terrain_type") == "nomoon" then
   if type_room == "C" then
-   WindowDrawImage (minimap_window, terrain_image, x-12, y-6, x+20, y+20, 3)  -- draw the door
+   -- WindowDrawImage (minimap_window, terrain_image, x-12, y-6, x+20, y+20, 3)  -- draw the door
+   -- draw filled triangle door color here
   end -- type_room
  else
-  WindowDrawImage (minimap_window, terrain_image, x-12, y-6, x+20, y+20, 3)  -- draw the terrain
+  -- WindowDrawImage (minimap_window, terrain_image, x-12, y-6, x+20, y+20, 3)  -- draw the terrain
+  -- draw filled triangle normal room here
  end -- terrain_type
 end -- draw_room
 
@@ -2195,8 +2226,88 @@ function draw_minimap ()
  else
   WindowRectOp (minimap_window, 2, 0, 0, 0, 0, 0x000000)
  end -- bgColour
- draw_room (mapCentre, mapCentre, "O")
- -- draw any surrounding rooms
+ cColorLight = GetVariable("cColorLight") or ColourNameToRGB("white")
+ cColorDark = GetVariable("cColorDark") or ColourNameToRGB("dimgray")
+ outlined_text (cColorLight, minimap_window, "*", 10, 77, 44, 0) 
+ WindowCircleOp (minimap_window, 4, 75, 44, 88, 57,
+    cColorLight, 0, 2, ColourNameToRGB("cyan"), 1, 
+    0, 0, 0, 0) 
+ -- north arrow right half
+ points = string.format ("%i,%i,%i,%i,%i,%i", 81, 43, 81, 8, 86, 43)
+ WindowPolygon (minimap_window, points,
+    cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorLight, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+
+ -- north arrow left half shadow
+ points = string.format ("%i,%i,%i,%i,%i,%i", 76, 43, 81, 8, 81, 43)
+ WindowPolygon (minimap_window, points,
+    cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorDark, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+
+ -- south arrow left half
+ points = string.format ("%i,%i,%i,%i,%i,%i", 76, 57, 81, 90, 81, 57)
+ WindowPolygon (minimap_window, points,
+    cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorLight, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+
+ -- south arrow right half shadow
+ points = string.format ("%i,%i,%i,%i,%i,%i", 81, 57, 81, 90, 86, 57)
+ WindowPolygon (minimap_window, points,
+    cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorDark, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+	
+ -- east arrow bottom half
+ points = string.format ("%i,%i,%i,%i,%i,%i", 88, 50, 116, 50, 88, 55)
+ WindowPolygon (minimap_window, points,
+    cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorLight, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+
+ -- east arrow top half shadow
+ points = string.format ("%i,%i,%i,%i,%i,%i", 88, 45, 116, 50, 88, 50)
+ WindowPolygon (minimap_window, points,
+    cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorDark, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+
+ -- west arrow top half
+ points = string.format ("%i,%i,%i,%i,%i,%i", 74, 45, 46, 50, 74, 50)
+ WindowPolygon (minimap_window, points,
+    cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorLight, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+
+ -- west arrow bottom half shadow
+ points = string.format ("%i,%i,%i,%i,%i,%i", 74, 50, 46, 50, 74, 55)
+ WindowPolygon (minimap_window, points,
+    cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorDark, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+
+ -- up ladder
+ WindowCircleOp (minimap_window, 3, 101, 8, 116, 23,
+    cColorLight, 0, 1, cColorDark, 2)
+ WindowLine (minimap_window, 101, 15, 116, 15, cColorLight, miniwin.pen_solid, 1)
+ 
+ -- down ladder
+ WindowCircleOp (minimap_window, 3, 101, 75, 116, 90,
+    cColorLight, 0, 1, cColorDark, 0)
+ WindowLine (minimap_window, 101, 78, 116, 78, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 101, 82, 116, 82, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 101, 86, 116, 86, cColorLight, miniwin.pen_solid, 1)
+ 
  if ExitCount > 0 and curRoom_exits ~= nil then
   if GetVariable("terrain_color") == nil then
    colourMap = ColourNameToRGB("white")
@@ -2207,59 +2318,188 @@ function draw_minimap ()
    for k, v in pairs (curRoom_exits) do
     if RoomExit[i] == "north" then
 	 if RoomType[i] == "C" then
-      draw_room(mapCentre, mapCentre-30, RoomType[i])
-      outlined_text (colourMap, minimap_window, "n", 9, mapCentre+6, mapCentre-28, 0)
+      cColorLight = GetVariable("cColorLightc") or ColourNameToRGB("red")
+	  cColorDark = GetVariable("cColorDarkc") or ColourNameToRGB("darkred")
+	  -- north arrow right half
+      points = string.format ("%i,%i,%i,%i,%i,%i", 81, 43, 81, 8, 86, 43)
+      WindowPolygon (minimap_window, points,
+            cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+            cColorLight, miniwin.brush_solid, -- brush (solid)
+            true, -- close
+            false) -- alt fill
+      -- north arrow left half shadow
+      points = string.format ("%i,%i,%i,%i,%i,%i", 76, 43, 81, 8, 81, 43)
+      WindowPolygon (minimap_window, points,
+            cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+            cColorDark, miniwin.brush_solid, -- brush (solid)
+            true, -- close
+            false) -- alt fill
 	 end -- RoomType
 	 if v == "north" then
-	  draw_room(mapCentre, mapCentre-30, RoomType[i])
-      outlined_text (colourMap, minimap_window, "n", 9, mapCentre+6, mapCentre-28, 0)
+	  cColorLight = GetVariable("cColorLighto") or ColourNameToRGB("lime")
+	  cColorDark = GetVariable("cColorDarko") or ColourNameToRGB("green")
+	  -- north arrow right half
+      points = string.format ("%i,%i,%i,%i,%i,%i", 81, 43, 81, 8, 86, 43)
+      WindowPolygon (minimap_window, points,
+        cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+        cColorLight, miniwin.brush_solid, -- brush (solid)
+        true, -- close
+        false) -- alt fill
+      -- north arrow left half shadow
+      points = string.format ("%i,%i,%i,%i,%i,%i", 76, 43, 81, 8, 81, 43)
+      WindowPolygon (minimap_window, points,
+        cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+        cColorDark, miniwin.brush_solid, -- brush (solid)
+        true, -- close
+        false) -- alt fill
 	 end -- v north
     elseif RoomExit[i] == "south" then
 	 if RoomType[i] == "C" then
-      draw_room(mapCentre, mapCentre+30, RoomType[i])
-      outlined_text (colourMap, minimap_window, "s", 9, mapCentre+6, mapCentre+33, 0)
+      cColorLight = GetVariable("cColorLightc") or ColourNameToRGB("red")
+	  cColorDark = GetVariable("cColorDarkc") or ColourNameToRGB("darkred")
+      -- south arrow left half
+      points = string.format ("%i,%i,%i,%i,%i,%i", 76, 57, 81, 90, 81, 57)
+      WindowPolygon (minimap_window, points,
+         cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+         cColorLight, miniwin.brush_solid, -- brush (solid)
+         true, -- close
+         false) -- alt fill
+      -- south arrow right half shadow
+      points = string.format ("%i,%i,%i,%i,%i,%i", 81, 57, 81, 90, 86, 57)
+      WindowPolygon (minimap_window, points,
+         cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+         cColorDark, miniwin.brush_solid, -- brush (solid)
+         true, -- close
+         false) -- alt fill
      end -- RoomType
 	 if v == "south" then
-      draw_room(mapCentre, mapCentre+30, RoomType[i])
-      outlined_text (colourMap, minimap_window, "s", 9, mapCentre+6, mapCentre+33, 0)	 
+      cColorLight = GetVariable("cColorLighto") or ColourNameToRGB("lime")
+	  cColorDark = GetVariable("cColorDarko") or ColourNameToRGB("green")
+      -- south arrow left half
+      points = string.format ("%i,%i,%i,%i,%i,%i", 76, 57, 81, 90, 81, 57)
+      WindowPolygon (minimap_window, points,
+         cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+         cColorLight, miniwin.brush_solid, -- brush (solid)
+         true, -- close
+         false) -- alt fill
+      -- south arrow right half shadow
+      points = string.format ("%i,%i,%i,%i,%i,%i", 81, 57, 81, 90, 86, 57)
+      WindowPolygon (minimap_window, points,
+         cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+         cColorDark, miniwin.brush_solid, -- brush (solid)
+         true, -- close
+         false) -- alt fill	  
      end -- v south
 	elseif RoomExit[i] == "east" then
 	 if RoomType[i] == "C" then
-      draw_room(mapCentre+26, mapCentre, RoomType[i])
-      outlined_text (colourMap, minimap_window, "e", 9, mapCentre+32, mapCentre+2, 0)
+      cColorLight = GetVariable("cColorLightc") or ColourNameToRGB("red")
+	  cColorDark = GetVariable("cColorDarkc") or ColourNameToRGB("darkred")
+      -- east arrow bottom half
+      points = string.format ("%i,%i,%i,%i,%i,%i", 88, 50, 116, 50, 88, 55)
+      WindowPolygon (minimap_window, points,
+         cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+         cColorLight, miniwin.brush_solid, -- brush (solid)
+         true, -- close
+         false) -- alt fill
+      -- east arrow top half shadow
+      points = string.format ("%i,%i,%i,%i,%i,%i", 88, 45, 116, 50, 88, 50)
+      WindowPolygon (minimap_window, points,
+         cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+         cColorDark, miniwin.brush_solid, -- brush (solid)
+         true, -- close
+         false) -- alt fill
 	 end -- RoomType
 	 if v == "east" then
-      draw_room(mapCentre+26, mapCentre, RoomType[i])
-      outlined_text (colourMap, minimap_window, "e", 9, mapCentre+32, mapCentre+2, 0)
+      cColorLight = GetVariable("cColorLighto") or ColourNameToRGB("lime")
+	  cColorDark = GetVariable("cColorDarko") or ColourNameToRGB("green")
+      -- east arrow bottom half
+      points = string.format ("%i,%i,%i,%i,%i,%i", 88, 50, 116, 50, 88, 55)
+      WindowPolygon (minimap_window, points,
+         cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+         cColorLight, miniwin.brush_solid, -- brush (solid)
+         true, -- close
+         false) -- alt fill
+      -- east arrow top half shadow
+      points = string.format ("%i,%i,%i,%i,%i,%i", 88, 45, 116, 50, 88, 50)
+      WindowPolygon (minimap_window, points,
+         cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+         cColorDark, miniwin.brush_solid, -- brush (solid)
+         true, -- close
+         false) -- alt fill
      end -- v east	  
     elseif RoomExit[i] == "west" then
 	 if RoomType[i] == "C" then
-      draw_room(mapCentre-26, mapCentre, RoomType[i])
-      outlined_text (colourMap, minimap_window, "w", 9, mapCentre-22, mapCentre+3, 0)
+      cColorLight = GetVariable("cColorLightc") or ColourNameToRGB("red")
+	  cColorDark = GetVariable("cColorDarkc") or ColourNameToRGB("darkred")
+      -- west arrow top half
+      points = string.format ("%i,%i,%i,%i,%i,%i", 74, 45, 46, 50, 74, 50)
+      WindowPolygon (minimap_window, points,
+         cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+         cColorLight, miniwin.brush_solid, -- brush (solid)
+         true, -- close
+         false) -- alt fill
+      -- west arrow bottom half shadow
+      points = string.format ("%i,%i,%i,%i,%i,%i", 74, 50, 46, 50, 74, 55)
+      WindowPolygon (minimap_window, points,
+         cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+         cColorDark, miniwin.brush_solid, -- brush (solid)
+         true, -- close
+         false) -- alt fill
 	 end -- RoomType
 	 if v == "west" then
-      draw_room(mapCentre-26, mapCentre, RoomType[i])
-      outlined_text (colourMap, minimap_window, "w", 9, mapCentre-22, mapCentre+3, 0)
+      cColorLight = GetVariable("cColorLighto") or ColourNameToRGB("lime")
+	  cColorDark = GetVariable("cColorDarko") or ColourNameToRGB("green")
+      -- west arrow top half
+      points = string.format ("%i,%i,%i,%i,%i,%i", 74, 45, 46, 50, 74, 50)
+      WindowPolygon (minimap_window, points,
+         cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+         cColorLight, miniwin.brush_solid, -- brush (solid)
+         true, -- close
+         false) -- alt fill
+      -- west arrow bottom half shadow
+      points = string.format ("%i,%i,%i,%i,%i,%i", 74, 50, 46, 50, 74, 55)
+      WindowPolygon (minimap_window, points,
+         cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+         cColorDark, miniwin.brush_solid, -- brush (solid)
+         true, -- close
+         false) -- alt fill
 	 end -- v west
     elseif RoomExit[i] == "up" then
 	 if RoomType[i] == "C" then
-      draw_room(mapCentre+26, mapCentre-30, RoomType[i])
-      outlined_text (colourMap, minimap_window, "u", 9, mapCentre+32, mapCentre-28, 0)
+      cColorLight = GetVariable("cColorLightc") or ColourNameToRGB("red")
+	  cColorDark = GetVariable("cColorDarkc") or ColourNameToRGB("darkred")
+      -- up ladder
+      WindowCircleOp (minimap_window, 3, 101, 8, 116, 23,
+         cColorLight, 0, 1, cColorDark, 2)
+      WindowLine (minimap_window, 101, 15, 116, 15, cColorLight, miniwin.pen_solid, 1)
 	 end -- RoomType
 	 if v == "up" then
-      draw_room(mapCentre+26, mapCentre-30, RoomType[i])
-      outlined_text (colourMap, minimap_window, "u", 9, mapCentre+32, mapCentre-28, 0)
-	 end -- v up
+	  cColorLight = GetVariable("cColorLighto") or ColourNameToRGB("lime")
+	  cColorDark = GetVariable("cColorDarko") or ColourNameToRGB("green")
+      -- up ladder
+      WindowCircleOp (minimap_window, 3, 101, 8, 116, 23,
+        cColorLight, 0, 1, cColorDark, 2)
+      WindowLine (minimap_window, 101, 15, 116, 15, cColorLight, miniwin.pen_solid, 1)
+   	 end -- v up
     elseif RoomExit[i] == "down" then
 	 if RoomType[i] == "C" then
-      draw_room(mapCentre+26, mapCentre+30, RoomType[i])
-      outlined_text (colourMap, minimap_window, "d", 9, mapCentre+32, mapCentre+33, 0)
+	  cColorLight = GetVariable("cColorLightc") or ColourNameToRGB("lime")
+      -- down ladder
+      WindowCircleOp (minimap_window, 3, 101, 75, 116, 90,
+         cColorLight, 0, 1, cColorDark, 0)
+      WindowLine (minimap_window, 101, 78, 116, 78, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 101, 82, 116, 82, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 101, 86, 116, 86, cColorLight, miniwin.pen_solid, 1)
 	 end -- RoomType
 	 if v == "down" then
-      draw_room(mapCentre+26, mapCentre+30, RoomType[i])
-      outlined_text (colourMap, minimap_window, "d", 9, mapCentre+32, mapCentre+33, 0)
+	  cColorLight = GetVariable("cColorLighto") or ColourNameToRGB("lime")
+      WindowCircleOp (minimap_window, 3, 101, 75, 116, 90,
+         cColorLight, 0, 1, cColorDark, 0)
+      WindowLine (minimap_window, 101, 78, 116, 78, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 101, 82, 116, 82, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 101, 86, 116, 86, cColorLight, miniwin.pen_solid, 1)
      end -- v down	  
-    end -- if both readings match
+    end -- RoomExit north
    end -- for k v
   end -- for i
  end -- if ExitCount and curRoom_exits
@@ -2667,30 +2907,118 @@ end -- PROMPT_BARS_VISIBILITY
  -- show the window
  WindowShow (titlebar_window, true)
 end -- function create_titlebar
+
+ cColorLight = GetVariable("cColorLight") or ColourNameToRGB("white")
+ cColorDark = GetVariable("cColorDark") or ColourNameToRGB("dimgray")
+ cColorLighto = GetVariable("cColorLighto") or ColourNameToRGB("lime")
+ cColorDarko = GetVariable("cColorDarko") or ColourNameToRGB("green")
+ cColorLightc = GetVariable("cColorLightc") or ColourNameToRGB("red")
+ cColorDarkc = GetVariable("cColorDarkc") or ColourNameToRGB("darkred")
+
 ----/ Create the minimap window to the left of the text /----
 function create_minimap_window ()
  -- make a miniwindow for the map
  WindowCreate (minimap_window,   -- window ID
     MINIMAP_LEFT_POSITION,         -- left
     top_map+167,    -- top
-    112,        -- width
-    114,        -- depth
+    120,        -- width
+    120,        -- depth
     12,         -- center it (ignored anyway) 
     6,          -- draw underneath (1) + absolute location (2)
     0x000000)  -- background colour
- -- show the window and its border
- WindowShow (minimap_window, true)
- -- load the terrain images
- if GetVariable("terrain_type") == "bluemoon" then
-  custom_map = GetInfo (66) .. "Generic/maps/terrain_city_blue.png"
-  WindowLoadImage (minimap_window, "terrain_city", custom_map)
- elseif GetVariable("terrain_type") == "graymoon" or GetVariable("terrain_type") == nil then
-  custom_map = GetInfo (66) .. "Generic/maps/terrain_city.png"
-  WindowLoadImage (minimap_window, "terrain_city", custom_map)
- end -- terrain_type
- WindowLoadImage (minimap_window, "terrain_dark", GetInfo (66) .. "Generic/maps/terrain_dark.png")
+
+ cColorLight = GetVariable("cColorLight") or ColourNameToRGB("white")
+ cColorDark = GetVariable("cColorDark") or ColourNameToRGB("dimgray")
+ cColorLighto = GetVariable("cColorLighto") or ColourNameToRGB("lime")
+ cColorDarko = GetVariable("cColorDarko") or ColourNameToRGB("green")
+ cColorLightc = GetVariable("cColorLightc") or ColourNameToRGB("red")
+ cColorDarkc = GetVariable("cColorDarkc") or ColourNameToRGB("darkred")
+ outlined_text (cColorLight, minimap_window, "*", 10, 77, 44, 0)
+ 
+ WindowCircleOp (minimap_window, 4, 75, 44, 88, 57,
+    cColorLight, 0, 2, ColourNameToRGB("cyan"), 1, 
+    0, 0, 0, 0) 
+	
+ -- north arrow right half
+ points = string.format ("%i,%i,%i,%i,%i,%i", 81, 43, 81, 8, 86, 43)
+ WindowPolygon (minimap_window, points,
+    cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorLight, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+
+ -- north arrow left half shadow
+ points = string.format ("%i,%i,%i,%i,%i,%i", 76, 43, 81, 8, 81, 43)
+ WindowPolygon (minimap_window, points,
+    cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorDark, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+
+ -- south arrow left half
+ points = string.format ("%i,%i,%i,%i,%i,%i", 76, 57, 81, 90, 81, 57)
+ WindowPolygon (minimap_window, points,
+    cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorLight, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+
+ -- south arrow right half shadow
+ points = string.format ("%i,%i,%i,%i,%i,%i", 81, 57, 81, 90, 86, 57)
+ WindowPolygon (minimap_window, points,
+    cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorDark, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+	
+ -- east arrow bottom half
+ points = string.format ("%i,%i,%i,%i,%i,%i", 88, 50, 116, 50, 88, 55)
+ WindowPolygon (minimap_window, points,
+    cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorLight, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+
+ -- east arrow top half shadow
+ points = string.format ("%i,%i,%i,%i,%i,%i", 88, 45, 116, 50, 88, 50)
+ WindowPolygon (minimap_window, points,
+    cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorDark, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+
+ -- west arrow top half
+ points = string.format ("%i,%i,%i,%i,%i,%i", 74, 45, 46, 50, 74, 50)
+ WindowPolygon (minimap_window, points,
+    cColorLight, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorLight, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+
+ -- west arrow bottom half shadow
+ points = string.format ("%i,%i,%i,%i,%i,%i", 74, 50, 46, 50, 74, 55)
+ WindowPolygon (minimap_window, points,
+    cColorDark, miniwin.pen_solid, 1, -- pen (solid, width 1)
+    cColorDark, miniwin.brush_solid, -- brush (solid)
+    true, -- close
+    false) -- alt fill
+
+ -- up ladder
+ WindowCircleOp (minimap_window, 3, 101, 8, 116, 23,
+    cColorLight, 0, 1, cColorDark, 2)
+ WindowLine (minimap_window, 101, 15, 116, 15, cColorLight, miniwin.pen_solid, 1)
+ 
+ -- down ladder
+ WindowCircleOp (minimap_window, 3, 101, 75, 116, 90,
+    cColorLight, 0, 1, cColorDark, 0)
+ WindowLine (minimap_window, 101, 78, 116, 78, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 101, 82, 116, 82, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 101, 86, 116, 86, cColorLight, miniwin.pen_solid, 1)
+
+ 
  -- draw the map
- draw_minimap ()
+ -- draw_minimap ()
+  WindowShow (minimap_window, true)
 end -- function create_minimap_window
 ----/ Create the sidebar button /----
 function create_sidebar_button ()
@@ -3173,33 +3501,62 @@ function alias_star_logger_prev_lines()
 end -- alias_star_logger_prev_lines
 
 
--- Experimental function to create a stationary prompt while removing the prompt
-function sPrompt_echo (name, line, wildcards, styles)
- -- fixes the exits and auras when echoing so it shows it all on one line
- if wildcards[1] == "" then
-  Note("")
- end
- -- keeps exits and auras on one line
- if string.find(line, ".Exits.") or string.find(line, "%(.* Aura%)") then
-  for _, style in ipairs (styles) do
-   ColourTell (RGBColourToName (style.textcolour),RGBColourToName (style.backcolour),style.text)
-  end -- for each style run
- else
-  if string.find(line, "<") and string.find(line, ">") then
-  -- useless spot now but may use it for something else
-  -- MUD server sends data stupidly when colors are turned on
-  else
-  -- echos everything else since all lines are being removed 
-  -- in order to remove the prompt since it cant be done the normal way
-  -- because the server doesnt force a new line after the prompt
-   for _, style in ipairs (styles) do
-    ColourTell (RGBColourToName (style.textcolour),RGBColourToName (style.backcolour),style.text)
-    Note ("")  -- wrap up line
-   end -- for each style run
-  end -- find prompt
- end -- find exits
+-----/ Moon and Sun Orbiter /----
+local test_window = "test_window"  -- miniwindow ID
+o_x = 0.0022328955057276
+o_xT = 111.99277099826
+o_y = 56.495475370442
+o_yT = 54.092225831802
 
-end -- function sPrompt_echo
+o_xx = 111.99277099826
+o_yy = 54.092225831802
+local centreX = 58
+local centreY = 58
+local centreXX = 56
+local centreYY = 56
+local radius = 57
+local angularVelocity = 0.083
+local angle = 22
+local angles = 31.4
+
+function test_orbit()
+ print("Orbit test started, this will stop after 3 minutes and 7 seconds, which is half of night")
+ EnableTimer("orbitTimer", true)
+ ResetTimer("orbitTimer")
+ EnableTimer("orbitTimerEnd", true)
+ ResetTimer("orbitTimerEnd")
+end -- function test_orbit
+
+function orbit()
+	angle = angle + angularVelocity
+	o_x = centreX + radius * math.cos(angle)
+	o_y = centreY + radius * math.sin(angle)
+    angles = angles + angularVelocity
+	o_xx = centreXX + radius * math.cos(angles)
+	o_yy = centreYY + radius * math.sin(angles)
+	print("Moon:", "x:", o_x, "y:", o_y)
+    print("Sun:", "x:", o_xx, "y:", o_yy)
+	build_test_window()
+end -- function orbit
+ 
+function build_test_window ()
+ WindowCreate (test_window,   -- window ID
+    13,   -- left
+    220,   -- top
+    138, -- width
+    138, -- depth
+    12,  -- center it (ignored anyway) 
+    6,          -- draw underneath (1) + absolute location (2) + transparent (4)
+    0x000000)  -- background colour
+ -- load the titlebar image
+ WindowLoadImage (test_window, "orbitMoon", GetInfo (66) .. "Generic/layout/moon.png")
+ WindowLoadImage (test_window, "orbitSun", GetInfo (66) .. "Generic/layout/sun.png")
+ -- draw it
+ WindowDrawImage (test_window, "orbitMoon", o_x, o_y, 0, 0, 3)  -- draw it
+ WindowDrawImage (test_window, "orbitSun", o_xx, o_yy, 0, 0, 3)  -- draw it
+
+ WindowShow(test_window, true)
+end -- function build_test_window
 ]]>
 </script>
 
