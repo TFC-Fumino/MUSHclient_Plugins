@@ -7,9 +7,9 @@
    id="9232cf74f97637b76afe76c7"
    language="Lua"
    purpose="A graphical user interface sidebar for The Final Challenge MUD"
-   date_written="2016-05-05 00:49:31"
+   date_written="2016-05-08 00:49:31"
    requires="4.51"
-   version="1.8"
+   version="1.9"
    save_state="y"
    >
 <description trim="y">
@@ -483,34 +483,40 @@
   sequence="100">
  </alias>
  ----/ Orbiter testing aliases /----
-  <alias
+ <alias
   script="test_orbit"
   match="orbit test"
   enabled="y"
   sequence="100">
  </alias>
  
-   <alias
+ <alias
   script="orbit"
-  match="orbit one"
+  match="orbit move"
   enabled="y"
   sequence="100">
  </alias>
  
-   <alias
-  script="build_test_window"
-  match="open orbit window"
+ <alias
+  match="orbit show"
   enabled="y"
+  send_to="12"
   sequence="100">
- </alias>
-
-  <alias
-   match="close orbit window"
-   enabled="y"
-   send_to="12"
-   sequence="100"
-  >
-  <send>WindowShow("test_window", false)</send>
+  <send>o_x = -6.9631677359134
+   o_y = 55.812115698766
+   o_xx = 120.99743253856
+   o_yy = 56.577722593267
+   draw_sun(o_x, o_y)
+   draw_moon(o_xx, o_yy)</send>
+  </alias>
+ 
+ <alias
+  match="orbit hide"
+  enabled="y"
+  send_to="12"
+  sequence="100">
+  <send>WindowShow (win5,  false)
+   WindowShow (win8,  false)</send>
   </alias>
   
 </aliases>
@@ -2296,17 +2302,23 @@ function draw_minimap ()
     true, -- close
     false) -- alt fill
 
- -- up ladder
- WindowCircleOp (minimap_window, 3, 101, 8, 116, 23,
-    cColorLight, 0, 1, cColorDark, 2)
- WindowLine (minimap_window, 101, 15, 116, 15, cColorLight, miniwin.pen_solid, 1)
+ --/ up ladder /--
+ -- ladder steps
+ WindowLine (minimap_window, 108, 11, 116, 11, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 108, 15, 116, 15, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 108, 19, 116, 19, cColorLight, miniwin.pen_solid, 1)
+ -- ladder sides
+ WindowLine (minimap_window, 108, 8, 108, 23, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 115, 8, 115, 23, cColorLight, miniwin.pen_solid, 1)
  
- -- down ladder
- WindowCircleOp (minimap_window, 3, 101, 75, 116, 90,
-    cColorLight, 0, 1, cColorDark, 0)
- WindowLine (minimap_window, 101, 78, 116, 78, cColorLight, miniwin.pen_solid, 1)
- WindowLine (minimap_window, 101, 82, 116, 82, cColorLight, miniwin.pen_solid, 1)
- WindowLine (minimap_window, 101, 86, 116, 86, cColorLight, miniwin.pen_solid, 1)
+ --/ down ladder /--
+ -- ladder steps
+ WindowLine (minimap_window, 108, 78, 116, 78, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 108, 82, 116, 82, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 108, 86, 116, 86, cColorLight, miniwin.pen_solid, 1)
+ -- ladder sides
+ WindowLine (minimap_window, 108, 75, 108, 90, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 115, 75, 115, 90, cColorLight, miniwin.pen_solid, 1)
  
  if ExitCount > 0 and curRoom_exits ~= nil then
   if GetVariable("terrain_color") == nil then
@@ -2467,37 +2479,48 @@ function draw_minimap ()
     elseif RoomExit[i] == "up" then
 	 if RoomType[i] == "C" then
       cColorLight = GetVariable("cColorLightc") or ColourNameToRGB("red")
-	  cColorDark = GetVariable("cColorDarkc") or ColourNameToRGB("darkred")
-      -- up ladder
-      WindowCircleOp (minimap_window, 3, 101, 8, 116, 23,
-         cColorLight, 0, 1, cColorDark, 2)
-      WindowLine (minimap_window, 101, 15, 116, 15, cColorLight, miniwin.pen_solid, 1)
+      --/ up ladder /--
+      -- ladder steps
+      WindowLine (minimap_window, 108, 11, 116, 11, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 108, 15, 116, 15, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 108, 19, 116, 19, cColorLight, miniwin.pen_solid, 1)
+      -- ladder sides
+      WindowLine (minimap_window, 108, 8, 108, 23, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 115, 8, 115, 23, cColorLight, miniwin.pen_solid, 1)
 	 end -- RoomType
 	 if v == "up" then
 	  cColorLight = GetVariable("cColorLighto") or ColourNameToRGB("lime")
-	  cColorDark = GetVariable("cColorDarko") or ColourNameToRGB("green")
-      -- up ladder
-      WindowCircleOp (minimap_window, 3, 101, 8, 116, 23,
-        cColorLight, 0, 1, cColorDark, 2)
-      WindowLine (minimap_window, 101, 15, 116, 15, cColorLight, miniwin.pen_solid, 1)
+      --/ up ladder /--
+      -- ladder steps
+      WindowLine (minimap_window, 108, 11, 116, 11, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 108, 15, 116, 15, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 108, 19, 116, 19, cColorLight, miniwin.pen_solid, 1)
+      -- ladder sides
+      WindowLine (minimap_window, 108, 8, 108, 23, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 115, 8, 115, 23, cColorLight, miniwin.pen_solid, 1)
    	 end -- v up
     elseif RoomExit[i] == "down" then
 	 if RoomType[i] == "C" then
 	  cColorLight = GetVariable("cColorLightc") or ColourNameToRGB("lime")
-      -- down ladder
-      WindowCircleOp (minimap_window, 3, 101, 75, 116, 90,
-         cColorLight, 0, 1, cColorDark, 0)
-      WindowLine (minimap_window, 101, 78, 116, 78, cColorLight, miniwin.pen_solid, 1)
-      WindowLine (minimap_window, 101, 82, 116, 82, cColorLight, miniwin.pen_solid, 1)
-      WindowLine (minimap_window, 101, 86, 116, 86, cColorLight, miniwin.pen_solid, 1)
+      --/ down ladder /--
+      -- ladder steps
+      WindowLine (minimap_window, 108, 78, 116, 78, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 108, 82, 116, 82, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 108, 86, 116, 86, cColorLight, miniwin.pen_solid, 1)
+      -- ladder sides
+      WindowLine (minimap_window, 108, 75, 108, 90, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 115, 75, 115, 90, cColorLight, miniwin.pen_solid, 1)
 	 end -- RoomType
 	 if v == "down" then
 	  cColorLight = GetVariable("cColorLighto") or ColourNameToRGB("lime")
-      WindowCircleOp (minimap_window, 3, 101, 75, 116, 90,
-         cColorLight, 0, 1, cColorDark, 0)
-      WindowLine (minimap_window, 101, 78, 116, 78, cColorLight, miniwin.pen_solid, 1)
-      WindowLine (minimap_window, 101, 82, 116, 82, cColorLight, miniwin.pen_solid, 1)
-      WindowLine (minimap_window, 101, 86, 116, 86, cColorLight, miniwin.pen_solid, 1)
+      --/ down ladder /--
+      -- ladder steps
+      WindowLine (minimap_window, 108, 78, 116, 78, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 108, 82, 116, 82, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 108, 86, 116, 86, cColorLight, miniwin.pen_solid, 1)
+      -- ladder sides
+      WindowLine (minimap_window, 108, 75, 108, 90, cColorLight, miniwin.pen_solid, 1)
+      WindowLine (minimap_window, 115, 75, 115, 90, cColorLight, miniwin.pen_solid, 1)
      end -- v down	  
     end -- RoomExit north
    end -- for k v
@@ -3003,18 +3026,23 @@ function create_minimap_window ()
     true, -- close
     false) -- alt fill
 
- -- up ladder
- WindowCircleOp (minimap_window, 3, 101, 8, 116, 23,
-    cColorLight, 0, 1, cColorDark, 2)
- WindowLine (minimap_window, 101, 15, 116, 15, cColorLight, miniwin.pen_solid, 1)
+ --/ up ladder /--
+ -- ladder steps
+ WindowLine (minimap_window, 108, 11, 116, 11, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 108, 15, 116, 15, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 108, 19, 116, 19, cColorLight, miniwin.pen_solid, 1)
+ -- ladder sides
+ WindowLine (minimap_window, 108, 8, 108, 23, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 115, 8, 115, 23, cColorLight, miniwin.pen_solid, 1)
  
- -- down ladder
- WindowCircleOp (minimap_window, 3, 101, 75, 116, 90,
-    cColorLight, 0, 1, cColorDark, 0)
- WindowLine (minimap_window, 101, 78, 116, 78, cColorLight, miniwin.pen_solid, 1)
- WindowLine (minimap_window, 101, 82, 116, 82, cColorLight, miniwin.pen_solid, 1)
- WindowLine (minimap_window, 101, 86, 116, 86, cColorLight, miniwin.pen_solid, 1)
-
+ --/ down ladder /--
+ -- ladder steps
+ WindowLine (minimap_window, 108, 78, 116, 78, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 108, 82, 116, 82, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 108, 86, 116, 86, cColorLight, miniwin.pen_solid, 1)
+ -- ladder sides
+ WindowLine (minimap_window, 108, 75, 108, 90, cColorLight, miniwin.pen_solid, 1)
+ WindowLine (minimap_window, 115, 75, 115, 90, cColorLight, miniwin.pen_solid, 1)
  
  -- draw the map
  -- draw_minimap ()
@@ -3501,26 +3529,22 @@ function alias_star_logger_prev_lines()
 end -- alias_star_logger_prev_lines
 
 
------/ Moon and Sun Orbiter /----
-local test_window = "test_window"  -- miniwindow ID
+-----/ Sun and Moon Orbiter /----
 o_x = 0.0022328955057276
-o_xT = 111.99277099826
 o_y = 56.495475370442
-o_yT = 54.092225831802
-
 o_xx = 111.99277099826
 o_yy = 54.092225831802
 local centreX = 58
 local centreY = 58
 local centreXX = 56
 local centreYY = 56
-local radius = 57
+local radius = 65
 local angularVelocity = 0.083
 local angle = 22
 local angles = 31.4
 
 function test_orbit()
- print("Orbit test started, this will stop after 3 minutes and 7 seconds, which is half of night")
+ print("Orbit test started, this will stop after 3 minutes and 7 seconds, which is roughly half of night")
  EnableTimer("orbitTimer", true)
  ResetTimer("orbitTimer")
  EnableTimer("orbitTimerEnd", true)
@@ -3534,30 +3558,94 @@ function orbit()
     angles = angles + angularVelocity
 	o_xx = centreXX + radius * math.cos(angles)
 	o_yy = centreYY + radius * math.sin(angles)
-	print("Moon:", "x:", o_x, "y:", o_y)
-    print("Sun:", "x:", o_xx, "y:", o_yy)
-	build_test_window()
+	--print("Sun ", "x:" .. o_x, "y:" .. o_y)
+    --print("Moon", "x:" .. o_xx, "y:" .. o_yy)
+    draw_sun(o_x, o_y)
+    draw_moon(o_xx, o_yy)
 end -- function orbit
- 
-function build_test_window ()
- WindowCreate (test_window,   -- window ID
-    13,   -- left
-    220,   -- top
-    138, -- width
-    138, -- depth
-    12,  -- center it (ignored anyway) 
-    6,          -- draw underneath (1) + absolute location (2) + transparent (4)
-    0x000000)  -- background colour
- -- load the titlebar image
- WindowLoadImage (test_window, "orbitMoon", GetInfo (66) .. "Generic/layout/moon.png")
- WindowLoadImage (test_window, "orbitSun", GetInfo (66) .. "Generic/layout/sun.png")
- -- draw it
- WindowDrawImage (test_window, "orbitMoon", o_x, o_y, 0, 0, 3)  -- draw it
- WindowDrawImage (test_window, "orbitSun", o_xx, o_yy, 0, 0, 3)  -- draw it
 
- WindowShow(test_window, true)
-end -- function build_test_window
+----/ Sun and Moon Graphics /----
+
+function draw_sun (o_x, o_y)
+ -- main result window
+ win5 = GetPluginID () .. ".5"
+ WindowCreate (win5, o_x + 15, o_y + 222, 20, 20, 7, 6, 0x000000)  -- create window
+ -- gradient window
+ win6 = GetPluginID ()  .. ".6"
+ WindowCreate (win6, o_x + 13, o_y + 220, 20, 20, 7, 6, 0xFFFFFF)  -- create window
+ WindowGradient (win6, 0, 0, 0, 0, 
+                 ColourNameToRGB ("yellow"), 
+                 ColourNameToRGB ("red"), 
+                 2)  -- top to bottom			
+ -- mask window
+ win7 = GetPluginID ()  .. ".7"
+ WindowCreate (win7, o_x + 13, o_y + 220, 20, 20, 7, 6, 0x000000)  -- create window
+ -- chord
+ WindowCircleOp (win7, 4, 0, 0, 20, 20, 
+                 0x000000, 5, 0,  -- no pen
+                 0xFFFFFF, 0,  -- brush
+                 0, 0)
+ -- convert to images
+ WindowImageFromWindow (win5, "gradient", win6)
+ WindowImageFromWindow (win5, "mask", win7)
+ -- do the merge
+ WindowMergeImageAlpha (win5, "gradient", "mask", 0, 1, 20, 20, 0, 1, 0, 0, 0, 0)
+ --WindowFilter (win5, 0, 0, 0, 0, 3, 0) -- blur both directions
+ WindowShow (win5,  true)  -- show it
+end -- function draw_sun
+
+function draw_moon (o_xx, o_yy)
+ -- main result window
+ win8 = GetPluginID () .. ".8" 
+ WindowCreate (win8, o_xx + 15, o_yy + 222, 20, 20, 7, 6, 0x000000)  -- create window
+ -- gradient window
+ win9 = GetPluginID ()  .. ".9"
+ WindowCreate (win9, o_xx, o_yy, 20, 20, 7, 6, 0xFFFFFF)  -- create window
+ WindowGradient (win9, 0, 0, 0, 0, 
+                 ColourNameToRGB ("whitesmoke"), 
+                 ColourNameToRGB ("lightskyblue"), 
+                 2)  -- top to bottom			
+ -- mask window
+ win10 = GetPluginID ()  .. ".10"
+ WindowCreate (win10, o_xx, o_yy, 20, 20, 7, 6, ColourNameToRGB("black"))  -- create window
+ -- chord
+ WindowCircleOp (win10, 4, 0, 0, 20, 20, 
+                 0x000000, 5, 0,  -- no pen
+                 0xFFFFFF, 0,  -- brush
+                 0, 0)
+ -- convert to images
+ WindowImageFromWindow (win8, "gradient", win9)
+ WindowImageFromWindow (win8, "mask", win10)
+ -- do the merge
+ WindowMergeImageAlpha (win8, "gradient", "mask", 0, 1, 20, 20, 0, 1, 0, 0, 0, 0)
+ --WindowFilter (win8, 0, 0, 0, 0, 3, 0) -- blur both directions
+ WindowShow (win8,  true)  -- show it
+end -- function draw_moon
+
 ]]>
 </script>
+
+<timers>
+ <timer 
+  enabled="n"
+  name="orbitTimer"
+  script="orbit"
+  second="10.00"
+  offset_second="0.00"
+  send_to="12"
+  ></timer> 
+ <timer 
+  enabled="n"
+  name="orbitTimerEnd"
+  minute="3"
+  second="7"
+  offset_second="0.00"
+  send_to="12"
+  >
+  <send>EnableTimer("orbitTimer", false)
+  EnableTimer("orbitTimerEnd", false)
+  print("Orbit Test Complete, stopping..")</send>
+  </timer>
+</timers>
 
 </muclient>
