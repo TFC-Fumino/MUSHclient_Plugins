@@ -526,10 +526,13 @@
 <!--  Script  -->
 <script>
 <![CDATA[
+--------/////*\\\\\--------[ GLOBAL VARIABLES ]--------/////*\\\\\--------
+
+----/ default first time window visibility, must be opposite for toggles /----
 CHAT_HIDDEN = false
-----/ default first time window visibility to true, must be opposite for toggles /----
 CHAT_VISIBILITY = false
 PROMPT_BARS_VISIBILITY = false
+
 ------------/ Sidebar & Adjustable Window Positions  /------------
 AVATAR_LEFT_POSITION = 25
 SIDEBAR_LEFT_POSITION = 160
@@ -543,21 +546,15 @@ HEALTH_BAR_LEFT_POSITION = 383
 MANA_BAR_LEFT_POSITION = 497
 MOVE_BAR_LEFT_POSITION = 695
 ENEM_BAR_LEFT_POSITION = 180
+
 ------------/  Communications Window  /------------
-require "copytable"
 BODY_FONT_NAME = "Franklin Gothic"
 BODY_FONT_SIZE = 9
 SCROLL_BAR_WIDTH = 15
 MAX_LINES = 10000 -- how many lines to store in scrollback
-local sidebar_button_window = "sidebar_button_window"  -- miniwindow ID
-local colourWhite = ColourNameToRGB("white")
--- date_format = "[%d %b %H:%M:%S] "        -- [30 Aug 13:29:49]   date and time 24 hour
--- date_format = "[%d %b %I:%M:%S%p] "  -- [30 Aug 01:20:12PM]     date and time 12 hour
--- date_format = "[%H:%M:%S] "          -- [13:29:08]          time 24 hour
--- date_format = "[%X] "                  -- [1:22:06 PM]            time 12 hour
+sidebar_button_window = "sidebar_button_window"  -- miniwindow ID
 TIMESTAMP_TEXT_COLOUR = "white"
 TIMESTAMP_BACK_COLOUR = "black"
--- doing it this way makes them default to true the first time around
 timestamp = not (GetVariable("timestamp") == "false")
 echo = not (GetVariable("echo") == "false")
 date_format = GetVariable("date_format")
@@ -565,19 +562,118 @@ date_format = GetVariable("date_format")
 WINDOW_WIDTH = GetInfo (250) - 200
 WINDOW_HEIGHT = 93
 sepOne_top = 76
--- GetInfo (250) Main frame window width (long)
--- Offset of text from edge to account for scrollbar --
 TEXT_INSET = 5
--- where to store the chat line --
 lines = {}  -- table of recent chat lines
 rawlines = {}
 lineStart = ""
 lineEnd = ""
 WINDOW_COLUMNS = ""
 WINDOW_LINES = ""
--- Color theme for 3D-themed rectangles --
--- Replacement for WindowRectOp action 5, which allows for a 3D look while maintaining color theme --
--- Requires global theme.HIGHLIGHT, theme.FACE, theme.INNERSHADOW, and theme.OUTERSHADOW rgb colors to be set. --
+Win = GetPluginID()
+font_height = ""
+line_height = ""
+windowinfo = ""
+-- Scrollbar stuff
+startx = ""
+starty = ""
+barPos = ""
+barSize = ""
+totalSteps = ""
+keepscrolling = false
+
+------------/  Colors  /------------
+colourTFC = ColourNameToRGB("#B9C9D8")
+colourGold = ColourNameToRGB("gold")
+colourSilver = ColourNameToRGB("silver")
+colourBlack = ColourNameToRGB("black")
+colourWhite = ColourNameToRGB("white")
+
+------------/  Window IDs  /------------
+background_window = "world_background_image"
+titlebar_window = "titlebar_image"
+avatar_window = "avatar_window"
+bars_window = "bars_image"
+minimap_window = "minimap_image"
+health_window = "health_bar"
+mana_window = "mana_bar"
+movement_window = "movement_bar"
+exp_window = "exp_bar"
+line_sepOne = "line_sepOne"
+line_sepTwo = "line_sepTwo"
+
+------------/  MSDP stuff  /------------
+msdp = {}
+MSDP = 69
+using_msdp = false
+
+------------/  Menu setting default colors /------------
+bgColour = tonumber(GetVariable ("bgColour")) or ColourNameToRGB("black")
+health_color = tonumber(GetVariable("health_color")) or 0x0000CC
+health_colorB = tonumber(GetVariable("health_colorB")) or 0x000033
+mana_color = tonumber(GetVariable("mana_color")) or 0xCC0000
+mana_colorB = tonumber(GetVariable("mana_colorB")) or 0x330000
+move_color = tonumber(GetVariable("move_color")) or 0x00CC00
+move_colorB = tonumber(GetVariable("move_colorB")) or 0x003300
+enemy_color = tonumber(GetVariable("enemy_color")) or 0x00CCCC
+enemy_colorB = tonumber(GetVariable("enemy_colorB")) or 0x003333
+bar_text_color = tonumber(GetVariable("bar_text_color")) or ColourNameToRGB("white")
+customBar_top_color = tonumber(GetVariable ("custom_bar_color_highlight_top")) or ColourNameToRGB("black")
+customBar_bottom_color = tonumber(GetVariable ("custom_bar_color_highlight_bottom")) or ColourNameToRGB("black")
+terrain_color = GetVariable("terrain_color") or ColourNameToRGB("white")
+cColorLight = GetVariable("cColorLight") or ColourNameToRGB("white")
+cColorDark = GetVariable("cColorDark") or ColourNameToRGB("dimgray")
+cColorLighto = GetVariable("cColorLighto") or ColourNameToRGB("lime")
+cColorDarko = GetVariable("cColorDarko") or ColourNameToRGB("green")
+cColorLightc = GetVariable("cColorLightc") or ColourNameToRGB("red")
+cColorDarkc = GetVariable("cColorDarkc") or ColourNameToRGB("darkred")
+
+------------/  Msdp room exits  /------------
+RoomExit = {}
+RoomType = {}
+ExitCount = 0
+
+------------/  Msdp spell icons  /------------
+AffectName = {}
+AffectDuration = {}
+AffectMax = 0
+
+------------/  Sun and Moon Orbiter  /------------
+o_x = 0.0022328955057276
+o_y = 56.495475370442
+o_xx = 111.99277099826
+o_yy = 54.092225831802
+centreX = 58
+centreY = 58
+centreXX = 56
+centreYY = 56
+radius = 65
+angularVelocity = 0.083
+angle = 22
+angles = 31.4
+
+------------/  Equipment stat calculator  /------------
+stats = {
+ str = '0',
+ hr = '0',
+ int = '0',
+ dmg = '0',
+ wis = '0',
+ chr = '0',
+ dex = '0',
+ luc = '0',
+ con = '0',
+ svs = '0',
+ da = '0',
+ mr = '0',
+ hp = '0',
+ ma = '0'
+}
+
+------------/  Requires  /------------
+require "copytable"
+require "getstyle"
+require "wait"
+
 theme = {
     WINDOW_BORDER = ColourNameToRGB("#000000"), -- for miniwindow body
     HIGHLIGHT=ColourNameToRGB("#B9C9D8"), -- for 3D surfaces
@@ -591,6 +687,7 @@ theme = {
     TITLE_FONT_NAME = "Dina", -- for miniwindow title area
     TITLE_FONT_SIZE = 8 -- for miniwindow title area
 }  -- end theme table
+
 ----/ Custom Themed RectOp functions /----
 function DrawThemed3DRect(Window, left, top, right, bottom)
  WindowRectOp(Window, miniwin.rect_fill, left, top, right, bottom, theme.FACE)
@@ -607,6 +704,7 @@ function DrawThemed3DRect(Window, left, top, right, bottom)
  WindowLine(Window, right-1, top, right-1, bottom-1, theme.OUTERSHADOW, 
     miniwin.pen_solid + miniwin.pen_endcap_flat, 1)    
 end -- function Drawthemed3DRectOp
+
 ----/ Currently unused function /----
 function DrawThemedResizeTag(Window, x1, y1, size)
  local x2, y2 = x1+size, y1+size
@@ -622,12 +720,7 @@ function DrawThemedResizeTag(Window, x1, y1, size)
     n = n+3
  end -- while loop
 end  -- function DrawThemedResizeTag
-Win = GetPluginID()
-font_height = ""
-line_height = ""
-windowinfo = ""
-startx = ""
-starty = ""
+
 function OnPluginInstall_repeat()
  PLUGIN_VERSION = GetPluginInfo(GetPluginID(), 19)
  PLUGIN_NAME = GetPluginInfo(GetPluginID(), 1)
@@ -743,7 +836,6 @@ end -- function OnPluginSaveState
 function OnPluginDisable ()
 end -- function OnPluginDisable
 
--- display one line
 function Display_Line (line, styles)
  local left    = TEXT_INSET
  local top     = (line * line_height) + 1
@@ -763,7 +855,6 @@ function Display_Line (line, styles)
  end -- if  styles
 end -- Display_Line
 
--- display all visible lines
 function writeLines()
  for count = lineStart, lineEnd do
   Display_Line( count-lineStart, lines[count][1], false )
@@ -771,15 +862,10 @@ function writeLines()
  Redraw()
 end  -- function writeLines
 
--- clear and redraw
 function refresh()
  WindowRectOp (Win, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
  drawStuff()
 end  -- function refresh
-
-barPos = ""
-barSize = ""
-totalSteps = ""
 
 function drawStuff()
  if #lines >= 1 then
@@ -911,7 +997,6 @@ function fillBuffer(rawstyles)
  end -- while we still have styles over
 end  -- function fillBuffer
 
--- Main capture routine
 function chats (name, line, wildcards, styles)
  -- echo in this world as well if the user wants
  if echo then
@@ -952,9 +1037,6 @@ function add_line ( line, is_beginning_of_message )
   lineEnd = lineEnd + 1
  end -- if
 end -- function add_line
-
-keepscrolling = false
-require "wait"
 
 function scrollbar(calledBy)
  wait.make (function()
@@ -1094,7 +1176,6 @@ function chat_echo (name, line, wildcards)
  end -- if
 end -- function chat_echo
 
--- right click menu
 function right_click_menu ()
  menustring ="Copy All To Clipboard|Change Font|Turn Echo "
  if echo then
@@ -1150,44 +1231,6 @@ function right_click_menu ()
  end -- if
 end -- function right_click_menu
 
---latest
-local using_msdp = false
-local background_window = "world_background_image"  -- miniwindow ID
-local titlebar_window = "titlebar_image"  -- miniwindow ID
-local avatar_window = "avatar_window"  -- miniwindow ID
-local bars_window = "bars_image"  -- miniwindow ID
-local minimap_window = "minimap_image"  -- miniwindow ID
-local health_window = "health_bar"  -- miniwindow ID
-local mana_window = "mana_bar"  -- miniwindow ID
-local movement_window = "movement_bar"  -- miniwindow ID
-local exp_window = "exp_bar"  -- miniwindow ID
-local line_sepOne = "line_sepOne"  -- miniwindow ID
-local line_sepTwo = "line_sepTwo"  -- miniwindow ID
-local msdp = {}
-local colourTFC = ColourNameToRGB("#B9C9D8")
-local colourGold = ColourNameToRGB("gold")
-local colourSilver = ColourNameToRGB("silver")
-local colourBlack = ColourNameToRGB("black")
-
-stats = {
- str = '0',
- hr = '0',
- int = '0',
- dmg = '0',
- wis = '0',
- chr = '0',
- dex = '0',
- luc = '0',
- con = '0',
- svs = '0',
- da = '0',
- mr = '0',
- hp = '0',
- ma = '0'
-}
-
-require "getstyle"
-
 function show_map_list ()
  WindowShow (avatar_window, false)
 end -- show_map_list
@@ -1226,42 +1269,41 @@ function start_of_equip_list (name, line, wildcards)
    DeleteVariable (k)
   end -- one of the attrib_* variables
  end -- for
-stats = {
- str = '0',
- hr = '0',
- int = '0',
- dmg = '0',
- wis = '0',
- chr = '0',
- dex = '0',
- luc = '0',
- con = '0',
- svs = '0',
- da = '0',
- mr = '0',
- hp = '0',
- ma = '0'
-}
+ stats = {
+  str = '0',
+  hr = '0',
+  int = '0',
+  dmg = '0',
+  wis = '0',
+  chr = '0',
+  dex = '0',
+  luc = '0',
+  con = '0',
+  svs = '0',
+  da = '0',
+  mr = '0',
+  hp = '0',
+  ma = '0'
+ }
 end -- start_of_equip_list
 
 function show_equip_list ()
-    ColourNote("white", "black", "Str:", "red", "black", stats.str,
-               "white", "black", " Int:", "red", "black", stats.int,
-               "white", "black", " Wis:", "red", "black", stats.wis,
-               "white", "black", " Dex:", "red", "black", stats.dex,
-               "white", "black", " Con:", "red", "black", stats.con,
-               "white", "black", " Da:", "red", "black", stats.da,
-               "white", "black", " Mr:", "red", "black", stats.mr,
-               "white", "black", " Hr:", "red", "black", stats.hr,
-               "white", "black", " Dmg:", "red", "black", stats.dmg,
-               "white", "black", " Chr:", "red", "black", stats.chr,
-               "white", "black", " Luc:", "red", "black", stats.luc,
-               "white", "black", " Svs:", "red", "black", stats.svs,
-               "white", "black", " Hp:", "red", "black", stats.hp,
-               "white", "black", " Ma:", "red", "black", stats.ma)
+ ColourNote("white", "black", "Str:", "red", "black", stats.str,
+            "white", "black", " Int:", "red", "black", stats.int,
+            "white", "black", " Wis:", "red", "black", stats.wis,
+            "white", "black", " Dex:", "red", "black", stats.dex,
+            "white", "black", " Con:", "red", "black", stats.con,
+            "white", "black", " Da:", "red", "black", stats.da,
+            "white", "black", " Mr:", "red", "black", stats.mr,
+            "white", "black", " Hr:", "red", "black", stats.hr,
+            "white", "black", " Dmg:", "red", "black", stats.dmg,
+            "white", "black", " Chr:", "red", "black", stats.chr,
+            "white", "black", " Luc:", "red", "black", stats.luc,
+            "white", "black", " Svs:", "red", "black", stats.svs,
+            "white", "black", " Hp:", "red", "black", stats.hp,
+            "white", "black", " Ma:", "red", "black", stats.ma)
 end -- show_equip_list
 
--- create the layout here, on connect or install
 function create_layout ()
  left = 175
  top = 78
@@ -1305,20 +1347,6 @@ function create_layout ()
  -- draw the energy bars
  draw_energy_bars ()
 end -- create_layout
-
-bgColour = tonumber(GetVariable ("bgColour")) or ColourNameToRGB("black")
-health_color = tonumber(GetVariable("health_color")) or 0x0000CC
-health_colorB = tonumber(GetVariable("health_colorB")) or 0x000033
-mana_color = tonumber(GetVariable("mana_color")) or 0xCC0000
-mana_colorB = tonumber(GetVariable("mana_colorB")) or 0x330000
-move_color = tonumber(GetVariable("move_color")) or 0x00CC00
-move_colorB = tonumber(GetVariable("move_colorB")) or 0x003300
-enemy_color = tonumber(GetVariable("enemy_color")) or 0x00CCCC
-enemy_colorB = tonumber(GetVariable("enemy_colorB")) or 0x003333
-bar_text_color = tonumber(GetVariable("bar_text_color")) or ColourNameToRGB("white")
-customBar_top_color = tonumber(GetVariable ("custom_bar_color_highlight_top")) or ColourNameToRGB("black")
-customBar_bottom_color = tonumber(GetVariable ("custom_bar_color_highlight_bottom")) or ColourNameToRGB("black")
-terrain_color = GetVariable("terrain_color") or ColourNameToRGB("white")
 
 function checkItem (which)
   menu [which] = "+" .. menu [which]
@@ -1549,8 +1577,6 @@ function settings_click_menu ()
   checkItem (18)
   menu [18] = menu [18] .. " [" .. RGBColourToName(GetVariable("bar_text_color")) .. "]"
  end -- bar_text_color
- 
- 
  if GetVariable("cColorLight") == nil and GetVariable("cColorDark") == nil and GetVariable("cColorLighto") == nil and GetVariable("cColorDarko") == nil and GetVariable("cColorLightc") == nil and GetVariable("cColorDarkc") == nil then
   checkItem (41)
  end -- basic reset
@@ -1578,8 +1604,6 @@ function settings_click_menu ()
   menu [53] = menu [53] .. " [" .. RGBColourToName(GetVariable("cColorDark")) .. "]"
   checkItem (53)
  end -- cColorDarkc
-  
- 
  if GetVariable("starLog_isRec") == "true" then
   menu [58] = "Recording [Stop logging]"
   checkItem (58)
@@ -1849,7 +1873,6 @@ function settings_click_menu ()
   enemy_colorB = getColour(enemy_colorB)
   SetVariable("enemy_colorB", enemy_colorB)
   draw_energy_bars ()
-  
  elseif result == "22" then
   --compass reset
   DeleteVariable("cColorLight")
@@ -1888,8 +1911,7 @@ function settings_click_menu ()
  --compass closed room secondary
   cColorDarkc = getColour(cColorDarkc)
   SetVariable("cColorDarkc", cColorDarkc)
-  create_minimap_window ()
-  
+  create_minimap_window () 
  elseif result == "29" then
   if GetVariable("starLog_isRec") == nil then
    starLog_isRec = false
@@ -2125,6 +2147,7 @@ end --getColour
 
 function OnPluginWorldOutputResized ()
 end -- function
+
 ----/ Create the health, mana, movement and enemy bars at the bottom /----
 function build_prompt_bars ()
  -- make a miniwindow under the text
@@ -2173,10 +2196,6 @@ function build_prompt_bars ()
  WindowShow (exp_window, true)
 end -- build_prompt_bars
 
-local RoomExit = {}
-local RoomType = {}
-local ExitCount = 0
-
 function init_rooms (data)
  ExitCount = 0
  index = 0
@@ -2202,7 +2221,6 @@ function init_rooms (data)
  end -- for
 end -- function
 
--- draw one room
 function draw_room (x, y, type_room)
  terrain_image = "terrain_dark"
  if type_room == "O" then
@@ -2219,7 +2237,6 @@ function draw_room (x, y, type_room)
  end -- terrain_type
 end -- draw_room
 
--- draw the minimap
 function draw_minimap ()
  data = msdp["ROOM_EXITS"]
  if data ~= nil then
@@ -2245,7 +2262,6 @@ function draw_minimap ()
     cColorLight, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-
  -- north arrow left half shadow
  points = string.format ("%i,%i,%i,%i,%i,%i", 76, 43, 81, 8, 81, 43)
  WindowPolygon (minimap_window, points,
@@ -2253,7 +2269,6 @@ function draw_minimap ()
     cColorDark, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-
  -- south arrow left half
  points = string.format ("%i,%i,%i,%i,%i,%i", 76, 57, 81, 90, 81, 57)
  WindowPolygon (minimap_window, points,
@@ -2261,7 +2276,6 @@ function draw_minimap ()
     cColorLight, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-
  -- south arrow right half shadow
  points = string.format ("%i,%i,%i,%i,%i,%i", 81, 57, 81, 90, 86, 57)
  WindowPolygon (minimap_window, points,
@@ -2269,7 +2283,6 @@ function draw_minimap ()
     cColorDark, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-	
  -- east arrow bottom half
  points = string.format ("%i,%i,%i,%i,%i,%i", 88, 50, 116, 50, 88, 55)
  WindowPolygon (minimap_window, points,
@@ -2277,7 +2290,6 @@ function draw_minimap ()
     cColorLight, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-
  -- east arrow top half shadow
  points = string.format ("%i,%i,%i,%i,%i,%i", 88, 45, 116, 50, 88, 50)
  WindowPolygon (minimap_window, points,
@@ -2285,7 +2297,6 @@ function draw_minimap ()
     cColorDark, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-
  -- west arrow top half
  points = string.format ("%i,%i,%i,%i,%i,%i", 74, 45, 46, 50, 74, 50)
  WindowPolygon (minimap_window, points,
@@ -2293,7 +2304,6 @@ function draw_minimap ()
     cColorLight, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-
  -- west arrow bottom half shadow
  points = string.format ("%i,%i,%i,%i,%i,%i", 74, 50, 46, 50, 74, 55)
  WindowPolygon (minimap_window, points,
@@ -2301,7 +2311,6 @@ function draw_minimap ()
     cColorDark, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-
  --/ up ladder /--
  -- ladder steps
  WindowLine (minimap_window, 108, 11, 116, 11, cColorLight, miniwin.pen_solid, 1)
@@ -2310,7 +2319,6 @@ function draw_minimap ()
  -- ladder sides
  WindowLine (minimap_window, 108, 8, 108, 23, cColorLight, miniwin.pen_solid, 1)
  WindowLine (minimap_window, 115, 8, 115, 23, cColorLight, miniwin.pen_solid, 1)
- 
  --/ down ladder /--
  -- ladder steps
  WindowLine (minimap_window, 108, 78, 116, 78, cColorLight, miniwin.pen_solid, 1)
@@ -2319,7 +2327,6 @@ function draw_minimap ()
  -- ladder sides
  WindowLine (minimap_window, 108, 75, 108, 90, cColorLight, miniwin.pen_solid, 1)
  WindowLine (minimap_window, 115, 75, 115, 90, cColorLight, miniwin.pen_solid, 1)
- 
  if ExitCount > 0 and curRoom_exits ~= nil then
   if GetVariable("terrain_color") == nil then
    colourMap = ColourNameToRGB("white")
@@ -2528,7 +2535,6 @@ function draw_minimap ()
  end -- if ExitCount and curRoom_exits
 end -- draw_minimap
 
--- fill the three energy bars
 function draw_energy_bars ()
  -- HEALTH
  current_health = msdp["HEALTH"]
@@ -2588,7 +2594,6 @@ function draw_energy_bars ()
  end -- if
 end -- draw_energy_bars
 
--- fill the bar
 function draw_energy_bar (type_bar, colour, colour2, window, current_value, max_value)
  -- convert the strings to numbers
  current = tonumber(current_value)
@@ -2628,10 +2633,6 @@ function draw_energy_bar (type_bar, colour, colour2, window, current_value, max_
  outlined_text (colour_cust, window, math.ceil(filled)..'%', 9, 55, 3, 0)
 end -- draw_energy_bar
 
-local AffectName = {}
-local AffectDuration = {}
-local AffectMax = 0
-
 function init_affects (data)
  index = 0
  startpos = 1
@@ -2669,7 +2670,7 @@ end -- function
 function list_affects ()
  print(affects)
 end -- list_affects
-----/ Function to build the avatar window /----
+
 function build_avatar_window ()
  WindowCreate (avatar_window,   -- window ID
     AVATAR_LEFT_POSITION,   -- left
@@ -2690,7 +2691,7 @@ function build_avatar_window ()
  WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)  -- draw it  
  WindowShow (avatar_window, true)
 end -- function build_avatar_window
-----/ Function to draw the spell icons /----
+
 function draw_affects ()
  affects = msdp["AFFECTS"]
  if affects == nil or affects == "None" then
@@ -2838,7 +2839,6 @@ function MouseUp_aff(flags, hotspot_id)
  print("Sorry! Clicking the icon does nothing for now..")
 end -- function MouseUp_aff
 
-----/ Function to create a black shadow behind to text to make it easier to read /----
 function outlined_text (colour, window, text, size, x, y, centre_width)
  outlineColour = colourBlack
  -- write the information inside
@@ -2860,7 +2860,7 @@ function outlined_text (colour, window, text, size, x, y, centre_width)
  WindowText(window,'f',text,x,y,0,0,colour,0)
  return width
 end -- function outlined_text
-----/ Set the main text area /----
+
 function main_text_area () 
  -- tell the client where to draw the text
  if GetVariable("bgColour") ~= nil then
@@ -2885,7 +2885,7 @@ function main_text_area ()
     8) -- OutsideFillStyle (fine hatch)
  end -- bgColour
 end -- function main_text_area
-----/ Create the title top left of the screen /----
+
 function create_titlebar ()
  -- make a miniwindow to the left of the text
  WindowCreate (titlebar_window,   -- window ID
@@ -2931,14 +2931,6 @@ end -- PROMPT_BARS_VISIBILITY
  WindowShow (titlebar_window, true)
 end -- function create_titlebar
 
- cColorLight = GetVariable("cColorLight") or ColourNameToRGB("white")
- cColorDark = GetVariable("cColorDark") or ColourNameToRGB("dimgray")
- cColorLighto = GetVariable("cColorLighto") or ColourNameToRGB("lime")
- cColorDarko = GetVariable("cColorDarko") or ColourNameToRGB("green")
- cColorLightc = GetVariable("cColorLightc") or ColourNameToRGB("red")
- cColorDarkc = GetVariable("cColorDarkc") or ColourNameToRGB("darkred")
-
-----/ Create the minimap window to the left of the text /----
 function create_minimap_window ()
  -- make a miniwindow for the map
  WindowCreate (minimap_window,   -- window ID
@@ -2949,7 +2941,6 @@ function create_minimap_window ()
     12,         -- center it (ignored anyway) 
     6,          -- draw underneath (1) + absolute location (2)
     0x000000)  -- background colour
-
  cColorLight = GetVariable("cColorLight") or ColourNameToRGB("white")
  cColorDark = GetVariable("cColorDark") or ColourNameToRGB("dimgray")
  cColorLighto = GetVariable("cColorLighto") or ColourNameToRGB("lime")
@@ -2957,11 +2948,9 @@ function create_minimap_window ()
  cColorLightc = GetVariable("cColorLightc") or ColourNameToRGB("red")
  cColorDarkc = GetVariable("cColorDarkc") or ColourNameToRGB("darkred")
  outlined_text (cColorLight, minimap_window, "*", 10, 77, 44, 0)
- 
  WindowCircleOp (minimap_window, 4, 75, 44, 88, 57,
     cColorLight, 0, 2, ColourNameToRGB("cyan"), 1, 
     0, 0, 0, 0) 
-	
  -- north arrow right half
  points = string.format ("%i,%i,%i,%i,%i,%i", 81, 43, 81, 8, 86, 43)
  WindowPolygon (minimap_window, points,
@@ -2969,7 +2958,6 @@ function create_minimap_window ()
     cColorLight, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-
  -- north arrow left half shadow
  points = string.format ("%i,%i,%i,%i,%i,%i", 76, 43, 81, 8, 81, 43)
  WindowPolygon (minimap_window, points,
@@ -2977,7 +2965,6 @@ function create_minimap_window ()
     cColorDark, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-
  -- south arrow left half
  points = string.format ("%i,%i,%i,%i,%i,%i", 76, 57, 81, 90, 81, 57)
  WindowPolygon (minimap_window, points,
@@ -2985,7 +2972,6 @@ function create_minimap_window ()
     cColorLight, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-
  -- south arrow right half shadow
  points = string.format ("%i,%i,%i,%i,%i,%i", 81, 57, 81, 90, 86, 57)
  WindowPolygon (minimap_window, points,
@@ -2993,7 +2979,6 @@ function create_minimap_window ()
     cColorDark, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-	
  -- east arrow bottom half
  points = string.format ("%i,%i,%i,%i,%i,%i", 88, 50, 116, 50, 88, 55)
  WindowPolygon (minimap_window, points,
@@ -3001,7 +2986,6 @@ function create_minimap_window ()
     cColorLight, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-
  -- east arrow top half shadow
  points = string.format ("%i,%i,%i,%i,%i,%i", 88, 45, 116, 50, 88, 50)
  WindowPolygon (minimap_window, points,
@@ -3009,7 +2993,6 @@ function create_minimap_window ()
     cColorDark, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-
  -- west arrow top half
  points = string.format ("%i,%i,%i,%i,%i,%i", 74, 45, 46, 50, 74, 50)
  WindowPolygon (minimap_window, points,
@@ -3017,7 +3000,6 @@ function create_minimap_window ()
     cColorLight, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-
  -- west arrow bottom half shadow
  points = string.format ("%i,%i,%i,%i,%i,%i", 74, 50, 46, 50, 74, 55)
  WindowPolygon (minimap_window, points,
@@ -3025,7 +3007,6 @@ function create_minimap_window ()
     cColorDark, miniwin.brush_solid, -- brush (solid)
     true, -- close
     false) -- alt fill
-
  --/ up ladder /--
  -- ladder steps
  WindowLine (minimap_window, 108, 11, 116, 11, cColorLight, miniwin.pen_solid, 1)
@@ -3034,7 +3015,6 @@ function create_minimap_window ()
  -- ladder sides
  WindowLine (minimap_window, 108, 8, 108, 23, cColorLight, miniwin.pen_solid, 1)
  WindowLine (minimap_window, 115, 8, 115, 23, cColorLight, miniwin.pen_solid, 1)
- 
  --/ down ladder /--
  -- ladder steps
  WindowLine (minimap_window, 108, 78, 116, 78, cColorLight, miniwin.pen_solid, 1)
@@ -3043,12 +3023,9 @@ function create_minimap_window ()
  -- ladder sides
  WindowLine (minimap_window, 108, 75, 108, 90, cColorLight, miniwin.pen_solid, 1)
  WindowLine (minimap_window, 115, 75, 115, 90, cColorLight, miniwin.pen_solid, 1)
- 
- -- draw the map
- -- draw_minimap ()
-  WindowShow (minimap_window, true)
+ WindowShow (minimap_window, true)
 end -- function create_minimap_window
-----/ Create the sidebar button /----
+
 function create_sidebar_button ()
  -- make a miniwindow to the left of the text
  WindowCreate (sidebar_button_window,   -- window ID
@@ -3157,118 +3134,117 @@ function MouseUp_sidebar_button_op(flags, hotspot_id)
   end -- SIDEBAR_LEFT_POSITION 
  end  -- while
 end -- function MouseUp_sidebar_button_op
-----/ Mouse function for Chat Window Button /----
+
 function MouseUp_ch()
-CHAT_VISIBILITY = not CHAT_VISIBILITY
-if CHAT_VISIBILITY == true then
- DrawThemed3DRect(titlebar_window, 5, 60, 64, 76)
- outlined_text (colourWhite, titlebar_window, "Chat Window", 5, 8, 62, 0)
-else
- WindowRectOp(titlebar_window, miniwin.rect_draw_edge, 5, 60, 64, 76, 
-             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
- outlined_text (colourTFC, titlebar_window, "Chat Window", 5, 8, 62, 0)
-end -- CHAT_VISIBILITY
-Redraw()
-if CHAT_VISIBILITY == true then
- chat_closing = true
- while chat_closing do
-  if CHATS_TOP_POSITION < -75 then
-   chat_closing = false
-   WindowShow( Win, false )
-   CHAT_HIDDEN = true
-  else
-   CHATS_TOP_POSITION = CHATS_TOP_POSITION - 5
-   init(true)
-   top = top - 5
-   main_text_area ()
-   sepOne_top = sepOne_top - 5
-   build_chatLine ()
-   Repaint()
-  end -- CHATS_TOP_POSITION 
- end  -- while loop sidebar_closing
-end -- CHAT_VISIBILITY
-if CHAT_VISIBILITY == false then
- chat_closing = true
- WindowShow( Win, true )
- while chat_closing do
-  if CHATS_TOP_POSITION > -3 then
-   chat_closing = false
-   CHAT_HIDDEN = false
-  else
-   CHATS_TOP_POSITION = CHATS_TOP_POSITION + 5
-   init(true)
-   top = top + 5
-   main_text_area ()
-   sepOne_top = sepOne_top + 5
-   build_chatLine ()
-   Repaint()
-  end -- CHATS_TOP_POSITION 
- end  -- while loop sidebar_closing
-end -- CHAT_VISIBILITY
-end -- function MouseUp_ch
-----/ Mouse function for Prompt Bar Windows Button /----
-function MouseUp_bars()
-PROMPT_BARS_VISIBILITY = not PROMPT_BARS_VISIBILITY
-if PROMPT_BARS_VISIBILITY == true then
- DrawThemed3DRect(titlebar_window, 107, 60, 161, 76)
- outlined_text (colourWhite, titlebar_window, "Prompt Bars", 5, 110, 62, 0)
-else
- WindowRectOp(titlebar_window, miniwin.rect_draw_edge, 107, 60, 161, 76, 
+ CHAT_VISIBILITY = not CHAT_VISIBILITY
+ if CHAT_VISIBILITY == true then
+  DrawThemed3DRect(titlebar_window, 5, 60, 64, 76)
+  outlined_text (colourWhite, titlebar_window, "Chat Window", 5, 8, 62, 0)
+ else
+  WindowRectOp(titlebar_window, miniwin.rect_draw_edge, 5, 60, 64, 76, 
     miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
- outlined_text (colourTFC, titlebar_window, "Prompt Bars", 5, 110, 62, 0)
-end -- PROMPT_BARS_VISIBILITY
-Redraw()
-bars_orig = GetInfo (280) + 2
-if PROMPT_BARS_VISIBILITY == true then
- bars_closing = true
- while bars_closing do
-  if bars_bottom > bars_orig then
-   bars_closing = false
-   main_text_area ()
-  else
-   bars_bottom = bars_bottom + 3
-   build_prompt_bars ()
-   draw_energy_bars ()
-   bottom = bottom + 3
-   main_text_area ()
-   build_promptLine ()
-   Repaint()
-  end -- bars_bottom 
- end  -- while loop bars_closing
-end -- PROMPT_BARS_VISIBILITY
-bars_orig = GetInfo (280) - 17
-if PROMPT_BARS_VISIBILITY == false then
- bars_closing = true
- while bars_closing do
-  if bars_bottom < bars_orig then
-   bars_closing = false
-   main_text_area ()
-  else
-   bars_bottom = bars_bottom - 3
-   build_prompt_bars ()
-   draw_energy_bars ()
-   bottom = bottom - 3
-   main_text_area ()
-   build_promptLine ()
-   Repaint()
-  end -- bars_bottom 
- end  -- while loop bars_closing
-end -- PROMPT_BARS_VISIBILITY
+  outlined_text (colourTFC, titlebar_window, "Chat Window", 5, 8, 62, 0)
+ end -- CHAT_VISIBILITY
+ Redraw()
+ if CHAT_VISIBILITY == true then
+  chat_closing = true
+  while chat_closing do
+   if CHATS_TOP_POSITION < -75 then
+    chat_closing = false
+    WindowShow( Win, false )
+    CHAT_HIDDEN = true
+   else
+    CHATS_TOP_POSITION = CHATS_TOP_POSITION - 5
+    init(true)
+    top = top - 5
+    main_text_area ()
+    sepOne_top = sepOne_top - 5
+    build_chatLine ()
+    Repaint()
+   end -- CHATS_TOP_POSITION 
+  end  -- while loop sidebar_closing
+ end -- CHAT_VISIBILITY
+ if CHAT_VISIBILITY == false then
+  chat_closing = true
+  WindowShow( Win, true )
+  while chat_closing do
+   if CHATS_TOP_POSITION > -3 then
+    chat_closing = false
+    CHAT_HIDDEN = false
+   else
+    CHATS_TOP_POSITION = CHATS_TOP_POSITION + 5
+    init(true)
+    top = top + 5
+    main_text_area ()
+    sepOne_top = sepOne_top + 5
+    build_chatLine ()
+    Repaint()
+   end -- CHATS_TOP_POSITION 
+  end  -- while loop sidebar_closing
+ end -- CHAT_VISIBILITY
+end -- function MouseUp_ch
+
+function MouseUp_bars()
+ PROMPT_BARS_VISIBILITY = not PROMPT_BARS_VISIBILITY
+ if PROMPT_BARS_VISIBILITY == true then
+  DrawThemed3DRect(titlebar_window, 107, 60, 161, 76)
+  outlined_text (colourWhite, titlebar_window, "Prompt Bars", 5, 110, 62, 0)
+ else
+  WindowRectOp(titlebar_window, miniwin.rect_draw_edge, 107, 60, 161, 76, 
+    miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+  outlined_text (colourTFC, titlebar_window, "Prompt Bars", 5, 110, 62, 0)
+ end -- PROMPT_BARS_VISIBILITY
+ Redraw()
+ bars_orig = GetInfo (280) + 2
+ if PROMPT_BARS_VISIBILITY == true then
+  bars_closing = true
+  while bars_closing do
+   if bars_bottom > bars_orig then
+    bars_closing = false
+    main_text_area ()
+   else
+    bars_bottom = bars_bottom + 3
+    build_prompt_bars ()
+    draw_energy_bars ()
+    bottom = bottom + 3
+    main_text_area ()
+    build_promptLine ()
+    Repaint()
+   end -- bars_bottom 
+  end  -- while loop bars_closing
+ end -- PROMPT_BARS_VISIBILITY
+ bars_orig = GetInfo (280) - 17
+ if PROMPT_BARS_VISIBILITY == false then
+  bars_closing = true
+  while bars_closing do
+   if bars_bottom < bars_orig then
+    bars_closing = false
+    main_text_area ()
+   else
+    bars_bottom = bars_bottom - 3
+    build_prompt_bars ()
+    draw_energy_bars ()
+    bottom = bottom - 3
+    main_text_area ()
+    build_promptLine ()
+    Repaint()
+   end -- bars_bottom 
+  end  -- while loop bars_closing
+ end -- PROMPT_BARS_VISIBILITY
 end -- function MouseUp_bars
-----/ Chat line seperator /----
+
 function build_chatLine ()
  WindowCreate(line_sepOne, CHATS_LEFT_POSITION, sepOne_top, WINDOW_WIDTH, 4, 4, 6, 0x000000)
  WindowLine (line_sepOne, 0, 2, WINDOW_WIDTH, 2, ColourNameToRGB ("white"), miniwin.pen_solid, 1)
  WindowShow( line_sepOne, true)
 end -- function build_chatLine
-----/ Prompt line seperator /----
+
 function build_promptLine ()
  WindowCreate(line_sepTwo, ENEM_BAR_LEFT_POSITION, bars_bottom - 4, 615, 1, 4, 6, 0x000000)
  WindowLine (line_sepTwo, 0, 0, 615, 0, ColourNameToRGB ("white"), miniwin.pen_solid, 1)
  WindowShow( line_sepTwo, true)
 end -- function build_promptLine
-----/ MSDP negotiation /----
-local MSDP = 69
+
 function OnPluginTelnetRequest (type_msdp, data)
  if type_msdp == MSDP and data == "WILL" then
   using_msdp = true
@@ -3351,7 +3327,7 @@ function StoreVariable (MSDP_var, MSDP_val)
   msdp[MSDP_var] = MSDP_val
  end -- if
 end -- function StoreVariable
-----/ Plugin updater - needs more work done on it, but... it works pretty good for now /----
+
 function update_plugin()
  raw = "https://raw.githubusercontent.com/TFC-Fumino/MUSHclient_Plugins/master/MSDP-Sidebar/Generic/worlds/plugins/TFC_Msdp_Sidebar.xml"
  async_ok, async = pcall (require, "async")
@@ -3392,7 +3368,7 @@ function raw_get(retval, page, status, headers, full_status, request_url)
   SetVariable("plugin_updating", "false")
  end 
 end -- function raw_get
-----/ Star logger main functions /----
+
 function dc_log (name, line, wildcards, styles)
  if GetVariable("starLog_tsType") ~= nil then
   if GetVariable("starLog_remPrompt") == "true" then
@@ -3450,7 +3426,7 @@ function starLog_prev ()
  end -- for
  Activate()
 end -- function starLog_prev
-----/ Star logger alias functions /----
+
 function alias_star_logger_rec ()
   if GetVariable("starLog_isRec") == nil then
    starLog_isRec = false
@@ -3528,21 +3504,6 @@ function alias_star_logger_prev_lines()
   end -- starLog_recPrev
 end -- alias_star_logger_prev_lines
 
-
------/ Sun and Moon Orbiter /----
-o_x = 0.0022328955057276
-o_y = 56.495475370442
-o_xx = 111.99277099826
-o_yy = 54.092225831802
-local centreX = 58
-local centreY = 58
-local centreXX = 56
-local centreYY = 56
-local radius = 65
-local angularVelocity = 0.083
-local angle = 22
-local angles = 31.4
-
 function test_orbit()
  print("Orbit test started, this will stop after 3 minutes and 7 seconds, which is roughly half of night")
  EnableTimer("orbitTimer", true)
@@ -3563,8 +3524,6 @@ function orbit()
     draw_sun(o_x, o_y)
     draw_moon(o_xx, o_yy)
 end -- function orbit
-
-----/ Sun and Moon Graphics /----
 
 function draw_sun (o_x, o_y)
  -- main result window
