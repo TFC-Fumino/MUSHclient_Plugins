@@ -7,9 +7,9 @@
    id="9232cf74f97637b76afe76c7"
    language="Lua"
    purpose="A graphical user interface sidebar for The Final Challenge MUD"
-   date_written="2016-05-08 00:49:31"
+   date_written="2016-05-15 00:49:31"
    requires="4.51"
-   version="1.9"
+   version="2.0"
    save_state="y"
    >
 <description trim="y">
@@ -21,13 +21,13 @@
  <trigger
   enabled="y"
   keep_evaluating="y"
-  match="^\[Exits\: (.*)\]$"
+  match="^(.*)\[Exits\: (.*)\]$"
   send_to="12"
   regexp="y"
   name="room_exits"
   sequence="100">
  <send>curRoom_exits = {}
- for w in string.gmatch ("%1", "[^%s]+") do
+ for w in string.gmatch ("%2", "[^%s]+") do
   table.insert (curRoom_exits, w)
  end -- for w
  draw_minimap ()</send>
@@ -482,42 +482,13 @@
   enabled="y"
   sequence="100">
  </alias>
- ----/ Orbiter testing aliases /----
+
  <alias
-  script="test_orbit"
-  match="orbit test"
+  script="create_layout"
+  match="adjust windows"
   enabled="y"
   sequence="100">
  </alias>
- 
- <alias
-  script="orbit"
-  match="orbit move"
-  enabled="y"
-  sequence="100">
- </alias>
- 
- <alias
-  match="orbit show"
-  enabled="y"
-  send_to="12"
-  sequence="100">
-  <send>o_x = -6.9631677359134
-   o_y = 55.812115698766
-   o_xx = 120.99743253856
-   o_yy = 56.577722593267
-   draw_sun(o_x, o_y)
-   draw_moon(o_xx, o_yy)</send>
-  </alias>
- 
- <alias
-  match="orbit hide"
-  enabled="y"
-  send_to="12"
-  sequence="100">
-  <send>WindowShow (win5,  false)
-   WindowShow (win8,  false)</send>
-  </alias>
   
 </aliases>
 
@@ -526,7 +497,7 @@
 <!--  Script  -->
 <script>
 <![CDATA[
---------/////*\\\\\--------[ GLOBAL VARIABLES ]--------/////*\\\\\--------
+--------/////*\\\\\--------[ VARIABLES ]--------/////*\\\\\--------
 
 ----/ default first time window visibility, must be opposite for toggles /----
 CHAT_HIDDEN = false
@@ -540,12 +511,9 @@ TITLEBAR_LEFT_POSITION = 0
 MINIMAP_LEFT_POSITION = 0
 SPELLS_LEFT_POSITION = 14
 SPELLSCOOLDOWN_LEFT_POSITION = 3
-CHATS_LEFT_POSITION = 176
+CHATS_LEFT_POSITION = 171
 CHATS_TOP_POSITION = 0
-HEALTH_BAR_LEFT_POSITION = 383
-MANA_BAR_LEFT_POSITION = 497
-MOVE_BAR_LEFT_POSITION = 695
-ENEM_BAR_LEFT_POSITION = 180
+SB_BG_LEFT_POSITION = 0
 
 ------------/  Communications Window  /------------
 BODY_FONT_NAME = "Franklin Gothic"
@@ -559,7 +527,7 @@ timestamp = not (GetVariable("timestamp") == "false")
 echo = not (GetVariable("echo") == "false")
 date_format = GetVariable("date_format")
 -- Width & Height of Chat Window --
-WINDOW_WIDTH = GetInfo (250) - 200
+
 WINDOW_HEIGHT = 93
 sepOne_top = 76
 TEXT_INSET = 5
@@ -582,13 +550,14 @@ totalSteps = ""
 keepscrolling = false
 
 ------------/  Colors  /------------
-colourTFC = ColourNameToRGB("#B9C9D8")
+colourTFC = ColourNameToRGB("lightgray")
 colourGold = ColourNameToRGB("gold")
 colourSilver = ColourNameToRGB("silver")
 colourBlack = ColourNameToRGB("black")
 colourWhite = ColourNameToRGB("white")
 
 ------------/  Window IDs  /------------
+sidebar_bg = "sidebar_bg"
 background_window = "world_background_image"
 titlebar_window = "titlebar_image"
 avatar_window = "avatar_window"
@@ -626,6 +595,10 @@ cColorLighto = GetVariable("cColorLighto") or ColourNameToRGB("lime")
 cColorDarko = GetVariable("cColorDarko") or ColourNameToRGB("green")
 cColorLightc = GetVariable("cColorLightc") or ColourNameToRGB("red")
 cColorDarkc = GetVariable("cColorDarkc") or ColourNameToRGB("darkred")
+SBtopC = GetVariable("SBtopC") or ColourNameToRGB("#99CCFF")
+SBbotC = GetVariable("SBbotC") or ColourNameToRGB ("dimgray")
+SBbarC = GetVariable("SBbarC") or ColourNameToRGB ("gray")
+
 
 ------------/  Msdp room exits  /------------
 RoomExit = {}
@@ -636,20 +609,6 @@ ExitCount = 0
 AffectName = {}
 AffectDuration = {}
 AffectMax = 0
-
-------------/  Sun and Moon Orbiter  /------------
-o_x = 0.0022328955057276
-o_y = 56.495475370442
-o_xx = 111.99277099826
-o_yy = 54.092225831802
-centreX = 58
-centreY = 58
-centreXX = 56
-centreYY = 56
-radius = 65
-angularVelocity = 0.083
-angle = 22
-angles = 31.4
 
 ------------/  Equipment stat calculator  /------------
 stats = {
@@ -779,7 +738,7 @@ function init(firstTime)
  WINDOW_LINES = math.ceil((WINDOW_HEIGHT-17)/line_height)
  WINDOW_COLUMNS = math.ceil((WINDOW_WIDTH-SCROLL_BAR_WIDTH)/font_width)
  if firstTime then
-  WindowCreate(Win, CHATS_LEFT_POSITION, CHATS_TOP_POSITION, WINDOW_WIDTH, WINDOW_HEIGHT, 4, 6, 0x000000)
+  WindowCreate(Win, CHATS_LEFT_POSITION, CHATS_TOP_POSITION, WINDOW_WIDTH + 75, WINDOW_HEIGHT, 4, 6, 0x000000)
   -- catch for right-click menu and line selection
   WindowAddHotspot(Win, "textarea", 0, 0, WINDOW_WIDTH-SCROLL_BAR_WIDTH,0, 
     "", "", "MouseDown", "CancelMouseDown", "MouseUp", "", 
@@ -1305,6 +1264,12 @@ function show_equip_list ()
 end -- show_equip_list
 
 function create_layout ()
+ WINDOW_WIDTH = GetInfo (281) - 173
+ BG_COLOR_HEIGHT, BG_COLOR_WIDTH = GetInfo(263), GetInfo(264)
+ HEALTH_BAR_LEFT_POSITION = GetInfo(264) / 2 - 160
+ MANA_BAR_LEFT_POSITION = GetInfo(264) / 2 + 130
+ MOVE_BAR_LEFT_POSITION = WINDOW_WIDTH - 28
+ sepW = GetInfo(264)
  left = 175
  top = 78
  top_map = 73
@@ -1320,15 +1285,97 @@ function create_layout ()
  if bottom < top then
   bottom = top
  end -- if
- ----/ Create adjustable windows /----
- main_text_area ()
- create_titlebar ()
- build_avatar_window ()
- create_sidebar_button ()
- create_minimap_window ()
- build_prompt_bars ()
- build_chatLine ()
- build_promptLine ()
+ 
+SPELLS_TOP_POSITION = GetInfo(280) - 150
+ 
+ if GetVariable("SIDEBAR_STATUS") == "closed" then
+  AVATAR_LEFT_POSITION = tonumber(GetVariable("AVATAR_LEFT_POSITION"))
+  SIDEBAR_LEFT_POSITION = tonumber(GetVariable("SIDEBAR_LEFT_POSITION"))
+  TITLEBAR_LEFT_POSITION = tonumber(GetVariable("TITLEBAR_LEFT_POSITION"))
+  MINIMAP_LEFT_POSITION = tonumber(GetVariable("MINIMAP_LEFT_POSITION"))
+  SPELLS_LEFT_POSITION = tonumber(GetVariable("SPELLS_LEFT_POSITION"))
+  SPELLSCOOLDOWN_LEFT_POSITION = tonumber(GetVariable("SPELLSCOOLDOWN_LEFT_POSITION"))
+  ENEM_BAR_LEFT_POSITION = tonumber(GetVariable("ENEM_BAR_LEFT_POSITION"))
+  HEALTH_BAR_LEFT_POSITION = tonumber(GetVariable("HEALTH_BAR_LEFT_POSITION"))
+  MANA_BAR_LEFT_POSITION = tonumber(GetVariable("MANA_BAR_LEFT_POSITION"))
+  CHATS_LEFT_POSITION = tonumber(GetVariable("CHATS_LEFT_POSITION"))
+  WINDOW_WIDTH = tonumber(GetVariable("WINDOW_WIDTH"))
+  SB_BG_LEFT_POSITION = tonumber(GetVariable("SB_BG_LEFT_POSITION"))
+  left = tonumber(GetVariable("left"))
+  if GetVariable("CHAT_VISIBILITY") == "false" then
+   CHATS_TOP_POSITION = tonumber(GetVariable("CHATS_TOP_POSITION"))
+   top = tonumber(GetVariable("top"))
+   sepOne_top = tonumber(GetVariable("sepOne_top"))
+   CHAT_VISIBILITY = false
+  elseif GetVariable("CHAT_VISIBILITY") == "true" then
+   CHATS_TOP_POSITION = tonumber(GetVariable("CHATS_TOP_POSITION"))
+   top = tonumber(GetVariable("top"))
+   sepOne_top = tonumber(GetVariable("sepOne_top"))
+   CHAT_VISIBILITY = true
+  end -- CHAT_VISIBILITY
+  if GetVariable("PROMPT_BARS_VISIBILITY") == "false" then
+   bars_bottom = tonumber(GetVariable("bars_bottom"))
+   bottom = tonumber(GetVariable("bottom"))
+   PROMPT_BARS_VISIBILITY = false
+  elseif GetVariable("PROMPT_BARS_VISIBILITY") == "true" then
+   bars_bottom = tonumber(GetVariable("bars_bottom"))
+   bottom = tonumber(GetVariable("bottom"))
+   PROMPT_BARS_VISIBILITY = true
+  end -- PROMPT_BARS_VISIBILITY
+  ----/ Create adjustable windows /----
+  main_text_area ()
+  create_titlebar ()
+  build_avatar_window ()
+  create_sidebar_button ()
+  create_minimap_window ()
+  build_prompt_bars ()
+  build_chatLine ()
+  build_promptLine ()
+  sidebar_background ()
+  init(true)
+ else
+  BG_COLOR_HEIGHT, BG_COLOR_WIDTH = GetInfo(263), GetInfo(264)
+  WINDOW_WIDTH = GetInfo (281) - 173
+  HEALTH_BAR_LEFT_POSITION = GetInfo(264) / 2 - 160
+  MANA_BAR_LEFT_POSITION = GetInfo(264) / 2 + 130
+  MOVE_BAR_LEFT_POSITION = WINDOW_WIDTH - 28
+  ENEM_BAR_LEFT_POSITION = 175
+  sepW = GetInfo(281) - 175
+  left = 175
+  right = GetInfo (281) - 175
+  if GetVariable("CHAT_VISIBILITY") == "true" then
+   CHATS_TOP_POSITION = tonumber(GetVariable("CHATS_TOP_POSITION"))
+   top = tonumber(GetVariable("top"))
+   sepOne_top = tonumber(GetVariable("sepOne_top"))
+   CHAT_VISIBILITY = true
+  elseif GetVariable("CHAT_VISIBILITY") == "false" then
+   CHATS_TOP_POSITION = tonumber(GetVariable("CHATS_TOP_POSITION"))
+   top = tonumber(GetVariable("top"))
+   sepOne_top = tonumber(GetVariable("sepOne_top"))
+   CHAT_VISIBILITY = false
+  end -- CHAT_VISIBILITY
+  if GetVariable("PROMPT_BARS_VISIBILITY") == "true" then
+   bars_bottom = tonumber(GetVariable("bars_bottom"))
+   bottom = tonumber(GetVariable("bottom"))
+   PROMPT_BARS_VISIBILITY = true
+  elseif GetVariable("PROMPT_BARS_VISIBILITY") == "false" then
+   bars_bottom = tonumber(GetVariable("bars_bottom"))
+   bottom = tonumber(GetVariable("bottom"))
+   PROMPT_BARS_VISIBILITY = false
+  end -- PROMPT_BARS_VISIBILITY
+  ----/ Create adjustable windows /----
+  main_text_area ()
+  create_titlebar ()
+  build_avatar_window ()
+  create_sidebar_button ()
+  create_minimap_window ()
+  build_prompt_bars ()
+  build_chatLine ()
+  build_promptLine ()
+  sidebar_background ()
+  init(true)
+ end -- SIDEBAR_STATUS
+
  ----/ Set the background /----
  if GetVariable("castle_checked") == "browse" then
   SetBackgroundImage(GetVariable("filename"), 0)
@@ -1507,7 +1554,15 @@ function settings_click_menu ()
   [151] = "-",
   [152] = "Report an issue",
   [153] = "-",
-  [154] = "Check and Update Plugin"
+  [154] = "Check and Update Plugin",
+  [155] = "-",
+  [156] = ">Sidebar Background",
+  [157] = "^unfinished feature currently only one pattern and few options",
+  [158] = "-",
+  [159] = "Set Bar Color",
+  [160] = "Set Top Color",
+  [161] = "Set Bottom Color",
+  [162] = "<"
  }
  if GetVariable("avatar_checked") == "one" or GetVariable("avatar_checked") == nil then
   checkItem (2)
@@ -1781,7 +1836,6 @@ function settings_click_menu ()
   end -- filename
  elseif result == "7" then
   bgColour = getColour(bgColour)
-  print("Background Solid Color Canceled")
   SetVariable("bgColour", bgColour) -- save it for next time they play
   SetVariable("castle_checked", "none") -- so it doesnt mess with first time default 
   filename = nil
@@ -2116,6 +2170,25 @@ function settings_click_menu ()
   ColourNote("white", "blue", "Connecting to the server and checking for updates.")
   ColourNote("white", "blue", "Please wait..")
   update_plugin ()
+  
+ elseif result == "90" then
+ -- sidebar background bar color
+  SBbarC = getColour(SBbarC)
+  SetVariable("SBbarC", SBbarC)
+  sidebar_background ()
+  
+ elseif result == "91" then
+ -- sidebar background top color
+  SBtopC = getColour(SBtopC)
+  SetVariable("SBtopC", SBtopC)
+  sidebar_background ()
+  
+ elseif result == "92" then
+ -- sidebar background bottom color
+  SBbotC = getColour(SBbotC)
+  SetVariable("SBbotC", SBbotC)
+  sidebar_background ()
+  
  end -- result
  DrawThemed3DRect(titlebar_window, 65, 0, 104, 13)
  outlined_text (colourWhite, titlebar_window, "settings", 5, 68, 2, 0)
@@ -2154,7 +2227,7 @@ function build_prompt_bars ()
  WindowCreate (health_window,   -- window ID
     HEALTH_BAR_LEFT_POSITION,            -- left
     bars_bottom - 3,            -- top
-    100,           -- width
+    200,           -- width
     20,            -- depth
     12,            -- center it (ignored anyway) 
     2,             -- draw underneath (1) + absolute location (2)
@@ -2165,7 +2238,7 @@ function build_prompt_bars ()
  WindowCreate (mana_window,   -- window ID
     MANA_BAR_LEFT_POSITION,            -- left
     bars_bottom - 3,           -- top
-    100,           -- width
+    200,           -- width
     20,            -- depth
     12,            -- center it (ignored anyway) 
     2,             -- draw underneath (1) + absolute location (2)
@@ -2176,7 +2249,7 @@ function build_prompt_bars ()
  WindowCreate (movement_window,   -- window ID
     MOVE_BAR_LEFT_POSITION,            -- left
     bars_bottom - 3,           -- top
-    100,           -- width
+    200,           -- width
     20,            -- depth
     12,            -- center it (ignored anyway) 
     2,             -- draw underneath (1) + absolute location (2)
@@ -2187,7 +2260,7 @@ function build_prompt_bars ()
  WindowCreate (exp_window,   -- window ID
     ENEM_BAR_LEFT_POSITION,            -- left
     bars_bottom - 3,           -- top
-    100,           -- width
+    200,           -- width
     20,            -- depth
     12,            -- center it (ignored anyway) 
     2,             -- draw underneath (1) + absolute location (2)
@@ -2614,11 +2687,11 @@ function draw_energy_bar (type_bar, colour, colour2, window, current_value, max_
   custom_bar_color_highlight_bottom = ColourNameToRGB("black")
  end -- custom color check  
  -- clear the bars
- WindowGradient (window, 0, -1, 100, 10, custom_bar_color_highlight_top, colour2, 2)
- WindowGradient (window, 0, 10, 100, 21, colour2, custom_bar_color_highlight_bottom, 2)
+ WindowGradient (window, 0, -1, 200, 10, custom_bar_color_highlight_top, colour2, 2)
+ WindowGradient (window, 0, 10, 200, 21, colour2, custom_bar_color_highlight_bottom, 2)
  -- calculate the filled part
  if max > 0 then
-  filled = current * 100 / max
+  filled = current * 200 / max
  else -- avoid division by zero
   filled = 0
  end -- if
@@ -2628,9 +2701,10 @@ function draw_energy_bar (type_bar, colour, colour2, window, current_value, max_
   WindowGradient (window, 0, 10, filled, 21, colour, custom_bar_color_highlight_bottom, 2)
  end -- if
  -- write the information inside
+ barPer = filled / 2
  colour_cust = GetVariable("bar_text_color") or ColourNameToRGB("white")
  outlined_text (colour_cust, window, type_bar, 9, 3, 3, 0)
- outlined_text (colour_cust, window, math.ceil(filled)..'%', 9, 55, 3, 0)
+ outlined_text (colour_cust, window, math.ceil(barPer)..'%', 9, 55, 3, 0)
 end -- draw_energy_bar
 
 function init_affects (data)
@@ -2725,7 +2799,7 @@ function draw_affects ()
    -- make a miniwindow under the text
    WindowCreate (win,   -- window ID
         SPELLS_LEFT_POSITION+offset_x,  -- left
-        383+offset_y, -- top
+        SPELLS_TOP_POSITION+offset_y, -- top
         34,           -- width
         34,           -- depth
         12,           -- center it (ignored anyway) 
@@ -3027,16 +3101,17 @@ function create_minimap_window ()
 end -- function create_minimap_window
 
 function create_sidebar_button ()
+ bt_height = GetInfo(280) / 2
  -- make a miniwindow to the left of the text
  WindowCreate (sidebar_button_window,   -- window ID
-    SIDEBAR_LEFT_POSITION,   -- left
-    225,   -- top
+    SIDEBAR_LEFT_POSITION + 3,   -- left
+    bt_height - 27.5,   -- top
     23, -- width
     55, -- depth
     12,  -- center it (ignored anyway) 
     6,          -- draw underneath (1) + absolute location (2) + transparent (4)
     0x000000)  -- background colour
- if which_sidebar_image then
+ if which_sidebar_image or GetVariable("SIDEBAR_STATUS") == "closed" then
   WindowLoadImage (sidebar_button_window, "open_button", GetInfo (66) .. "Generic/layout/open.png")
   WindowDrawImage (sidebar_button_window, "open_button", 0, 0, 0, 0, 1)  -- draw it
   WindowAddHotspot(sidebar_button_window, "open_it", 0, 0, 23, 55, 
@@ -3044,7 +3119,7 @@ function create_sidebar_button ()
     1, 0)
  else
   WindowLoadImage (sidebar_button_window, "close_button", GetInfo (66) .. "Generic/layout/close.png")
-  WindowDrawImage (sidebar_button_window, "close_button", 0, 0, 0, 0, 1)  -- draw it
+  WindowDrawImage (sidebar_button_window, "close_button", 0 - 1, 0, 0, 0, 1)  -- draw it
   WindowAddHotspot(sidebar_button_window, "close_it", 0, 0, 23, 55, 
     "", "", "MouseDown_sidebar_button", "", "MouseUp_sidebar_button", "", 
     1, 0)
@@ -3055,11 +3130,26 @@ end -- function create_sidebar_button
 function MouseUp_sidebar_button(flags, hotspot_id)
  sidebar_closing = true
  while sidebar_closing do
-  if SIDEBAR_LEFT_POSITION < 1 then
+  if SIDEBAR_LEFT_POSITION < 0 then
    sidebar_closing = false
    which_sidebar_image = true
    create_sidebar_button ()
    WindowShow( titlebar_window, false )
+   SetVariable("AVATAR_LEFT_POSITION", AVATAR_LEFT_POSITION)
+   SetVariable("SIDEBAR_LEFT_POSITION", SIDEBAR_LEFT_POSITION)
+   SetVariable("TITLEBAR_LEFT_POSITION", TITLEBAR_LEFT_POSITION)
+   SetVariable("MINIMAP_LEFT_POSITION", MINIMAP_LEFT_POSITION)
+   SetVariable("SPELLS_LEFT_POSITION", SPELLS_LEFT_POSITION)
+   SetVariable("SPELLSCOOLDOWN_LEFT_POSITION", SPELLSCOOLDOWN_LEFT_POSITION)
+   SetVariable("ENEM_BAR_LEFT_POSITION", ENEM_BAR_LEFT_POSITION)
+   SetVariable("HEALTH_BAR_LEFT_POSITION", HEALTH_BAR_LEFT_POSITION)
+   SetVariable("MANA_BAR_LEFT_POSITION", MANA_BAR_LEFT_POSITION)
+   SetVariable("CHATS_LEFT_POSITION", CHATS_LEFT_POSITION)
+   SetVariable("WINDOW_WIDTH", WINDOW_WIDTH)
+   SetVariable("SB_BG_LEFT_POSITION", SB_BG_LEFT_POSITION)
+   SetVariable("left", left)
+   SetVariable("sepW", sepW)
+   SetVariable("SIDEBAR_STATUS", "closed")
   else
    AVATAR_LEFT_POSITION = AVATAR_LEFT_POSITION - 10
    build_avatar_window ()
@@ -3074,20 +3164,22 @@ function MouseUp_sidebar_button(flags, hotspot_id)
    draw_affects ()
    left = left - 10
    main_text_area ()
+   HEALTH_BAR_LEFT_POSITION = HEALTH_BAR_LEFT_POSITION - 5
    ENEM_BAR_LEFT_POSITION = ENEM_BAR_LEFT_POSITION - 10
-   HEALTH_BAR_LEFT_POSITION = HEALTH_BAR_LEFT_POSITION - 10
-   MANA_BAR_LEFT_POSITION = MANA_BAR_LEFT_POSITION - 10
-   MOVE_BAR_LEFT_POSITION = MOVE_BAR_LEFT_POSITION - 10
+   MANA_BAR_LEFT_POSITION = MANA_BAR_LEFT_POSITION - 5
    build_prompt_bars ()
    draw_energy_bars ()
    CHATS_LEFT_POSITION = CHATS_LEFT_POSITION - 10
    WINDOW_WIDTH = WINDOW_WIDTH + 10
    init(true)
+   sepW = sepW + 10
    build_chatLine ()
    build_promptLine ()
    if CHAT_HIDDEN ~= false then
     WindowShow( Win, false )
    end -- chat_closing
+   SB_BG_LEFT_POSITION = SB_BG_LEFT_POSITION - 10
+   sidebar_background()
    Repaint()
   end -- SIDEBAR_LEFT_POSITION 
  end  -- while loop sidebar_closing 
@@ -3100,8 +3192,9 @@ function MouseUp_sidebar_button_op(flags, hotspot_id)
   if SIDEBAR_LEFT_POSITION > 155 then
    sidebar_closing = false
    which_sidebar_image = false
-   create_sidebar_button ()
    build_avatar_window ()
+   SetVariable("SIDEBAR_STATUS", "opened")
+   create_sidebar_button ()
   else
    AVATAR_LEFT_POSITION = AVATAR_LEFT_POSITION + 10
    build_avatar_window ()
@@ -3116,20 +3209,22 @@ function MouseUp_sidebar_button_op(flags, hotspot_id)
    draw_affects ()
    left = left + 10
    main_text_area ()
+   HEALTH_BAR_LEFT_POSITION = HEALTH_BAR_LEFT_POSITION + 5
    ENEM_BAR_LEFT_POSITION = ENEM_BAR_LEFT_POSITION + 10
-   HEALTH_BAR_LEFT_POSITION = HEALTH_BAR_LEFT_POSITION + 10
-   MANA_BAR_LEFT_POSITION = MANA_BAR_LEFT_POSITION + 10
-   MOVE_BAR_LEFT_POSITION = MOVE_BAR_LEFT_POSITION + 10
+   MANA_BAR_LEFT_POSITION = MANA_BAR_LEFT_POSITION + 5
    build_prompt_bars ()
    draw_energy_bars ()
    CHATS_LEFT_POSITION = CHATS_LEFT_POSITION + 10
    WINDOW_WIDTH = WINDOW_WIDTH - 10
    init(true)
+   sepW = sepW - 10
    build_chatLine ()
    build_promptLine ()
    if CHAT_HIDDEN ~= false then
     WindowShow( Win, false )
    end -- chat_closing
+   SB_BG_LEFT_POSITION = SB_BG_LEFT_POSITION + 10
+   sidebar_background()
    Repaint()
   end -- SIDEBAR_LEFT_POSITION 
  end  -- while
@@ -3153,6 +3248,10 @@ function MouseUp_ch()
     chat_closing = false
     WindowShow( Win, false )
     CHAT_HIDDEN = true
+	SetVariable("CHATS_TOP_POSITION", CHATS_TOP_POSITION)
+	SetVariable("CHAT_VISIBILITY", tostring(CHAT_VISIBILITY))
+	SetVariable("top", top)
+	SetVariable("sepOne_top", sepOne_top)
    else
     CHATS_TOP_POSITION = CHATS_TOP_POSITION - 5
     init(true)
@@ -3171,6 +3270,10 @@ function MouseUp_ch()
    if CHATS_TOP_POSITION > -3 then
     chat_closing = false
     CHAT_HIDDEN = false
+	SetVariable("CHATS_TOP_POSITION", CHATS_TOP_POSITION)
+	SetVariable("CHAT_VISIBILITY", tostring(CHAT_VISIBILITY))
+	SetVariable("top", top)
+	SetVariable("sepOne_top", sepOne_top)
    else
     CHATS_TOP_POSITION = CHATS_TOP_POSITION + 5
     init(true)
@@ -3202,6 +3305,9 @@ function MouseUp_bars()
    if bars_bottom > bars_orig then
     bars_closing = false
     main_text_area ()
+	SetVariable("bars_bottom", bars_bottom)
+	SetVariable("bottom", bottom)
+	SetVariable("PROMPT_BARS_VISIBILITY", tostring(PROMPT_BARS_VISIBILITY))
    else
     bars_bottom = bars_bottom + 3
     build_prompt_bars ()
@@ -3220,6 +3326,9 @@ function MouseUp_bars()
    if bars_bottom < bars_orig then
     bars_closing = false
     main_text_area ()
+	SetVariable("bars_bottom", bars_bottom)
+	SetVariable("bottom", bottom)
+	SetVariable("PROMPT_BARS_VISIBILITY", tostring(PROMPT_BARS_VISIBILITY))
    else
     bars_bottom = bars_bottom - 3
     build_prompt_bars ()
@@ -3234,14 +3343,14 @@ function MouseUp_bars()
 end -- function MouseUp_bars
 
 function build_chatLine ()
- WindowCreate(line_sepOne, CHATS_LEFT_POSITION, sepOne_top, WINDOW_WIDTH, 4, 4, 6, 0x000000)
- WindowLine (line_sepOne, 0, 2, WINDOW_WIDTH, 2, ColourNameToRGB ("white"), miniwin.pen_solid, 1)
+ WindowCreate(line_sepOne, ENEM_BAR_LEFT_POSITION, sepOne_top, sepW, 4, 4, 6, 0x000000)
+ WindowLine (line_sepOne, 0, 2, sepW, 2, ColourNameToRGB ("white"), miniwin.pen_solid, 1)
  WindowShow( line_sepOne, true)
 end -- function build_chatLine
 
 function build_promptLine ()
- WindowCreate(line_sepTwo, ENEM_BAR_LEFT_POSITION, bars_bottom - 4, 615, 1, 4, 6, 0x000000)
- WindowLine (line_sepTwo, 0, 0, 615, 0, ColourNameToRGB ("white"), miniwin.pen_solid, 1)
+ WindowCreate(line_sepTwo, ENEM_BAR_LEFT_POSITION, bars_bottom - 4, sepW, 1, 4, 6, 0x000000)
+ WindowLine (line_sepTwo, 0, 0, sepW, 0, ColourNameToRGB ("white"), miniwin.pen_solid, 1)
  WindowShow( line_sepTwo, true)
 end -- function build_promptLine
 
@@ -3504,107 +3613,41 @@ function alias_star_logger_prev_lines()
   end -- starLog_recPrev
 end -- alias_star_logger_prev_lines
 
-function test_orbit()
- print("Orbit test started, this will stop after 3 minutes and 7 seconds, which is roughly half of night")
- EnableTimer("orbitTimer", true)
- ResetTimer("orbitTimer")
- EnableTimer("orbitTimerEnd", true)
- ResetTimer("orbitTimerEnd")
-end -- function test_orbit
+function sidebar_background()
+ bt_height = GetInfo(280) / 2
+ WindowCreate (sidebar_bg, SB_BG_LEFT_POSITION, 0, 166, BG_COLOR_HEIGHT, 7, 2, 0x000000)
+ sidebar_bgBar = "sidebar_bgBar"
+ WindowCreate (sidebar_bgBar, SB_BG_LEFT_POSITION + 166, 0, 8, BG_COLOR_HEIGHT, 7, 6, 0x000000)
 
-function orbit()
-	angle = angle + angularVelocity
-	o_x = centreX + radius * math.cos(angle)
-	o_y = centreY + radius * math.sin(angle)
-    angles = angles + angularVelocity
-	o_xx = centreXX + radius * math.cos(angles)
-	o_yy = centreYY + radius * math.sin(angles)
-	--print("Sun ", "x:" .. o_x, "y:" .. o_y)
-    --print("Moon", "x:" .. o_xx, "y:" .. o_yy)
-    draw_sun(o_x, o_y)
-    draw_moon(o_xx, o_yy)
-end -- function orbit
+ WindowGradient (sidebar_bg, 0, 0, 0, 142,  
+                 ColourNameToRGB ("black"),
+				 SBtopC,
+                 2)
+ WindowGradient (sidebar_bg, 0, 142, 0, 284,  
+                 SBtopC,
+				 ColourNameToRGB ("black"),
+                 2)
+ WindowGradient (sidebar_bg, 0, 284, 0, 0,  
+                 ColourNameToRGB ("black"),
+				 SBbotC,
+                 2)
 
-function draw_sun (o_x, o_y)
- -- main result window
- win5 = GetPluginID () .. ".5"
- WindowCreate (win5, o_x + 15, o_y + 222, 20, 20, 7, 6, 0x000000)  -- create window
- -- gradient window
- win6 = GetPluginID ()  .. ".6"
- WindowCreate (win6, o_x + 13, o_y + 220, 20, 20, 7, 6, 0xFFFFFF)  -- create window
- WindowGradient (win6, 0, 0, 0, 0, 
-                 ColourNameToRGB ("yellow"), 
-                 ColourNameToRGB ("red"), 
-                 2)  -- top to bottom			
- -- mask window
- win7 = GetPluginID ()  .. ".7"
- WindowCreate (win7, o_x + 13, o_y + 220, 20, 20, 7, 6, 0x000000)  -- create window
- -- chord
- WindowCircleOp (win7, 4, 0, 0, 20, 20, 
-                 0x000000, 5, 0,  -- no pen
-                 0xFFFFFF, 0,  -- brush
-                 0, 0)
- -- convert to images
- WindowImageFromWindow (win5, "gradient", win6)
- WindowImageFromWindow (win5, "mask", win7)
- -- do the merge
- WindowMergeImageAlpha (win5, "gradient", "mask", 0, 1, 20, 20, 0, 1, 0, 0, 0, 0)
- --WindowFilter (win5, 0, 0, 0, 0, 3, 0) -- blur both directions
- WindowShow (win5,  true)  -- show it
-end -- function draw_sun
+	
+ WindowGradient (sidebar_bgBar, 0, 0, 0, bt_height - 26,
+                 SBbarC,
+                 ColourNameToRGB ("black"), 
+                 1)
 
-function draw_moon (o_xx, o_yy)
- -- main result window
- win8 = GetPluginID () .. ".8" 
- WindowCreate (win8, o_xx + 15, o_yy + 222, 20, 20, 7, 6, 0x000000)  -- create window
- -- gradient window
- win9 = GetPluginID ()  .. ".9"
- WindowCreate (win9, o_xx, o_yy, 20, 20, 7, 6, 0xFFFFFF)  -- create window
- WindowGradient (win9, 0, 0, 0, 0, 
-                 ColourNameToRGB ("whitesmoke"), 
-                 ColourNameToRGB ("lightskyblue"), 
-                 2)  -- top to bottom			
- -- mask window
- win10 = GetPluginID ()  .. ".10"
- WindowCreate (win10, o_xx, o_yy, 20, 20, 7, 6, ColourNameToRGB("black"))  -- create window
- -- chord
- WindowCircleOp (win10, 4, 0, 0, 20, 20, 
-                 0x000000, 5, 0,  -- no pen
-                 0xFFFFFF, 0,  -- brush
-                 0, 0)
- -- convert to images
- WindowImageFromWindow (win8, "gradient", win9)
- WindowImageFromWindow (win8, "mask", win10)
- -- do the merge
- WindowMergeImageAlpha (win8, "gradient", "mask", 0, 1, 20, 20, 0, 1, 0, 0, 0, 0)
- --WindowFilter (win8, 0, 0, 0, 0, 3, 0) -- blur both directions
- WindowShow (win8,  true)  -- show it
-end -- function draw_moon
+ WindowGradient (sidebar_bgBar, 0, bt_height + 26, 0, 0,
+                 SBbarC,
+                 ColourNameToRGB ("black"), 
+                 1)
+ WindowSetZOrder (sidebar_bg, -1)
+ WindowSetZOrder (sidebar_bgBar, -1)
+ WindowShow(sidebar_bg, true)
+ WindowShow(sidebar_bgBar, true)
+end -- sidebar_background
 
 ]]>
 </script>
-
-<timers>
- <timer 
-  enabled="n"
-  name="orbitTimer"
-  script="orbit"
-  second="10.00"
-  offset_second="0.00"
-  send_to="12"
-  ></timer> 
- <timer 
-  enabled="n"
-  name="orbitTimerEnd"
-  minute="3"
-  second="7"
-  offset_second="0.00"
-  send_to="12"
-  >
-  <send>EnableTimer("orbitTimer", false)
-  EnableTimer("orbitTimerEnd", false)
-  print("Orbit Test Complete, stopping..")</send>
-  </timer>
-</timers>
-
 </muclient>
