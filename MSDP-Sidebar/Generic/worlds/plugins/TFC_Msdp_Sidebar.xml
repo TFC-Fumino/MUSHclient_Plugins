@@ -9,7 +9,7 @@
    purpose="A graphical user interface sidebar for The Final Challenge MUD"
    date_written="2016-05-15 00:49:31"
    requires="4.51"
-   version="2.0"
+   version="2.1"
    save_state="y"
    >
 <description trim="y">
@@ -1563,6 +1563,7 @@ function settings_click_menu ()
   [160] = "Set Top Color",
   [161] = "Set Bottom Color",
   [162] = "<"
+
  }
  if GetVariable("avatar_checked") == "one" or GetVariable("avatar_checked") == nil then
   checkItem (2)
@@ -1636,27 +1637,27 @@ function settings_click_menu ()
   checkItem (41)
  end -- basic reset
  if GetVariable("cColorLight") ~= nil then
-  menu [44] = menu [44] .. " [" .. RGBColourToName(GetVariable("cColorLight")) .. "]"
+
   checkItem (44)
  end -- cColorLight main
  if GetVariable("cColorDark") ~= nil then
-  menu [45] = menu [45] .. " [" .. RGBColourToName(GetVariable("cColorDark")) .. "]"
+
   checkItem (45)
  end -- cColorDark main
  if GetVariable("cColorLighto") ~= nil then
-  menu [48] = menu [48] .. " [" .. RGBColourToName(GetVariable("cColorLighto")) .. "]"
+
   checkItem (48)
  end -- cColorLighto
  if GetVariable("cColorDarko") ~= nil then
-  menu [49] = menu [49] .. " [" .. RGBColourToName(GetVariable("cColorDarko")) .. "]"
+
   checkItem (49)
  end -- cColorDarko
  if GetVariable("cColorLightc") ~= nil then
-  menu [52] = menu [52] .. " [" .. RGBColourToName(GetVariable("cColorLightc")) .. "]"
+
   checkItem (52)
  end -- cColorLightc
  if GetVariable("cColorDarkc") ~= nil then
-  menu [53] = menu [53] .. " [" .. RGBColourToName(GetVariable("cColorDark")) .. "]"
+
   checkItem (53)
  end -- cColorDarkc
  if GetVariable("starLog_isRec") == "true" then
