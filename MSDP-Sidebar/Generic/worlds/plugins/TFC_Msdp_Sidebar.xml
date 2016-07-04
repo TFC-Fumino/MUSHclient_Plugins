@@ -9,7 +9,7 @@
    purpose="A graphical user interface sidebar for The Final Challenge MUD"
    date_written="2016-05-15 00:49:31"
    requires="4.51"
-   version="2.1"
+   version="2.5"
    save_state="y"
    >
 <description trim="y">
@@ -490,8 +490,27 @@
   sequence="100">
  </alias>
   
-</aliases>
+ <alias
+  script="settings_menu"
+  match="settings"
+  enabled="y"
+  sequence="100">
+ </alias>
+ 
+ <alias
+  script="close_settings"
+  match="close settings"
+  enabled="y"
+  sequence="100">
+ </alias>
 
+ <alias
+  script="msdp_test"
+  match="msdp test"
+  enabled="y"
+  sequence="100">
+ </alias>
+</aliases>
 <!--  Get our standard constants -->
 <include name="constants.lua"/>
 <!--  Script  -->
@@ -578,16 +597,16 @@ using_msdp = false
 ------------/  Menu setting default colors /------------
 bgColour = tonumber(GetVariable ("bgColour")) or ColourNameToRGB("black")
 health_color = tonumber(GetVariable("health_color")) or 0x0000CC
-health_colorB = tonumber(GetVariable("health_colorB")) or 0x000033
+health_colorB = tonumber(GetVariable("health_colorB")) or ColourNameToRGB("black")
 mana_color = tonumber(GetVariable("mana_color")) or 0xCC0000
-mana_colorB = tonumber(GetVariable("mana_colorB")) or 0x330000
+mana_colorB = tonumber(GetVariable("mana_colorB")) or ColourNameToRGB("black")
 move_color = tonumber(GetVariable("move_color")) or 0x00CC00
-move_colorB = tonumber(GetVariable("move_colorB")) or 0x003300
+move_colorB = tonumber(GetVariable("move_colorB")) or ColourNameToRGB("black")
 enemy_color = tonumber(GetVariable("enemy_color")) or 0x00CCCC
-enemy_colorB = tonumber(GetVariable("enemy_colorB")) or 0x003333
+enemy_colorB = tonumber(GetVariable("enemy_colorB")) or ColourNameToRGB("black")
 bar_text_color = tonumber(GetVariable("bar_text_color")) or ColourNameToRGB("white")
 customBar_top_color = tonumber(GetVariable ("custom_bar_color_highlight_top")) or ColourNameToRGB("black")
-customBar_bottom_color = tonumber(GetVariable ("custom_bar_color_highlight_bottom")) or ColourNameToRGB("black")
+customBar_bottom_color = tonumber(GetVariable ("custom_bar_color_highlight_bottom")) or ColourNameToRGB("red")
 terrain_color = GetVariable("terrain_color") or ColourNameToRGB("white")
 cColorLight = GetVariable("cColorLight") or ColourNameToRGB("white")
 cColorDark = GetVariable("cColorDark") or ColourNameToRGB("dimgray")
@@ -595,11 +614,62 @@ cColorLighto = GetVariable("cColorLighto") or ColourNameToRGB("lime")
 cColorDarko = GetVariable("cColorDarko") or ColourNameToRGB("green")
 cColorLightc = GetVariable("cColorLightc") or ColourNameToRGB("red")
 cColorDarkc = GetVariable("cColorDarkc") or ColourNameToRGB("darkred")
-SBtopC = GetVariable("SBtopC") or ColourNameToRGB("#99CCFF")
-SBbotC = GetVariable("SBbotC") or ColourNameToRGB ("dimgray")
-SBbarC = GetVariable("SBbarC") or ColourNameToRGB ("gray")
-
-
+SBtopC = GetVariable("SBtopC") or ColourNameToRGB ("black")
+SBbotC = GetVariable("SBbotC") or ColourNameToRGB ("black")
+SBbarC = GetVariable("SBbarC") or ColourNameToRGB ("red")
+SBbarCe = GetVariable("SBbarCe") or ColourNameToRGB ("black")
+SBsolid = GetVariable("SBsolid") or ColourNameToRGB ("black")
+GRthree = GetVariable("GRthree") or ColourNameToRGB ("black")
+GRfour = GetVariable("GRfour") or ColourNameToRGB ("red")
+GRfive = GetVariable("GRfive") or ColourNameToRGB ("red")
+GRsix = GetVariable("GRsix") or ColourNameToRGB ("black")
+GRseven = GetVariable("GRseven") or ColourNameToRGB ("black")
+GReight = GetVariable("GReight") or ColourNameToRGB ("darkred")
+if GetVariable("SBsolid") == nil then
+ SetVariable("SBsolid", ColourNameToRGB("black"))
+end
+if GetVariable("SBtransparent") ~= "true" then
+ SetVariable("SBtransparent", "false")
+else
+ SetVariable("SBtransparent", "true")
+end -- SBtransparent
+if GetVariable("SBbarC") == nil then
+ SetVariable("SBbarC", ColourNameToRGB("red"))
+end
+if GetVariable("SBbarCe") == nil then
+ SetVariable("SBbarCe", ColourNameToRGB("black"))
+end
+if GetVariable("SBtopC") == nil then
+ SetVariable("SBtopC", ColourNameToRGB("black"))
+end
+if GetVariable("SBbotC") == nil then
+ SetVariable("SBbotC", ColourNameToRGB("black"))
+end
+if GetVariable("GRthree") == nil then
+ SetVariable("GRthree", ColourNameToRGB("black"))
+end
+if GetVariable("GRfour") == nil then
+ SetVariable("GRfour", ColourNameToRGB("red"))
+end
+if GetVariable("GRfive") == nil then
+ SetVariable("GRfive", ColourNameToRGB("red"))
+end
+if GetVariable("GRsix") == nil then
+ SetVariable("GRsix", ColourNameToRGB("black"))
+end
+if GetVariable("GRseven") == nil then
+ SetVariable("GRseven", ColourNameToRGB("black"))
+end
+if GetVariable("GReight") == nil then
+ SetVariable("GReight", ColourNameToRGB("darkred"))
+end
+if GetVariable("cSelected") == nil then
+ SetVariable("cSelected", "four")
+end
+if GetVariable("castle_checked") == nil then
+ SetVariable("castle_checked", "browse")
+ SetVariable("filename", GetInfo (66) .. "Generic/layout/72270_comp.png")
+end
 ------------/  Msdp room exits  /------------
 RoomExit = {}
 RoomType = {}
@@ -635,12 +705,12 @@ require "wait"
 
 theme = {
     WINDOW_BORDER = ColourNameToRGB("#000000"), -- for miniwindow body
-    HIGHLIGHT=ColourNameToRGB("#B9C9D8"), -- for 3D surfaces
+    HIGHLIGHT=GetVariable("SBbarC"), -- for 3D surfaces
     FACE=0x000000, -- for 3D surfaces
     INNERSHADOW=ColourNameToRGB("#000000"), -- for 3D surfaces
-    OUTERSHADOW = ColourNameToRGB("#404040"), -- for 3D surfaces
+    OUTERSHADOW = GetVariable("SBbarC"), -- for 3D surfaces
     BACK_FACE = 0x000000, -- for contrasting details
-    DETAIL = ColourNameToRGB ("#FFFFFF"), -- for contrasting details
+    DETAIL = GetVariable("SBbarC"), -- for contrasting details
     TITLE_HEIGHT = 17, -- for miniwindow title area
     SUBTITLE_HEIGHT = 17, -- for miniwindow title area
     TITLE_FONT_NAME = "Dina", -- for miniwindow title area
@@ -1401,43 +1471,43 @@ end -- checkItem
 
 function settings_click_menu ()
  menu = {
-  [1] = "! >Avatar",
-  [2] = "Default",
+  [1] = "! >0",
+  [2] = "0",
   [3] = "-",
-  [4] = "Browse..",
+  [4] = "0",
   [5] = "<",
-  [6] = ">Background",
-  [7] = "Castle 1",
-  [8] = "Castle 2",
-  [9] = "Castle 3",
+  [6] = ">0",
+  [7] = "0",
+  [8] = "0",
+  [9] = "0",
   [10] = "-",
-  [11] = "Browse..",
+  [11] = "0",
   [12] = "-",
-  [13] = "Solid Color",
+  [13] = "0",
   [14] = "<",
-  [15] = ">Prompt Bars",
-  [16] = "Default [reset]",
+  [15] = ">0",
+  [16] = "0",
   [17] = "-",
-  [18] = "Font Color",
+  [18] = "0",
   [19] = "-",
-  [20] = "Shiny",
-  [21] = "Extra Shiny",
+  [20] = "0",
+  [21] = "0",
   [22] = "-",
-  [23] = "Top Edge Color", 
-  [24] = "Bottom Edge Color",
+  [23] = "0", 
+  [24] = "0",
   [25] = "-",
-  [26] = ">Center Color",
-  [27] = "Health Color Filled", 
-  [28] = "Health Color Empty",
+  [26] = ">0",
+  [27] = "0", 
+  [28] = "0",
   [29] = "-",
-  [30] = "Mana Color Filled", 
-  [31] = "Mana Color Empty",
+  [30] = "0", 
+  [31] = "0",
   [32] = "-",
-  [33] = "Move Color Filled", 
-  [34] = "Move Color Empty",
+  [33] = "0", 
+  [34] = "0",
   [35] = "-",
-  [36] = "Enemy Color Filled", 
-  [37] = "Enemy Color Empty",
+  [36] = "0", 
+  [37] = "0",
   [38] = "<",
   [39] = "<",
   [40] = ">Compass",
@@ -1554,112 +1624,37 @@ function settings_click_menu ()
   [151] = "-",
   [152] = "Report an issue",
   [153] = "-",
-  [154] = "Check and Update Plugin",
+  [154] = "0",
   [155] = "-",
-  [156] = ">Sidebar Background",
-  [157] = "^unfinished feature currently only one pattern and few options",
-  [158] = "-",
-  [159] = "Set Bar Color",
-  [160] = "Set Top Color",
-  [161] = "Set Bottom Color",
-  [162] = "<"
-
+  [156] = ">0",
+  [157] = ">0",
+  [158] = "0",
+  [159] = "0",
+  [160] = "-",
+  [161] = "0",
+  [162] = "0",
+  [163] = "0",
+  [164] = ">0",
+  [165] = "0",
+  [166] = "0",
+  [167] = "0",
+  [168] = "0",
+  [169] = "0",
+  [170] = "0",
+  [171] = "0",
+  [172] = "0",  
+  [173] = "<",
+  [174] = "-",
+  [175] = "0",
+  [176] = "<",
+  [177] = "-",
+  [178] = ">0",
+  [179] = "0",
+  [180] = "0",
+  [181] = "<",
+  [182] = "<",
  }
- if GetVariable("avatar_checked") == "one" or GetVariable("avatar_checked") == nil then
-  checkItem (2)
- elseif GetVariable("avatar_checked") == "browse" then
-  checkItem (4)
- end -- if
- if GetVariable("castle_checked") == "one" or GetVariable("castle_checked") == nil then
-  checkItem (7)
- elseif GetVariable("castle_checked") == "two" then
-  checkItem (8)
- elseif GetVariable("castle_checked") == "three" then
-  checkItem (9)
- elseif GetVariable("castle_checked") == "browse" then
-  checkItem (11)
- end -- if 
- if GetVariable("bgColour") ~= nil then
-  checkItem (13)
-  menu [13] = menu [13] .. " [" .. RGBColourToName(bgColour) .. "]"
- end -- if
- if GetVariable("prompt_checked") == "default" then
-  checkItem (16)
- elseif GetVariable("prompt_checked") == "shiny" then
-  checkItem (20)
- elseif GetVariable("prompt_checked") == "extrashiny" then
-  checkItem (21)
- elseif GetVariable("prompt_checked") == "customTop" then
-  checkItem (23)
-  menu [23] = menu [23] .. " [" .. RGBColourToName(customBar_top_color) .. "]"
- end -- prompt_checked
- if GetVariable("prompt_checked_custom") == "customBottom" then
-  checkItem (24)
-  menu [24] = menu [24] .. " [" .. RGBColourToName(customBar_bottom_color) .. "]"
- end -- prompt_checked_custom 
- if GetVariable("health_color") ~= nil then
-  checkItem (27)
-  menu [27] = menu [27] .. " [" .. RGBColourToName(GetVariable("health_color")) .. "]"
- end -- health_color
- if GetVariable("health_colorB") ~= nil then
-  checkItem (28)
-  menu [28] = menu [28] .. " [" .. RGBColourToName(GetVariable("health_colorB")) .. "]"
- end -- health_colorB 
- if GetVariable("mana_color") ~= nil then
-  checkItem (30)
-  menu [30] = menu [30] .. " [" .. RGBColourToName(GetVariable("mana_color")) .. "]"
- end -- mana_color
- if GetVariable("mana_colorB") ~= nil then
-  checkItem (31)
-  menu [31] = menu [31] .. " [" .. RGBColourToName(GetVariable("mana_colorB")) .. "]"
- end -- mana_colorB
- if GetVariable("move_color") ~= nil then
-  checkItem (33)
-  menu [33] = menu [33] .. " [" .. RGBColourToName(GetVariable("move_color")) .. "]"
- end -- move_color
- if GetVariable("move_colorB") ~= nil then
-  checkItem (34)
-  menu [34] = menu [34] .. " [" .. RGBColourToName(GetVariable("move_colorB")) .. "]"
- end -- move_colorB
- if GetVariable("enemy_color") ~= nil then
-  checkItem (36)
-  menu [36] = menu [36] .. " [" .. RGBColourToName(GetVariable("enemy_color")) .. "]"
- end -- enemy_color
- if GetVariable("enemy_colorB") ~= nil then
-  checkItem (37)
-  menu [37] = menu [37] .. " [" .. RGBColourToName(GetVariable("enemy_colorB")) .. "]"
- end -- enemy_colorB
- if GetVariable("bar_text_color") ~= nil then
-  checkItem (18)
-  menu [18] = menu [18] .. " [" .. RGBColourToName(GetVariable("bar_text_color")) .. "]"
- end -- bar_text_color
- if GetVariable("cColorLight") == nil and GetVariable("cColorDark") == nil and GetVariable("cColorLighto") == nil and GetVariable("cColorDarko") == nil and GetVariable("cColorLightc") == nil and GetVariable("cColorDarkc") == nil then
-  checkItem (41)
- end -- basic reset
- if GetVariable("cColorLight") ~= nil then
 
-  checkItem (44)
- end -- cColorLight main
- if GetVariable("cColorDark") ~= nil then
-
-  checkItem (45)
- end -- cColorDark main
- if GetVariable("cColorLighto") ~= nil then
-
-  checkItem (48)
- end -- cColorLighto
- if GetVariable("cColorDarko") ~= nil then
-
-  checkItem (49)
- end -- cColorDarko
- if GetVariable("cColorLightc") ~= nil then
-
-  checkItem (52)
- end -- cColorLightc
- if GetVariable("cColorDarkc") ~= nil then
-
-  checkItem (53)
- end -- cColorDarkc
  if GetVariable("starLog_isRec") == "true" then
   menu [58] = "Recording [Stop logging]"
   checkItem (58)
@@ -1788,146 +1783,26 @@ function settings_click_menu ()
  end -- starLog_remPrompt
  result = WindowMenu (titlebar_window, 65, 15, table.concat (menu, "|"))
  if result == "1" then
-  avatar_filename = nil
-  SetVariable("avatar_checked", "one")
-  WindowLoadImage (avatar_window, "avatar", GetInfo (66) .. "Generic/avatars/Default.png")
-  WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)
-  print("Avatar Selected: Default")
  elseif result == "2" then
-  filter = {  bmp = "Bitmap files", png = "Image files" }
-  avatar_filename = utils.filepicker (title, name, extension, filter, save)
-  if avatar_filename == nil then
-   print("Custom Avatar Canceled")
-  else
-   print("Avatar Selected:", avatar_filename)
-   SetVariable("avatar_filename", avatar_filename)
-   SetVariable("avatar_checked", "browse")
-   WindowLoadImage (avatar_window, "avatar", avatar_filename)
-   WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)
-  end -- avatar_filename
  elseif result == "3" then
-  filename = nil
-  DeleteVariable("bgColour")
-  SetVariable("castle_checked", "one")
-  print("Background Selected: Castle 1")
-  SetBackgroundImage(GetInfo (66) .. "Generic/layout/outer_background.png", 0)
  elseif result == "4" then
-  filename = nil
-  SetVariable("castle_checked", "two")
-  DeleteVariable("bgColour")
-  print("Background Selected: Castle 2")
-  SetBackgroundImage(GetInfo (66) .. "Generic/layout/outer_background_two.png", 0)
  elseif result == "5" then
-  filename = nil
-  SetVariable("castle_checked", "three")
-  DeleteVariable("bgColour")
-  print("Background Selected: Castle 3")
-  SetBackgroundImage(GetInfo (66) .. "Generic/layout/outer_background_three.png", 0)
  elseif result == "6" then
-  DeleteVariable("bgColour")
-  filter = {  bmp = "Bitmap files", png = "Image files" }
-  filename = utils.filepicker (title, name, extension, filter, save)
-  if filename == nil then
-   print("Custom Background Image Canceled")
-  else
-   print("Background Selected:", filename)
-   SetVariable("filename", filename)
-   SetVariable("castle_checked", "browse")
-   SetBackgroundImage(GetVariable("filename"), 0)
-  end -- filename
  elseif result == "7" then
-  bgColour = getColour(bgColour)
-  SetVariable("bgColour", bgColour) -- save it for next time they play
-  SetVariable("castle_checked", "none") -- so it doesnt mess with first time default 
-  filename = nil
-  SetBackgroundImage("", 0)
-  SetBackgroundColour(tonumber(GetVariable ("bgColour")))
-  main_text_area ()
  elseif result == "8" then
-  SetVariable("prompt_checked", "default")
-  DeleteVariable("prompt_checked_custom")
-  DeleteVariable("health_color")
-  DeleteVariable("health_colorB")
-  DeleteVariable("mana_color")
-  DeleteVariable("mana_colorB")
-  DeleteVariable("move_color")
-  DeleteVariable("move_colorB")
-  DeleteVariable("enemy_color")
-  DeleteVariable("enemy_colorB")
-  DeleteVariable("bar_text_color")
-  SetVariable("custom_bar_color_highlight_top", ColourNameToRGB("#000000"))
-  SetVariable("custom_bar_color_highlight_bottom", ColourNameToRGB("#000000"))
-  draw_energy_bars ()
  elseif result == "9" then
-  SetVariable("prompt_checked", "blahblah")
-  bar_text_color = getColour(bar_text_color)
-  SetVariable("bar_text_color", bar_text_color)
-  draw_energy_bars ()
  elseif result == "10" then
-  SetVariable("prompt_checked", "shiny")
-  DeleteVariable("prompt_checked_custom")
-  SetVariable("custom_bar_color_highlight_top", ColourNameToRGB("#FFFFFF"))
-  SetVariable("custom_bar_color_highlight_bottom", ColourNameToRGB("#000000"))
-  draw_energy_bars ()
  elseif result == "11" then
-  SetVariable("prompt_checked", "extrashiny")
-  DeleteVariable("prompt_checked_custom")
-  SetVariable("custom_bar_color_highlight_top", ColourNameToRGB("#FFFFFF"))
-  SetVariable("custom_bar_color_highlight_bottom", ColourNameToRGB("#FFFFFF"))
-  draw_energy_bars ()
  elseif result == "12" then
-  SetVariable("prompt_checked", "customTop")
-  customBar_top_color = getColour(customBar_top_color)
-  SetVariable("custom_bar_color_highlight_top", customBar_top_color)
-  draw_energy_bars ()
- elseif result == "13" then
-  SetVariable("prompt_checked_custom", "customBottom")
-  if GetVariable("prompt_checked") ~= "customTop" then
-   SetVariable("prompt_checked", "blahblah")
-  end -- quick fix so I dont have to rewrite code cause im lazy lol
-  customBar_bottom_color = getColour(customBar_bottom_color)
-  SetVariable("custom_bar_color_highlight_bottom", customBar_bottom_color)
-  draw_energy_bars ()	 
+ elseif result == "13" then	 
  elseif result == "14" then
-  SetVariable("prompt_checked", "blahblah")
-  health_color = getColour(health_color)
-  SetVariable("health_color", health_color)
-  draw_energy_bars ()
  elseif result == "15" then
-  SetVariable("prompt_checked", "blahblah")
-  health_colorB = getColour(health_colorB)
-  SetVariable("health_colorB", health_colorB)
-  draw_energy_bars ()
  elseif result == "16" then
-  SetVariable("prompt_checked", "blahblah")
-  mana_color = getColour(mana_color)
-  SetVariable("mana_color", mana_color)
-  draw_energy_bars ()
  elseif result == "17" then
-  SetVariable("prompt_checked", "blahblah")
-  mana_colorB = getColour(mana_colorB)
-  SetVariable("mana_colorB", mana_colorB)
-  draw_energy_bars ()
  elseif result == "18" then
-  SetVariable("prompt_checked", "blahblah")
-  move_color = getColour(move_color)
-  SetVariable("move_color", move_color)
-  draw_energy_bars ()
  elseif result == "19" then
-  SetVariable("prompt_checked", "blahblah")
-  move_colorB = getColour(move_colorB)
-  SetVariable("move_colorB", move_colorB)
-  draw_energy_bars ()
  elseif result == "20" then
-  SetVariable("prompt_checked", "blahblah")
-  enemy_color = getColour(enemy_color)
-  SetVariable("enemy_color", enemy_color)
-  draw_energy_bars ()
  elseif result == "21" then
-  SetVariable("prompt_checked", "blahblah")
-  enemy_colorB = getColour(enemy_colorB)
-  SetVariable("enemy_colorB", enemy_colorB)
-  draw_energy_bars ()
  elseif result == "22" then
   --compass reset
   DeleteVariable("cColorLight")
@@ -2166,30 +2041,10 @@ function settings_click_menu ()
   end -- starlog_folder
  elseif result == "88" then
   OpenBrowser ("https://github.com/TFC-Fumino/MUSHclient_Plugins/issues")
- elseif result == "89" then
-  print("")
-  ColourNote("white", "blue", "Connecting to the server and checking for updates.")
-  ColourNote("white", "blue", "Please wait..")
-  update_plugin ()
-  
+ elseif result == "89" then 
  elseif result == "90" then
- -- sidebar background bar color
-  SBbarC = getColour(SBbarC)
-  SetVariable("SBbarC", SBbarC)
-  sidebar_background ()
-  
  elseif result == "91" then
- -- sidebar background top color
-  SBtopC = getColour(SBtopC)
-  SetVariable("SBtopC", SBtopC)
-  sidebar_background ()
-  
  elseif result == "92" then
- -- sidebar background bottom color
-  SBbotC = getColour(SBbotC)
-  SetVariable("SBbotC", SBbotC)
-  sidebar_background ()
-  
  end -- result
  DrawThemed3DRect(titlebar_window, 65, 0, 104, 13)
  outlined_text (colourWhite, titlebar_window, "settings", 5, 68, 2, 0)
@@ -2204,12 +2059,24 @@ function MouseDown_button(flags, hotspot_id)
  Redraw()
  settings_click_menu()
 end  -- function MouseDown_button
-
 function MouseUp_button(flags, hotspot_id)
 DrawThemed3DRect(titlebar_window, 65, 0, 104, 13)
  outlined_text (colourWhite, titlebar_window, "settings", 5, 68, 2, 0)
 Redraw()
 end  -- function MouseUp_button
+
+function MouseDown_buttonNew(flags, hotspot_id)
+ WindowRectOp(titlebar_window, miniwin.rect_draw_edge, 105, 0, 163, 13, 
+    miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+ outlined_text (colourTFC, titlebar_window, "new settings", 5, 108, 2, 0)
+ Redraw()
+ settings_menu()
+end  -- function MouseDown_buttonNew
+function MouseUp_buttonNew(flags, hotspot_id)
+ DrawThemed3DRect(titlebar_window, 105, 0, 163, 13)
+ outlined_text (colourWhite, titlebar_window, "new settings", 5, 108, 2, 0)
+ Redraw()
+end  -- function MouseUp_buttonNew
 
 function getColour(c)
  local newColour = PickColour (c)
@@ -2971,11 +2838,20 @@ function create_titlebar ()
     12,  -- center it (ignored anyway) 
     6,          -- draw underneath (1) + absolute location (2) + transparent (4)
     0x000000)  -- background colour
+	
+
  DrawThemed3DRect(titlebar_window, 65, 0, 104, 13)
  outlined_text (colourWhite, titlebar_window, "settings", 5, 68, 2, 0)
  WindowAddHotspot(titlebar_window, "bgbutton", 65, 0, 104, 13, 
     "", "", "MouseDown_button", "", "MouseUp_button", "", 
     0, 0)
+ 
+ DrawThemed3DRect(titlebar_window, 105, 0, 163, 13)
+ outlined_text (colourWhite, titlebar_window, "new settings", 5, 108, 2, 0)
+ WindowAddHotspot(titlebar_window, "bgbuttonNew", 105, 0, 163, 13, 
+    "", "", "MouseDown_buttonNew", "", "MouseUp_buttonNew", "", 
+    0, 0)
+	
  -- load the titlebar image
  WindowLoadImage (titlebar_window, "titlebar", GetInfo (66) .. "Generic/layout/Generic_title_small.png")
  -- draw it
@@ -3345,13 +3221,13 @@ end -- function MouseUp_bars
 
 function build_chatLine ()
  WindowCreate(line_sepOne, ENEM_BAR_LEFT_POSITION, sepOne_top, sepW, 4, 4, 6, 0x000000)
- WindowLine (line_sepOne, 0, 2, sepW, 2, ColourNameToRGB ("white"), miniwin.pen_solid, 1)
+ WindowLine (line_sepOne, 0, 2, sepW, 2, GetVariable("SBbarC"), miniwin.pen_solid, 1)
  WindowShow( line_sepOne, true)
 end -- function build_chatLine
 
 function build_promptLine ()
  WindowCreate(line_sepTwo, ENEM_BAR_LEFT_POSITION, bars_bottom - 4, sepW, 1, 4, 6, 0x000000)
- WindowLine (line_sepTwo, 0, 0, sepW, 0, ColourNameToRGB ("white"), miniwin.pen_solid, 1)
+ WindowLine (line_sepTwo, 0, 0, sepW, 0, GetVariable("SBbarC"), miniwin.pen_solid, 1)
  WindowShow( line_sepTwo, true)
 end -- function build_promptLine
 
@@ -3361,7 +3237,7 @@ function OnPluginTelnetRequest (type_msdp, data)
   return true
  elseif type_msdp == MSDP and data == "SENT_DO" then
   -- IAC SB MSDP response IAC SE 
-  SendPkt ("\255\250\69\1REPORT\2CHARACTER_NAME\2RACE\2CLASS\2HEALTH_MAX\2HEALTH\2MANA_MAX\2MANA\2MOVEMENT_MAX\2MOVEMENT\2EXPERIENCE_TNL\2BLOOD\2LEVEL\2HITROLL\2DAMROLL\2AC\2STR\2INT\2WIS\2DEX\2CON\2STR_PERM\2INT_PERM\2WIS_PERM\2DEX_PERM\2CON_PERM\2ALIGNMENT\2AFFECTS\2WIMPY\2OPPONENT_HEALTH\2ROOM_EXITS\2\255\240")
+  SendPkt ("\255\250\69\1REPORT\2AREA_NAME\2PRACTICE\2MONEY\2SERVER_TIME\2SNIPPET_VERSION\2SERVER_ID\2CHARACTER_NAME\2RACE\2CLASS\2CLASS2\2CLASS3\2HEALTH_MAX\2HEALTH\2MANA_MAX\2MANA\2MOVEMENT_MAX\2MOVEMENT\2EXPERIENCE\2EXPERIENCE_TNL\2LEVEL\2ALIGNMENT\2AFFECTS\2WIMPY\2OPPONENT_HEALTH_MAX\2OPPONENT_HEALTH\2OPPONENT_LEVEL\2OPPONENT_NAME\2ROOM_EXITS\2ROOM_NAME\2ROOM_VNUM\2WORLD_TIME\2\255\240")
   return true
  else -- another protocol
   return false
@@ -3424,6 +3300,7 @@ function OnPluginTelnetSubnegotiation (type_msdp, data)
   draw_energy_bars ()
   -- redraw the spell affect icons
   draw_affects ()
+  sidebar_background()
   Redraw()
  end -- if
 end -- function OnPluginTelnetSubnegotiation
@@ -3443,40 +3320,25 @@ function update_plugin()
  async_ok, async = pcall (require, "async")
  if async_ok then
   plugin_page = async.doAsyncRemoteRequest(raw, raw_get, "HTTPS")
+  SetVariable("plugin_updating", "async")
  else
   ColourNote("white", "blue", "Error on plugin update!")
+  SetVariable("plugin_updating", "false")
  end -- async
 end -- function update_plugin
 
 function raw_get(retval, page, status, headers, full_status, request_url)
+ PLUGIN_VERSION = GetPluginInfo(GetPluginID(), 19)
  if status == 200 then
   raw_version = tonumber(string.match(page, '%s%s%s+version="([0-9%.]+)"'))
- end -- status
- if raw_version == PLUGIN_VERSION then
-  ColourNote("white", "blue", PLUGIN_NAME .. " is up-to-date.")
-  ColourNote("white", "blue", "Please reconnect to The Final Challenge to enable MSDP data.")
- elseif raw_version > PLUGIN_VERSION then
-  ColourNote("white", "blue", "An update has been found!")
-  ColourNote("white", "blue", "Updating from version " .. 
-  PLUGIN_VERSION .. " to " .. raw_version .. ". Do not touch anything!")
-  SetVariable("plugin_updating", "true")
-  local file = io.open(GetPluginInfo(GetPluginID(), 6), "w")
-  file:write(page)
-  file:close()
+  SetVariable("plugin_updating", "status")
+  SetVariable("lat_page", page)
+  settings_menu ()
  else
-  ColourNote("white", "blue", "Something has went wrong..")
- end -- raw_version
- raw_version = nil
- if "" == GetAlphaOption("script_prefix") then
-  SetAlphaOption("script_prefix", "\\\\\\")
- end
- if GetVariable("plugin_updating") == "true" then
-  Execute(GetAlphaOption("script_prefix") .. "DoAfterSpecial(1, \"ReloadPlugin('" .. GetPluginID() .. "')\", sendto.script)")
-  ColourNote("white", "blue", PLUGIN_NAME .. " has been updated to the latest version.")
-  ColourNote("white", "blue", "Plugin is now reloading.")
-  ColourNote("white", "blue", "Please save the world and re-open it to see changes.")
+  Note("error: ", status)
   SetVariable("plugin_updating", "false")
- end 
+  settings_menu ()
+ end -- status
 end -- function raw_get
 
 function dc_log (name, line, wildcards, styles)
@@ -3616,39 +3478,2328 @@ end -- alias_star_logger_prev_lines
 
 function sidebar_background()
  bt_height = GetInfo(280) / 2
- WindowCreate (sidebar_bg, SB_BG_LEFT_POSITION, 0, 166, BG_COLOR_HEIGHT, 7, 2, 0x000000)
  sidebar_bgBar = "sidebar_bgBar"
+ 
+if GetVariable("cSelected") == "trans" then
+ WindowCreate (sidebar_bg, SB_BG_LEFT_POSITION, 0, 166, BG_COLOR_HEIGHT, 7, 6, 0x000000)
  WindowCreate (sidebar_bgBar, SB_BG_LEFT_POSITION + 166, 0, 8, BG_COLOR_HEIGHT, 7, 6, 0x000000)
-
- WindowGradient (sidebar_bg, 0, 0, 0, 142,  
-                 ColourNameToRGB ("black"),
-				 SBtopC,
-                 2)
- WindowGradient (sidebar_bg, 0, 142, 0, 284,  
-                 SBtopC,
-				 ColourNameToRGB ("black"),
-                 2)
- WindowGradient (sidebar_bg, 0, 284, 0, 0,  
-                 ColourNameToRGB ("black"),
-				 SBbotC,
-                 2)
-
-	
  WindowGradient (sidebar_bgBar, 0, 0, 0, bt_height - 26,
-                 SBbarC,
-                 ColourNameToRGB ("black"), 
+                 GetVariable("SBbarC"),
+                 GetVariable("SBbarCe"), 
+                 1)
+ WindowGradient (sidebar_bgBar, 0, bt_height + 26, 0, 0,
+                 GetVariable("SBbarC"),
+                 GetVariable("SBbarCe"), 
                  1)
 
- WindowGradient (sidebar_bgBar, 0, bt_height + 26, 0, 0,
-                 SBbarC,
-                 ColourNameToRGB ("black"), 
+elseif GetVariable("cSelected") == "solid" then
+  if SBsolid ~= nil then
+   -- for a solid color background
+   WindowCreate (sidebar_bg, SB_BG_LEFT_POSITION, 0, 166, BG_COLOR_HEIGHT, 7, 2, SBsolid)
+   WindowCreate (sidebar_bgBar, SB_BG_LEFT_POSITION + 166, 0, 8, BG_COLOR_HEIGHT, 7, 6, 0x000000)
+   WindowGradient (sidebar_bgBar, 0, 0, 0, bt_height - 26,
+                 GetVariable("SBbarC"),
+                 GetVariable("SBbarCe"), 
                  1)
+   WindowGradient (sidebar_bgBar, 0, bt_height + 26, 0, 0,
+                 GetVariable("SBbarC"),
+                 GetVariable("SBbarCe"), 
+                 1)
+  end -- SBsolid
+elseif GetVariable("cSelected") == "one" then
+   WindowCreate (sidebar_bg, SB_BG_LEFT_POSITION, 0, 166, BG_COLOR_HEIGHT, 7, 2, SBsolid)
+   WindowCreate (sidebar_bgBar, SB_BG_LEFT_POSITION + 166, 0, 8, BG_COLOR_HEIGHT, 7, 6, 0x000000)
+   WindowGradient (sidebar_bgBar, 0, 0, 0, bt_height - 26,
+                 GetVariable("SBbarC"),
+                 GetVariable("SBbarCe"), 
+                 1)
+   WindowGradient (sidebar_bgBar, 0, bt_height + 26, 0, 0,
+                 GetVariable("SBbarC"),
+                 GetVariable("SBbarCe"), 
+                 1)
+  WindowRectOp (sidebar_bg, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+  if SBtopC ~= nil and SBbotC ~= nil then
+   WindowGradient (sidebar_bg, 0, 0, 0, 0,  
+                 GetVariable("SBtopC"),
+				 GetVariable("SBbotC"),
+                 2)
+  end -- SBtopC and SBbotC
+elseif GetVariable("cSelected") == "two" then
+   WindowCreate (sidebar_bg, SB_BG_LEFT_POSITION, 0, 166, BG_COLOR_HEIGHT, 7, 2, SBsolid)
+   WindowCreate (sidebar_bgBar, SB_BG_LEFT_POSITION + 166, 0, 8, BG_COLOR_HEIGHT, 7, 6, 0x000000)
+   WindowGradient (sidebar_bgBar, 0, 0, 0, bt_height - 26,
+                 GetVariable("SBbarC"),
+                 GetVariable("SBbarCe"), 
+                 1)
+   WindowGradient (sidebar_bgBar, 0, bt_height + 26, 0, 0,
+                 GetVariable("SBbarC"),
+                 GetVariable("SBbarCe"), 
+                 1)
+  WindowRectOp (sidebar_bg, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+  if SBtopC ~= nil and SBbotC ~= nil then
+   WindowGradient (sidebar_bg, 0, 0, 0, BG_COLOR_HEIGHT / 2 - 100,  
+                 GetVariable("SBtopC"),
+				 GetVariable("SBbotC"),
+                 2)
+  end -- SBtopC and SBbotC
+  if GRthree ~= nil and GRfour ~= nil then
+   WindowGradient (sidebar_bg, 0, BG_COLOR_HEIGHT / 2, 0, 0,  
+                GetVariable("GRthree"),
+				GetVariable("GRfour"),
+                 2)
+  end -- GRthree and GRfour
+elseif GetVariable("cSelected") == "three" then
+   WindowCreate (sidebar_bg, SB_BG_LEFT_POSITION, 0, 166, BG_COLOR_HEIGHT, 7, 2, SBsolid)
+   WindowCreate (sidebar_bgBar, SB_BG_LEFT_POSITION + 166, 0, 8, BG_COLOR_HEIGHT, 7, 6, 0x000000)
+   WindowGradient (sidebar_bgBar, 0, 0, 0, bt_height - 26,
+                 GetVariable("SBbarC"),
+                 GetVariable("SBbarCe"), 
+                 1)
+   WindowGradient (sidebar_bgBar, 0, bt_height + 26, 0, 0,
+                 GetVariable("SBbarC"),
+                 GetVariable("SBbarCe"), 
+                 1)
+  WindowRectOp (sidebar_bg, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+  if SBtopC ~= nil and SBbotC ~= nil then
+   WindowGradient (sidebar_bg, 0, 0, 0, 60,  
+                 GetVariable("SBtopC"),
+				 GetVariable("SBbotC"),
+                 2)
+  end -- SBtopC and SBbotC
+  if GRthree ~= nil and GRfour ~= nil then
+   WindowGradient (sidebar_bg, 0, 60, 0, 202,  
+                 GetVariable("GRthree"),
+				 GetVariable("GRfour"),
+                 2)
+  end -- GRthree and GRfour
+  if GRfive ~=nil and GRsix ~= nil then
+   WindowGradient (sidebar_bg, 0, 246, 0, 0,  
+                 GetVariable("GRfive"),
+				 GetVariable("GRsix"),
+                 2)
+  end -- GRfive and GRsix
+elseif GetVariable("cSelected") == "four" then
+   WindowCreate (sidebar_bg, SB_BG_LEFT_POSITION, 0, 166, BG_COLOR_HEIGHT, 7, 2, SBsolid)
+   WindowCreate (sidebar_bgBar, SB_BG_LEFT_POSITION + 166, 0, 8, BG_COLOR_HEIGHT, 7, 6, 0x000000)
+   WindowGradient (sidebar_bgBar, 0, 0, 0, bt_height - 26,
+                 GetVariable("SBbarC"),
+                 GetVariable("SBbarCe"), 
+                 1)
+   WindowGradient (sidebar_bgBar, 0, bt_height + 26, 0, 0,
+                 GetVariable("SBbarC"),
+                 GetVariable("SBbarCe"), 
+                 1)
+  WindowRectOp (sidebar_bg, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+     if SBtopC ~= nil and SBbotC ~= nil then
+      WindowGradient (sidebar_bg, 0, 0, 0, 147,  
+                  GetVariable("SBtopC"),
+				  GetVariable("SBbotC"),
+                  2)
+     end -- SBtopC and SBbotC
+     if GRthree ~= nil and GRfour ~= nil then
+      WindowGradient (sidebar_bg, 0, 147, 0, 202,  
+                  GetVariable("GRthree"),
+	 			  GetVariable("GRfour"),
+                  2)
+     end -- GRthree and GRfour
+     if GRfive ~= nil and GRsix ~= nil then
+      WindowGradient (sidebar_bg, 0, 246, 0, 330,  
+                  GetVariable("GRfive"),
+	 			  GetVariable("GRsix"),
+                  2)
+     end -- GRfive and GRsix
+     if GRseven ~= nil and GReight ~= nil then
+      WindowGradient (sidebar_bg, 0, 330, 0, 0,  
+                  GetVariable("GRseven"),
+   	   			  GetVariable("GReight"),
+                  2)
+     end -- GRseven and GReight
+ end -- cSelected
+ 
+    WindowRectOp(sidebar_bg, miniwin.rect_draw_edge, 1, 203, 164, 245, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all) 
+	WindowFont (sidebar_bg, font, "BolsterBold", 10)  
+	WindowText (sidebar_bg, font, "St", 41, 204, 0, 0, ColourNameToRGB  "yellow")
+	WindowText (sidebar_bg, font, "ar", 57, 204, 0, 0, ColourNameToRGB  "goldenrod")
+	WindowText (sidebar_bg, font, "Logger", 80, 204, 0, 0, ColourNameToRGB  "silver")
+	WindowText (sidebar_bg, font, "Record:", 10, 222, 0, 0, ColourNameToRGB  "white")
+	  WindowCircleOp (sidebar_bg, 4, 63, 222, 80, 239,  -- round rectangle
+                     ColourNameToRGB("yellow"), 0, 2, ColourNameToRGB("red"), 0, 0, 0, 0)
+	  WindowAddHotspot (sidebar_bg, "starL_rec", 63, 222, 80, 239, 
+                    "mouseover_starL", -- MouseOver 
+                    "cancel_mouseover_starL", -- CancelMouseOver 
+                    "mousedown_starL", -- MouseDown 
+                    "cancel_mousedown_starL", -- CancelMouseDown 
+                    "mouseup_starL", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag	
+  DrawThemed3DRect(sidebar_bg, 100, 225, 140, 239)
+  outlined_text (colourWhite, sidebar_bg, "Aliases", 5, 104, 227, 0)
+	  WindowAddHotspot (sidebar_bg, "starL_ali", 100, 225, 140, 239, 
+                    "mouseover_starL_ali", -- MouseOver 
+                    "cancel_mouseover_starL_ali", -- CancelMouseOver 
+                    "mousedown_starL_ali", -- MouseDown 
+                    "cancel_mousedown_starL_ali", -- CancelMouseDown 
+                    "mouseup_starL_ali", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag	
+  if GetVariable("starLog_isRec") == nil then
+   starLog_isRec = false
+   SetVariable("starLog_isRec", "false")
+  end -- starLog_isRec  
+  if starLog_isRec then
+   WindowCircleOp (sidebar_bg, 4, 63, 222, 80, 239,  -- round rectangle
+          ColourNameToRGB("yellow"), 0, 2, ColourNameToRGB("lime"), 0, 0, 0, 0)
+  end -- starLog_recPrev 
+ 
+ MONEY = msdp["MONEY"] or "0"
+ WindowFont (sidebar_bg, font, "BolsterBold", 10)  
+ WindowText (sidebar_bg, font, "Gold: " .. MONEY, 30, 335, 0, 0, ColourNameToRGB  "goldenrod")
+ 
  WindowSetZOrder (sidebar_bg, -1)
  WindowSetZOrder (sidebar_bgBar, -1)
  WindowShow(sidebar_bg, true)
  WindowShow(sidebar_bgBar, true)
 end -- sidebar_background
 
+
+----/ (First Prototype) New settings menu. Currently messy, unfinished, and a bit laggy  /----
+
+if GetVariable("avatar_filename") == nil then
+ SetVariable("avatar_filename", "default")
+end
+
+if GetVariable("castle_checked") == nil then
+ SetVariable("castle_checked", "one")
+end
+
+font = "f"
+infofont = "if"
+settings_men_Lpos = 270
+sidebar_bgBar_prev = "sidebar_bgBar_prev"
+function settings_menu ()
+ settings_menu_win = "settings_menu_win"
+ WindowCreate (settings_menu_win, settings_men_Lpos, 80, 600, 500, 12, 2, 0x000000)    
+ WindowFont (settings_menu_win, font, "BolsterBold", 10)  
+ WindowFont (settings_menu_win, infofont, "Franklin Gothic", 8)
+ font_height = WindowFontInfo (settings_menu_win, font, 1)  -- height
+ WindowLoadImage (settings_menu_win, "setmenubg", GetInfo (66) .. "Generic/layout/outer_background.png")
+ WindowLoadImage (settings_menu_win, "setmenubgtwo", GetInfo (66) .. "Generic/layout/outer_background_two.png")
+ WindowLoadImage (settings_menu_win, "setmenubgthree", GetInfo (66) .. "Generic/layout/outer_background_three.png")
+ if GetVariable("castle_checked") == "browse" then
+  WindowLoadImage (settings_menu_win, "setmenubgbrowse", GetVariable("filename"))
+ end -- castle_checked
+ WindowRectOp (settings_menu_win, 2, 0, 0, 0, 0, GetVariable("SBbarC"))
+ if GetVariable("castle_checked") == "one" then
+  WindowImageOp (settings_menu_win, 2, 0, 15, 0, 0,    -- rectangle 
+              ColourNameToRGB("blue"), 5, 1, 
+              ColourNameToRGB("cyan"), "setmenubg")
+ end -- castle_checked
+ if GetVariable("castle_checked") == "two" then
+  WindowImageOp (settings_menu_win, 2, 0, 15, 0, 0,    -- rectangle 
+              ColourNameToRGB("blue"), 5, 1, 
+              ColourNameToRGB("cyan"), "setmenubgtwo") 
+ end -- castle_checked
+ if GetVariable("castle_checked") == "three" then
+  WindowImageOp (settings_menu_win, 2, 0, 15, 0, 0,    -- rectangle 
+              ColourNameToRGB("blue"), 5, 1, 
+              ColourNameToRGB("cyan"), "setmenubgthree") 
+ end -- castle_checked
+  if GetVariable("castle_checked") == "browse" then
+  WindowImageOp (settings_menu_win, 2, 0, 15, 0, 0,    -- rectangle 
+              ColourNameToRGB("blue"), 5, 1, 
+              ColourNameToRGB("cyan"), "setmenubgbrowse") 
+ end -- castle_checked
+ if GetVariable("castle_checked") == "none" then
+  if GetVariable("bgColour") ~= nil then
+   WindowRectOp (settings_menu_win, 2, 0, 15, 0, 0, tonumber(GetVariable("bgColour")))
+  end -- bgColour
+ end -- castle_checked
+ WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 10, 115, 200, 250, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+ WindowRectOp (settings_menu_win, 4, 0, 0, 0, 0, GetVariable("SBbarCe"), GetVariable("SBbarCe"))
+ links = {
+ { text = "Avatar", tip = "", page = "avatar_set" },
+ { text = "Background", tip = "", page = "background_set" },
+ { text = "Sidebar Background", tip = "", page = "sidebar_set" },
+ { text = "Prompt Bars", tip = "", page = "promptbar_set" },
+ { text = "Compass", tip = "", page = "compass_set" },
+ { text = "Star Logger", tip = "", page = "starlogger_set" }, 
+ { text = "Report an Issue", tip = "", page = "reportissue_set" },
+ { text = "Check and Update Plugin", tip = "", page = "pluginupdate_set" }
+  } -- end of links table
+  -- position for first hyperlink  
+  x = 15    -- all text indented this far in
+  y = 115    -- first hyperlink this far down              
+  maxTextWidth = 0
+  for k, v in ipairs (links) do
+    maxTextWidth = math.max (maxTextWidth, WindowTextWidth(settings_menu_win, font, v.text))
+  end -- for
+  WindowText (settings_menu_win, font, "[X]", 573, 20, 0, 0, ColourNameToRGB  "red")
+  WindowAddHotspot (settings_menu_win, "close", 573, 20, 600, 28, 
+                    "mouseover_close", -- MouseOver 
+                    "cancel_mouseover_close", -- CancelMouseOver 
+                    "mousedown_close", -- MouseDown 
+                    "cancel_mousedown_close", -- CancelMouseDown 
+                    "mouseup_close", -- MouseUp 
+                    "Close settings menu", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+  for k, v in ipairs (links) do
+    MakeHyperlink (k, v)
+  end -- for
+ WindowLoadImage (settings_menu_win, "title_set", GetInfo (66) .. "Generic/layout/Generic_title.png")
+ WindowDrawImage (settings_menu_win, "title_set", 69, 20, 0, 0, 3)  -- draw it 
+ WindowText (settings_menu_win, font, "SETTINGS", 270, 20, 0, 0, ColourNameToRGB  "white")
+ 
+  if pageset ~= "sidebar_set" and pageset ~= nil then
+   WindowShow (sidebar_bgBar_prev, false)
+  else
+   WindowShow (sidebar_bgBar_prev, true)
+ end -- pageset
+ 
+ if pageset ~= nil then
+ ----/  AVATAR SETTINGS  /----
+ SetVariable("plugin_updating", "false")
+   if pageset == "avatar_set" then
+    WindowText (settings_menu_win, font, "Avatar Settings", 45, 270, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 235, 250, 555, 480, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+    if GetVariable("avatar_checked") == "one" then
+     WindowLoadImage (settings_menu_win, "avatar", GetInfo (66) .. "Generic/avatars/Default.png")
+	end -- avatar_checked
+    if GetVariable("avatar_checked") == "browse" then
+     WindowLoadImage (settings_menu_win, "avatar", GetVariable("avatar_filename"))
+    end -- avatar check
+	WindowDrawImage (settings_menu_win, "avatar", 35, 298, 167, 415, 2)
+    WindowText (settings_menu_win, font, "Default Avatar", 245, 270, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 360, 272, 375, 286, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+	if isdefault then
+     WindowText (settings_menu_win, infofont, "X", 364, 272, 0, 0, ColourNameToRGB  "white")
+	end -- isdefault
+	  WindowAddHotspot (settings_menu_win, "default_avatar", 245, 270, 375, 286, 
+                    "mouseover_av", -- MouseOver 
+                    "cancel_mouseover_av", -- CancelMouseOver 
+                    "mousedown_av", -- MouseDown 
+                    "cancel_mousedown_av", -- CancelMouseDown 
+                    "mouseup_av", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+	WindowText (settings_menu_win, font, "Select Custom Image:", 245, 300, 0, 0, ColourNameToRGB  "white")
+	DrawThemed3DRect(settings_menu_win, 245, 320, 300, 335)
+	WindowText (settings_menu_win, infofont, "Browse..", 248, 320, 0, 0, ColourNameToRGB  "white")
+	  WindowAddHotspot (settings_menu_win, "setbrowse", 245, 320, 300, 335, 
+                    "mouseover_br", -- MouseOver 
+                    "cancel_mouseover_br", -- CancelMouseOver 
+                    "mousedown_br", -- MouseDown 
+                    "cancel_mousedown_br", -- CancelMouseDown 
+                    "mouseup_br", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+	WindowRectOp (settings_menu_win, 2, 305, 320, 530, 335, ColourNameToRGB("white"))
+	if GetVariable("avatar_checked") == "one" then
+	 WindowText (settings_menu_win, infofont, "No file selected...", 307, 321, 0, 0, ColourNameToRGB  "black")
+	else
+	 WindowText (settings_menu_win, infofont, GetVariable("avatar_filename"), 307, 321, 0, 0, ColourNameToRGB  "black")
+	end -- avatar_checked
+
+   elseif pageset == "background_set" then
+   ----/  BACKGROUND SETTINGS  /----
+   SetVariable("plugin_updating", "false")
+    WindowText (settings_menu_win, font, "Background Settings", 30, 270, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 235, 250, 555, 480, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+
+    WindowText (settings_menu_win, font, "Castle 1", 245, 270, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 310, 272, 325, 286, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+			 
+ if GetVariable("castle_checked") == "one" then
+   	 WindowDrawImage (settings_menu_win, "setmenubg", 35, 298, 167, 415, 2)  -- draw it 
+     WindowText (settings_menu_win, infofont, "X", 314, 272, 0, 0, ColourNameToRGB  "white")
+ end -- castle_checked
+ if GetVariable("castle_checked") == "two" then
+   	 WindowDrawImage (settings_menu_win, "setmenubgtwo", 35, 298, 167, 415, 2)  -- draw it 
+     WindowText (settings_menu_win, infofont, "X", 314, 301, 0, 0, ColourNameToRGB  "white")
+ end -- castle_checked
+ if GetVariable("castle_checked") == "three" then
+  WindowDrawImage (settings_menu_win, "setmenubgthree", 35, 298, 167, 415, 2)  -- draw it
+  WindowText (settings_menu_win, infofont, "X", 314, 331, 0, 0, ColourNameToRGB  "white")
+ end -- castle_checked
+ if GetVariable("castle_checked") == "browse" then
+  WindowDrawImage (settings_menu_win, "setmenubgbrowse", 35, 298, 167, 415, 2)  -- draw it
+ end -- castle_checked
+
+	  WindowAddHotspot (settings_menu_win, "default_castleone", 245, 270, 325, 286, 
+                    "mouseover_castle", -- MouseOver 
+                    "cancel_mouseover_castle", -- CancelMouseOver 
+                    "mousedown_castle", -- MouseDown 
+                    "cancel_mousedown_castle", -- CancelMouseDown 
+                    "mouseup_castle", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+
+    WindowText (settings_menu_win, font, "Castle 2", 245, 300, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 310, 300, 325, 315, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+	  WindowAddHotspot (settings_menu_win, "default_castletwo", 245, 300, 325, 315, 
+                    "mouseover_castlet", -- MouseOver 
+                    "cancel_mouseover_castlet", -- CancelMouseOver 
+                    "mousedown_castlet", -- MouseDown 
+                    "cancel_mousedown_castlet", -- CancelMouseDown 
+                    "mouseup_castlet", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+					
+    WindowText (settings_menu_win, font, "Castle 3", 245, 330, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 310, 330, 325, 345, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+	  WindowAddHotspot (settings_menu_win, "default_castlethree", 245, 330, 325, 345, 
+                    "mouseover_castleth", -- MouseOver 
+                    "cancel_mouseover_castleth", -- CancelMouseOver 
+                    "mousedown_castleth", -- MouseDown 
+                    "cancel_mousedown_castleth", -- CancelMouseDown 
+                    "mouseup_castleth", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+					
+	WindowText (settings_menu_win, font, "Select Custom Image:", 245, 360, 0, 0, ColourNameToRGB  "white")
+	DrawThemed3DRect(settings_menu_win, 245, 380, 300, 395)
+	WindowText (settings_menu_win, infofont, "Browse..", 248, 380, 0, 0, ColourNameToRGB  "white")
+	  WindowAddHotspot (settings_menu_win, "setbrowsebg", 245, 380, 300, 395, 
+                    "mouseover_brbg", -- MouseOver 
+                    "cancel_mouseover_brbg", -- CancelMouseOver 
+                    "mousedown_brbg", -- MouseDown 
+                    "cancel_mousedown_brbg", -- CancelMouseDown 
+                    "mouseup_brbg", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+	WindowRectOp (settings_menu_win, 2, 305, 380, 530, 395, ColourNameToRGB("white"))
+	if GetVariable("castle_checked") == "browse" then
+	 WindowText (settings_menu_win, infofont, GetVariable("filename"), 307, 381, 0, 0, ColourNameToRGB  "black")
+	else
+	 WindowText (settings_menu_win, infofont, "No image file selected..", 307, 381, 0, 0, ColourNameToRGB  "black")
+	end -- castle_checked
+	
+	WindowText (settings_menu_win, font, "Select Solid Color:", 245, 410, 0, 0, ColourNameToRGB  "white")
+	DrawThemed3DRect(settings_menu_win, 245, 430, 300, 445)
+	WindowText (settings_menu_win, infofont, "Select..", 248, 430, 0, 0, ColourNameToRGB  "white")
+	  WindowAddHotspot (settings_menu_win, "setcbg", 245, 430, 300, 445, 
+                    "mouseover_cbg", -- MouseOver 
+                    "cancel_mouseover_cbg", -- CancelMouseOver 
+                    "mousedown_cbg", -- MouseDown 
+                    "cancel_mousedown_cbg", -- CancelMouseDown 
+                    "mouseup_cbg", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+	if GetVariable("castle_checked") == "none" then
+	 if GetVariable("bgColour") ~= nil then
+	  WindowRectOp (settings_menu_win, 2, 305, 430, 530, 445, ColourNameToRGB("white"))
+	  WindowText (settings_menu_win, infofont, RGBColourToName(GetVariable("bgColour")), 307, 431, 0, 0, ColourNameToRGB  "black")
+	 end -- bgColour
+	else
+	 WindowRectOp (settings_menu_win, 2, 305, 430, 530, 445, ColourNameToRGB("white"))
+	 WindowText (settings_menu_win, infofont, "No color selected..", 307, 431, 0, 0, ColourNameToRGB  "black")
+	end -- castle_checked
+	
+	
+	
+   elseif pageset == "sidebar_set" then
+   ----/  SIDEBAR BACKGROUND SETTINGS  /----
+   SetVariable("plugin_updating", "false")
+    WindowText (settings_menu_win, font, "Sidebar Background Settings", 12, 270, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 235, 250, 555, 480, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+	sb_prevB ()
+	if GetVariable("cSelected") == "solid" then
+     WindowCreate (sidebar_bg_prev, settings_men_Lpos + 85, 395, 45, 115, 7, 2, 0x000000)
+     WindowGradient (sidebar_bg_prev, 0, 0, 0, 0,
+                 GetVariable("SBsolid"),
+                 GetVariable("SBsolid"), 
+                 1)
+     WindowShow ("sidebar_bg_prev", true)
+	elseif GetVariable("cSelected") == "one" then
+     if SBtopC ~= nil and SBbotC ~= nil then
+      WindowGradient (sidebar_bg_prev, 0, 0, 0, 0,  
+                 GetVariable("SBtopC"),
+				 GetVariable("SBbotC"),
+                 2)
+     end -- SBtopC
+     WindowShow (sidebar_bg_prev, true)
+	elseif GetVariable("cSelected") == "two" then
+     if SBbotC ~=nil and SBtopC ~= nil then
+      WindowGradient (sidebar_bg_prev, 0, 0, 0, 40,  
+                 GetVariable("SBtopC"),
+				 GetVariable("SBbotC"),
+                 2)
+      end -- SBbotC and SBtopC
+     if GRthree ~= nil and GRfour ~= nil then
+      WindowGradient (sidebar_bg_prev, 0, 60, 0, 0,  
+                 GetVariable("GRthree"),
+				 GetVariable("GRfour"),
+                 2)
+     end -- GRthree and GRfour
+     WindowShow (sidebar_bg_prev, true)
+	elseif GetVariable("cSelected") == "three" then
+     if SBtopC ~= nil and SBbotC ~= nil then
+      WindowGradient (sidebar_bg_prev, 0, 0, 0, 16,  
+                 GetVariable("SBtopC"),
+				 GetVariable("SBbotC"),
+                 2)
+     end -- SBtopC and SBbotC
+     if GRthree ~= nil and GRfour ~= nil then
+      WindowGradient (sidebar_bg_prev, 0, 16, 0, 33,  
+                 GetVariable("GRthree"),
+				 GetVariable("GRfour"),
+                 2)
+     end -- GRthree and GRfour
+     if GRfive ~= nil and GRsix ~= nil then
+      WindowGradient (sidebar_bg_prev, 0, 45, 0, 0,  
+                 GetVariable("GRfive"),
+				 GetVariable("GRsix"),
+                 2)
+     end -- GRfive and GRsix
+     WindowShow (sidebar_bg_prev, true)
+	elseif GetVariable("cSelected") == "four" then
+     if SBtopC ~= nil and SBbotC ~= nil then
+      WindowGradient (sidebar_bg_prev, 0, 0, 0, 16,  
+                  GetVariable("SBtopC"),
+				  GetVariable("SBbotC"),
+                  2)
+     end -- SBtopC and SBbotC
+     if GRthree ~= nil and GRfour ~= nil then
+      WindowGradient (sidebar_bg_prev, 0, 16, 0, 33,  
+                  GetVariable("GRthree"),
+	 			  GetVariable("GRfour"),
+                  2)
+     end -- GRthree and GRfour
+     if GRfive ~= nil and GRsix ~= nil then
+      WindowGradient (sidebar_bg_prev, 0, 45, 0, 60,  
+                  GetVariable("GRfive"),
+	 			  GetVariable("GRsix"),
+                  2)
+     end -- GRfive and GRsix
+     if GRseven ~= nil and GReight ~= nil then
+      WindowGradient (sidebar_bg_prev, 0, 60, 0, 0,  
+                  GetVariable("GRseven"),
+   	   			  GetVariable("GReight"),
+                  2)
+     end -- GRseven and GReight
+     WindowShow (sidebar_bg_prev, true)
+	end -- cSelected
+    WindowText (settings_menu_win, font, "Solid Color:", 245, 270, 0, 0, ColourNameToRGB  "white")
+	if GetVariable("SBsolid") ~= nil then
+	 WindowCircleOp (settings_menu_win, 4, 325, 272, 340, 286,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GetVariable("SBsolid"), 0, 0, 0, 0)	
+	else
+	 WindowCircleOp (settings_menu_win, 4, 325, 272, 340, 286,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GetVariable("SBsolid"), 5, 0, 0, 0)
+	end -- SBsolid	 
+	  WindowAddHotspot (settings_menu_win, "sbbg_solid", 245, 270, 340, 286, 
+                    "mouseover_sb_solid", -- MouseOver 
+                    "cancel_mouseover_sb_solid", -- CancelMouseOver 
+                    "mousedown_sb_solid", -- MouseDown 
+                    "cancel_mousedown_sb_solid", -- CancelMouseDown 
+                    "mouseup_solid", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+			 
+	WindowText (settings_menu_win, font, "Transparent", 365, 270, 0, 0, ColourNameToRGB  "white")
+	if GetVariable("SBtransparent") == "true" then
+     WindowText (settings_menu_win, infofont, "X", 464, 272, 0, 0, ColourNameToRGB  "white")
+	end -- SBtransparent
+     WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 460, 272, 475, 286, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+	  WindowAddHotspot (settings_menu_win, "sbbg_trans", 365, 270, 475, 286, 
+                    "mouseover_sb_trans", -- MouseOver 
+                    "cancel_mouseover_sb_trans", -- CancelMouseOver 
+                    "mousedown_sb_trans", -- MouseDown 
+                    "cancel_mousedown_sb_trans", -- CancelMouseDown 
+                    "mouseup_sb_trans", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+			 
+    WindowText (settings_menu_win, font, "Gradients:", 245, 300, 0, 0, ColourNameToRGB  "white")
+	WindowText (settings_menu_win, font, "1", 327, 300, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 340, 300, 355, 315, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+	if GetVariable("cSelected") == "one" then
+	 WindowText (settings_menu_win, infofont, "X", 344, 301, 0, 0, ColourNameToRGB  "white")
+	end -- cSelected
+	  WindowAddHotspot (settings_menu_win, "sbbg_grOne", 327, 300, 355, 315, 
+                    "mouseover_sb_grOne", -- MouseOver 
+                    "cancel_mouseover_sb_grOne", -- CancelMouseOver 
+                    "mousedown_sb_grOne", -- MouseDown 
+                    "cancel_mousedown_sb_grOne", -- CancelMouseDown 
+                    "mouseup_sb_grOne", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+	WindowText (settings_menu_win, font, "2", 372, 300, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 385, 300, 400, 315, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+	if GetVariable("cSelected") == "two" then
+	 WindowText (settings_menu_win, infofont, "X", 389, 301, 0, 0, ColourNameToRGB  "white")
+	end -- cSelected
+	  WindowAddHotspot (settings_menu_win, "sbbg_grTwo", 372, 300, 400, 315, 
+                    "mouseover_sb_grTwo", -- MouseOver 
+                    "cancel_mouseover_sb_grTwo", -- CancelMouseOver 
+                    "mousedown_sb_grTwo", -- MouseDown 
+                    "cancel_mousedown_sb_grTwo", -- CancelMouseDown 
+                    "mouseup_sb_grTwo", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+	WindowText (settings_menu_win, font, "3", 417, 300, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 430, 300, 445, 315, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+	if GetVariable("cSelected") == "three" then
+	 WindowText (settings_menu_win, infofont, "X", 434, 301, 0, 0, ColourNameToRGB  "white")
+	end -- cSelected
+	  WindowAddHotspot (settings_menu_win, "sbbg_grThree", 417, 300, 445, 315, 
+                    "mouseover_sb_grThree", -- MouseOver 
+                    "cancel_mouseover_sb_grThree", -- CancelMouseOver 
+                    "mousedown_sb_grThree", -- MouseDown 
+                    "cancel_mousedown_sb_grThree", -- CancelMouseDown 
+                    "mouseup_sb_grThree", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+	WindowText (settings_menu_win, font, "4", 462, 300, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 475, 300, 490, 315, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+	if GetVariable("cSelected") == "four" then
+	 WindowText (settings_menu_win, infofont, "X", 479, 301, 0, 0, ColourNameToRGB  "white")
+	end -- cSelected			 
+	  WindowAddHotspot (settings_menu_win, "sbbg_grFour", 462, 300, 490, 315, 
+                    "mouseover_sb_grFour", -- MouseOver 
+                    "cancel_mouseover_sb_grFour", -- CancelMouseOver 
+                    "mousedown_sb_grFour", -- MouseDown 
+                    "cancel_mousedown_sb_grFour", -- CancelMouseDown 
+                    "mouseup_sb_grFour", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+    WindowText (settings_menu_win, font, "Gradient Colors:", 245, 330, 0, 0, ColourNameToRGB  "white")
+	
+	if SBtopC ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 245, 350, 260, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, SBtopC, 0, 0, 0, 0)
+	else
+	  WindowCircleOp (settings_menu_win, 4, 245, 350, 260, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2,  GetVariable("SBtopC"), 0, 0, 0, 0)
+	end -- SBtopC
+	  WindowAddHotspot (settings_menu_win, "sbbg_grCa", 245, 350, 260, 365, 
+                    "mouseover_sb_grCa", -- MouseOver 
+                    "cancel_mouseover_sb_grCa", -- CancelMouseOver 
+                    "mousedown_sb_grCa", -- MouseDown 
+                    "cancel_mousedown_sb_grCa", -- CancelMouseDown 
+                    "mouseup_sb_grCa", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+	if SBbotC ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 265, 350, 280, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, SBbotC, 0, 0, 0, 0)
+	else
+	  WindowCircleOp (settings_menu_win, 4, 265, 350, 280, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GetVariable("SBbotC"), 0, 0, 0, 0)
+	end -- SBbotC
+	  WindowAddHotspot (settings_menu_win, "sbbg_grCb", 265, 350, 280, 365, 
+                    "mouseover_sb_grCb", -- MouseOver 
+                    "cancel_mouseover_sb_grCb", -- CancelMouseOver 
+                    "mousedown_sb_grCb", -- MouseDown 
+                    "cancel_mousedown_sb_grCb", -- CancelMouseDown 
+                    "mouseup_sb_grCb", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+					
+	if GRthree ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 315, 350, 330, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GRthree, 0, 0, 0, 0)
+	else
+	  WindowCircleOp (settings_menu_win, 4, 315, 350, 330, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GetVariable("GRthree"), 0, 0, 0, 0)
+	end -- GRthree
+	  WindowAddHotspot (settings_menu_win, "sbbg_grCc", 315, 350, 330, 365, 
+                    "mouseover_sb_grCc", -- MouseOver 
+                    "cancel_mouseover_sb_grCc", -- CancelMouseOver 
+                    "mousedown_sb_grCc", -- MouseDown 
+                    "cancel_mousedown_sb_grCc", -- CancelMouseDown 
+                    "mouseup_sb_grCc", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+	if GRfour ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 335, 350, 350, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GRfour, 0, 0, 0, 0)	
+	else
+	  WindowCircleOp (settings_menu_win, 4, 335, 350, 350, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GetVariable("GRfour"), 0, 0, 0, 0)	
+	end -- GRfour
+	  WindowAddHotspot (settings_menu_win, "sbbg_grCd", 335, 350, 350, 365, 
+                    "mouseover_sb_grCd", -- MouseOver 
+                    "cancel_mouseover_sb_grCd", -- CancelMouseOver 
+                    "mousedown_sb_grCd", -- MouseDown 
+                    "cancel_mousedown_sb_grCd", -- CancelMouseDown 
+                    "mouseup_sb_grCd", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+    if GRfive ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 385, 350, 400, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GRfive, 0, 0, 0, 0)
+	else
+	  WindowCircleOp (settings_menu_win, 4, 385, 350, 400, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GetVariable("GRfive"), 0, 0, 0, 0)
+	end -- GRfive
+	  WindowAddHotspot (settings_menu_win, "sbbg_grCe", 385, 350, 400, 365, 
+                    "mouseover_sb_grCe", -- MouseOver 
+                    "cancel_mouseover_sb_grCe", -- CancelMouseOver 
+                    "mousedown_sb_grCe", -- MouseDown 
+                    "cancel_mousedown_sb_grCe", -- CancelMouseDown 
+                    "mouseup_sb_grCe", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+	if GRsix ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 405, 350, 420, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GRsix, 0, 0, 0, 0)
+	else
+	  WindowCircleOp (settings_menu_win, 4, 405, 350, 420, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+	end -- GRsix
+	  WindowAddHotspot (settings_menu_win, "sbbg_grCf", 405, 350, 420, 365, 
+                    "mouseover_sb_grCf", -- MouseOver 
+                    "cancel_mouseover_sb_grCf", -- CancelMouseOver 
+                    "mousedown_sb_grCf", -- MouseDown 
+                    "cancel_mousedown_sb_grCf", -- CancelMouseDown 
+                    "mouseup_sb_grCf", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+	if GRseven ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 455, 350, 470, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GRseven, 0, 0, 0, 0)
+	else
+	  WindowCircleOp (settings_menu_win, 4, 455, 350, 470, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GetVariable("GRseven"), 0, 0, 0, 0)
+	end -- GRseven
+	  WindowAddHotspot (settings_menu_win, "sbbg_grCg", 455, 350, 470, 365, 
+                    "mouseover_sb_grCg", -- MouseOver 
+                    "cancel_mouseover_sb_grCg", -- CancelMouseOver 
+                    "mousedown_sb_grCg", -- MouseDown 
+                    "cancel_mousedown_sb_grCg", -- CancelMouseDown 
+                    "mouseup_sb_grCg", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+	if GReight ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 475, 350, 490, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GReight, 0, 0, 0, 0)
+	else
+	  WindowCircleOp (settings_menu_win, 4, 475, 350, 490, 365,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GetVariable("GReight"), 0, 0, 0, 0)
+	end -- GReight
+	  WindowAddHotspot (settings_menu_win, "sbbg_grCh", 475, 350, 490, 365, 
+                    "mouseover_sb_grCh", -- MouseOver 
+                    "cancel_mouseover_sb_grCh", -- CancelMouseOver 
+                    "mousedown_sb_grCh", -- MouseDown 
+                    "cancel_mousedown_sb_grCh", -- CancelMouseDown 
+                    "mouseup_sb_grCh", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+
+    WindowText (settings_menu_win, font, "Side Border Colors:", 245, 380, 0, 0, ColourNameToRGB  "white")
+    if GetVariable("SBbarC") ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 385, 380, 400, 395,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GetVariable("SBbarC"), 0, 0, 0, 0)	
+	else
+	  WindowCircleOp (settings_menu_win, 4, 385, 380, 400, 395,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, ColourNameToRGB("red"), 0, 0, 0, 0)
+    end -- SBbarC
+	  WindowAddHotspot (settings_menu_win, "sbbg_brCa", 385, 380, 400, 395, 
+                    "mouseover_sb_brCa", -- MouseOver 
+                    "cancel_mouseover_sb_brCa", -- CancelMouseOver 
+                    "mousedown_sb_brCa", -- MouseDown 
+                    "cancel_mousedown_sb_brCa", -- CancelMouseDown 
+                    "mouseup_sb_brCa", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+	if GetVariable("SBbarCe") ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 405, 380, 420, 395,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, GetVariable("SBbarCe"), 0, 0, 0, 0)	
+	else
+	  WindowCircleOp (settings_menu_win, 4, 405, 380, 420, 395,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, ColourNameToRGB("black"), 0, 0, 0, 0)
+	end -- SBbarCe
+	  WindowAddHotspot (settings_menu_win, "sbbg_brCb", 405, 380, 420, 395, 
+                    "mouseover_sb_brCb", -- MouseOver 
+                    "cancel_mouseover_sb_brCb", -- CancelMouseOver 
+                    "mousedown_sb_brCb", -- MouseDown 
+                    "cancel_mousedown_sb_brCb", -- CancelMouseDown 
+                    "mouseup_sb_brCb", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag	
+					
+   elseif pageset == "promptbar_set" then
+   ----/  PROMPT BAR SETTINGS  /----
+   SetVariable("plugin_updating", "false")
+    WindowText (settings_menu_win, font, "Prompt Bar Settings", 27, 270, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 235, 250, 555, 480, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+			 
+    WindowText (settings_menu_win, font, "Default colors:", 245, 270, 0, 0, ColourNameToRGB  "white")
+     WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 350, 270, 365, 285, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+	if GetVariable("prompt_checked") == "default" then
+	 WindowText (settings_menu_win, infofont, "X", 354, 271, 0, 0, ColourNameToRGB  "white")
+	else
+	end -- prompt_checked
+	  WindowAddHotspot (settings_menu_win, "prmtB_default", 245, 270, 365, 285, 
+                    "mouseover_prompt_set", -- MouseOver 
+                    "cancel_mouseover_prompt_set", -- CancelMouseOver 
+                    "mousedown_prompt_set", -- MouseDown 
+                    "cancel_mousedown_prompt_set", -- CancelMouseDown 
+                    "mouseup_prompt_set", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+			 
+    WindowText (settings_menu_win, font, "Font Color:", 245, 300, 0, 0, ColourNameToRGB  "white")
+	 if bar_text_color ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 325, 300, 340, 315,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, bar_text_color, 0, 0, 0, 0)	 
+	 else
+	  WindowCircleOp (settings_menu_win, 4, 325, 300, 340, 315,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+	 end -- bar_text_color
+	  WindowAddHotspot (settings_menu_win, "prmtB_font", 245, 300, 340, 315, 
+                    "mouseover_prompt_ft", -- MouseOver 
+                    "cancel_mouseover_prompt_ft", -- CancelMouseOver 
+                    "mousedown_prompt_ft", -- MouseDown 
+                    "cancel_mousedown_prompt_ft", -- CancelMouseDown 
+                    "mouseup_prompt_ft", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag		
+
+    WindowText (settings_menu_win, font, "Edge Colors:", 375, 300, 0, 0, ColourNameToRGB  "white")
+	 if custom_bar_color_highlight_top ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 465, 300, 480, 315,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, custom_bar_color_highlight_top, 0, 0, 0, 0)
+	 else
+	  WindowCircleOp (settings_menu_win, 4, 465, 300, 480, 315,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+	 end -- custom_bar_color_highlight_top
+	  WindowAddHotspot (settings_menu_win, "prmtB_edgO", 465, 300, 480, 315, 
+                    "mouseover_prompt_edgO", -- MouseOver 
+                    "cancel_mouseover_prompt_edgO", -- CancelMouseOver 
+                    "mousedown_prompt_edgO", -- MouseDown 
+                    "cancel_mousedown_prompt_edgO", -- CancelMouseDown 
+                    "mouseup_prompt_edgO", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag		
+	 if custom_bar_color_highlight_bottom ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 485, 300, 500, 315,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, custom_bar_color_highlight_bottom, 0, 0, 0, 0)
+	 else
+	  WindowCircleOp (settings_menu_win, 4, 485, 300, 500, 315,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+	 end -- custom_bar_color_highlight_bottom
+	  WindowAddHotspot (settings_menu_win, "prmtB_edgT", 485, 300, 500, 315, 
+                    "mouseover_prompt_edgT", -- MouseOver 
+                    "cancel_mouseover_prompt_edgT", -- CancelMouseOver 
+                    "mousedown_prompt_edgT", -- MouseDown 
+                    "cancel_mousedown_prompt_edgT", -- CancelMouseDown 
+                    "mouseup_prompt_edgT", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag		
+
+ 
+    WindowText (settings_menu_win, font, "Bars Center Colors", 320, 330, 0, 0, ColourNameToRGB  "white")
+	WindowLine (settings_menu_win, 245, 345, 540, 345, colourWhite, miniwin.pen_solid, 1)
+	
+    WindowText (settings_menu_win, font, "Full", 345, 350, 0, 0, ColourNameToRGB  "white")
+	WindowText (settings_menu_win, font, "Empty", 385, 350, 0, 0, ColourNameToRGB  "white")
+	WindowLine (settings_menu_win, 379, 373, 379, 432, colourWhite, miniwin.pen_solid, 1)
+	WindowText (settings_menu_win, font, "Enemy:", 245, 370, 0, 0, ColourNameToRGB  "white")
+	 if enemy_color ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 350, 370, 365, 385,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, enemy_color, 0, 0, 0, 0) 
+	 else
+	  WindowCircleOp (settings_menu_win, 4, 350, 370, 365, 385,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+	 end -- enemy_color
+	  WindowAddHotspot (settings_menu_win, "prmtB_EbarF", 350, 370, 365, 385, 
+                    "mouseover_prompt_EbarF", -- MouseOver 
+                    "cancel_mouseover_prompt_EbarF", -- CancelMouseOver 
+                    "mousedown_prompt_EbarF", -- MouseDown 
+                    "cancel_mousedown_prompt_EbarF", -- CancelMouseDown 
+                    "mouseup_prompt_EbarF", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag	
+	 if enemy_colorB ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 395, 370, 410, 385,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, enemy_colorB, 0, 0, 0, 0) 
+	 else
+	  WindowCircleOp (settings_menu_win, 4, 395, 370, 410, 385,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+	 end -- enemy_colorB
+	  WindowAddHotspot (settings_menu_win, "prmtB_EbarE", 395, 370, 410, 385, 
+                    "mouseover_prompt_EbarE", -- MouseOver 
+                    "cancel_mouseover_prompt_EbarE", -- CancelMouseOver 
+                    "mousedown_prompt_EbarE", -- MouseDown 
+                    "cancel_mousedown_prompt_EbarE", -- CancelMouseDown 
+                    "mouseup_prompt_EbarE", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag	
+	WindowText (settings_menu_win, font, "Health:", 245, 385, 0, 0, ColourNameToRGB  "white")
+	 if health_color ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 350, 385, 365, 400,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, health_color, 0, 0, 0, 0) 	 
+	 else
+	  WindowCircleOp (settings_menu_win, 4, 350, 385, 365, 400,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0) 
+	 end -- health_color
+	  WindowAddHotspot (settings_menu_win, "prmtB_HbarF", 350, 385, 365, 400, 
+                    "mouseover_prompt_HbarF", -- MouseOver 
+                    "cancel_mouseover_prompt_HbarF", -- CancelMouseOver 
+                    "mousedown_prompt_HbarF", -- MouseDown 
+                    "cancel_mousedown_prompt_HbarF", -- CancelMouseDown 
+                    "mouseup_prompt_HbarF", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag	
+	 if health_colorB ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 395, 385, 410, 400,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, health_colorB, 0, 0, 0, 0) 
+	 else
+	  WindowCircleOp (settings_menu_win, 4, 395, 385, 410, 400,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+	 end -- health_colorB
+	  WindowAddHotspot (settings_menu_win, "prmtB_HbarE", 395, 385, 410, 400, 
+                    "mouseover_prompt_HbarE", -- MouseOver 
+                    "cancel_mouseover_prompt_HbarE", -- CancelMouseOver 
+                    "mousedown_prompt_HbarE", -- MouseDown 
+                    "cancel_mousedown_prompt_HbarE", -- CancelMouseDown 
+                    "mouseup_prompt_HbarE", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag	
+	WindowText (settings_menu_win, font, "Mana:", 245, 400, 0, 0, ColourNameToRGB  "white")
+	 if mana_color ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 350, 400, 365, 415,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, mana_color, 0, 0, 0, 0) 	 
+	 else
+	  WindowCircleOp (settings_menu_win, 4, 350, 400, 365, 415,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0) 
+	 end -- mana_color
+	  WindowAddHotspot (settings_menu_win, "prmtB_MbarF", 350, 400, 365, 415, 
+                    "mouseover_prompt_MbarF", -- MouseOver 
+                    "cancel_mouseover_prompt_MbarF", -- CancelMouseOver 
+                    "mousedown_prompt_MbarF", -- MouseDown 
+                    "cancel_mousedown_prompt_MbarF", -- CancelMouseDown 
+                    "mouseup_prompt_MbarF", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag	
+	 if mana_colorB ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 395, 400, 410, 415,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, mana_colorB, 0, 0, 0, 0)	 
+	 else
+	  WindowCircleOp (settings_menu_win, 4, 395, 400, 410, 415,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+	 end -- mana_colorB
+	  WindowAddHotspot (settings_menu_win, "prmtB_MbarE", 395, 400, 410, 415, 
+                    "mouseover_prompt_MbarE", -- MouseOver 
+                    "cancel_mouseover_prompt_MbarE", -- CancelMouseOver 
+                    "mousedown_prompt_MbarE", -- MouseDown 
+                    "cancel_mousedown_prompt_MbarE", -- CancelMouseDown 
+                    "mouseup_prompt_MbarE", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag	
+	WindowText (settings_menu_win, font, "Move:", 245, 415, 0, 0, ColourNameToRGB  "white")
+	 if move_color ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 350, 415, 365, 430,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, move_color, 0, 0, 0, 0)  
+	 else
+	  WindowCircleOp (settings_menu_win, 4, 350, 415, 365, 430,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0) 
+	 end -- move_color
+	  WindowAddHotspot (settings_menu_win, "prmtB_movebarF", 350, 415, 365, 430, 
+                    "mouseover_prompt_movebarF", -- MouseOver 
+                    "cancel_mouseover_prompt_movebarF", -- CancelMouseOver 
+                    "mousedown_prompt_movebarF", -- MouseDown 
+                    "cancel_mousedown_prompt_movebarF", -- CancelMouseDown 
+                    "mouseup_prompt_movebarF", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag	
+	 if move_colorB ~= nil then
+	  WindowCircleOp (settings_menu_win, 4, 395, 415, 410, 430,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, move_colorB, 0, 0, 0, 0) 
+	 else
+	  WindowCircleOp (settings_menu_win, 4, 395, 415, 410, 430,  -- round rectangle
+                     ColourNameToRGB("white"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+	 end -- move_colorB
+	  WindowAddHotspot (settings_menu_win, "prmtB_movebarE", 395, 415, 410, 430, 
+                    "mouseover_prompt_movebarE", -- MouseOver 
+                    "cancel_mouseover_prompt_movebarE", -- CancelMouseOver 
+                    "mousedown_prompt_movebarE", -- MouseDown 
+                    "cancel_mousedown_prompt_movebarE", -- CancelMouseDown 
+                    "mouseup_prompt_movebarE", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag						 
+  
+   elseif pageset == "compass_set" then
+   ----/  COMPASS SETTINGS  /----
+   SetVariable("plugin_updating", "false")
+    WindowText (settings_menu_win, font, "Compass Settings", 37, 270, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 235, 250, 555, 480, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+    WindowText (settings_menu_win, font, "Default colors:", 245, 270, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 350, 270, 365, 285, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+			 
+    WindowText (settings_menu_win, font, "Compass Colors", 330, 310, 0, 0, ColourNameToRGB  "white")
+	WindowLine (settings_menu_win, 245, 325, 540, 325, colourWhite, miniwin.pen_solid, 1)
+    WindowText (settings_menu_win, font, "Light", 345, 330, 0, 0, ColourNameToRGB  "white")
+	WindowText (settings_menu_win, font, "Dark", 385, 330, 0, 0, ColourNameToRGB  "white")
+	WindowLine (settings_menu_win, 379, 353, 379, 402, colourWhite, miniwin.pen_solid, 1)
+	WindowText (settings_menu_win, font, "Main Face:", 245, 350, 0, 0, ColourNameToRGB  "white")
+	  WindowCircleOp (settings_menu_win, 4, 350, 350, 365, 365,  -- round rectangle
+                     ColourNameToRGB("black"), 0, 2, ColourNameToRGB("white"), 0, 0, 0, 0)
+	  WindowCircleOp (settings_menu_win, 4, 395, 350, 410, 365,  -- round rectangle
+                     ColourNameToRGB("black"), 0, 2, ColourNameToRGB("white"), 0, 0, 0, 0)
+	WindowText (settings_menu_win, font, "Open Room:", 245, 365, 0, 0, ColourNameToRGB  "white")
+	  WindowCircleOp (settings_menu_win, 4, 350, 365, 365, 380,  -- round rectangle
+                     ColourNameToRGB("black"), 0, 2, ColourNameToRGB("white"), 0, 0, 0, 0) 
+	  WindowCircleOp (settings_menu_win, 4, 395, 365, 410, 380,  -- round rectangle
+                     ColourNameToRGB("black"), 0, 2, ColourNameToRGB("white"), 0, 0, 0, 0)
+	WindowText (settings_menu_win, font, "Closed Room:", 245, 380, 0, 0, ColourNameToRGB  "white")
+	  WindowCircleOp (settings_menu_win, 4, 350, 380, 365, 395,  -- round rectangle
+                     ColourNameToRGB("black"), 0, 2, ColourNameToRGB("white"), 0, 0, 0, 0) 
+	  WindowCircleOp (settings_menu_win, 4, 395, 380, 410, 395,  -- round rectangle
+                     ColourNameToRGB("black"), 0, 2, ColourNameToRGB("white"), 0, 0, 0, 0)	
+					 
+    WindowText (settings_menu_win, font, "STILL DESIGNING, NO FUNCTIONALITY", 260, 150, 0, 0, ColourNameToRGB  "white")
+	WindowText (settings_menu_win, font, "( UNDER CONSTRUCTION )", 300, 170, 0, 0, ColourNameToRGB  "white")
+  
+   elseif pageset == "starlogger_set" then
+   SetVariable("plugin_updating", "false")
+   ----/  STAR LOGGER SETTINGS  /----
+    WindowText (settings_menu_win, font, "Star Logger Settings", 27, 270, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 235, 250, 555, 480, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+    WindowText (settings_menu_win, font, "Log Previous Lines:", 245, 270, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 387, 270, 402, 285, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+    WindowText (settings_menu_win, font, "Remove Prompt from Logs:", 245, 290, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 440, 290, 455, 305, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+			 
+    WindowText (settings_menu_win, font, "Timestamp Settings", 328, 320, 0, 0, ColourNameToRGB  "white")
+	WindowLine (settings_menu_win, 245, 338, 540, 338, colourWhite, miniwin.pen_solid, 1)
+	WindowText (settings_menu_win, font, "None:", 245, 343, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 290, 343, 305, 358, 
+            miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+    DrawThemed3DRect(settings_menu_win, 320, 343, 365, 358)
+	WindowText (settings_menu_win, infofont, "12 Hour", 322, 344, 0, 0, ColourNameToRGB  "white")
+	DrawThemed3DRect(settings_menu_win, 370, 343, 415, 358)
+	WindowText (settings_menu_win, infofont, "24 Hour", 372, 344, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp (settings_menu_win, 2, 422, 343, 530, 358, ColourNameToRGB("white"))
+    WindowText (settings_menu_win, infofont, "No timestamp..", 424, 344, 0, 0, ColourNameToRGB  "black")
+	
+    WindowText (settings_menu_win, font, "Filename Settings", 335, 370, 0, 0, ColourNameToRGB  "white")
+	WindowLine (settings_menu_win, 245, 388, 540, 388, colourWhite, miniwin.pen_solid, 1)
+	DrawThemed3DRect(settings_menu_win, 245, 393, 300, 408)
+	WindowText (settings_menu_win, infofont, "Custom", 253, 394, 0, 0, ColourNameToRGB  "white")
+    DrawThemed3DRect(settings_menu_win, 320, 393, 365, 408)
+	WindowText (settings_menu_win, infofont, "12 Hour", 322, 394, 0, 0, ColourNameToRGB  "white")
+	DrawThemed3DRect(settings_menu_win, 370, 393, 415, 408)
+	WindowText (settings_menu_win, infofont, "24 Hour", 372, 394, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp (settings_menu_win, 2, 422, 393, 530, 408, ColourNameToRGB("white"))
+    WindowText (settings_menu_win, infofont, "No filename..", 424, 394, 0, 0, ColourNameToRGB  "black")
+	
+    WindowText (settings_menu_win, font, "Folder Settings", 345, 420, 0, 0, ColourNameToRGB  "white")
+	WindowLine (settings_menu_win, 245, 438, 540, 438, colourWhite, miniwin.pen_solid, 1)
+	DrawThemed3DRect(settings_menu_win, 245, 443, 280, 459)
+	WindowText (settings_menu_win, infofont, "Set..", 252, 444, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp (settings_menu_win, 2, 285, 443, 467, 458, ColourNameToRGB("white"))
+    WindowText (settings_menu_win, infofont, "blah blah blah..", 287, 444, 0, 0, ColourNameToRGB  "black")
+	DrawThemed3DRect(settings_menu_win, 474, 443, 540, 459)
+	WindowText (settings_menu_win, infofont, "Open Folder", 476, 444, 0, 0, ColourNameToRGB  "white")
+	
+    WindowText (settings_menu_win, font, "STILL DESIGNING, NO FUNCTIONALITY", 260, 150, 0, 0, ColourNameToRGB  "white")
+	WindowText (settings_menu_win, font, "( UNDER CONSTRUCTION )", 300, 170, 0, 0, ColourNameToRGB  "white")
+	
+  
+   elseif pageset == "reportissue_set" then
+    SetVariable("plugin_updating", "false")
+    WindowText (settings_menu_win, font, "STILL DESIGNING, NO FUNCTIONALITY", 260, 150, 0, 0, ColourNameToRGB  "white")
+	WindowText (settings_menu_win, font, "( UNDER CONSTRUCTION )", 300, 170, 0, 0, ColourNameToRGB  "white")
+  
+   elseif pageset == "pluginupdate_set" then
+   ----/  PLUGIN UPDATER SETTINGS  /----
+    WindowText (settings_menu_win, font, "Plugin Updater Settings", 27, 270, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 235, 250, 555, 480, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+    WindowText (settings_menu_win, font, "Current Version", 245, 270, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 280, 290, 321, 307, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+
+	DrawThemed3DRect(settings_menu_win, 369, 295, 420, 310)
+	WindowText (settings_menu_win, infofont, "Check..", 376, 295, 0, 0, ColourNameToRGB  "white")
+	  WindowAddHotspot (settings_menu_win, "update_check", 369, 295, 420, 310, 
+                    "mouseover_upC", -- MouseOver 
+                    "cancel_mouseover_upC", -- CancelMouseOver 
+                    "mousedown_upC", -- MouseDown 
+                    "cancel_mousedown_upC", -- CancelMouseDown 
+                    "mouseup_upC", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag		
+   
+	if PLUGIN_VERSION ~= nil then
+	 WindowText (settings_menu_win, font, "v" .. PLUGIN_VERSION, 285, 290, 0, 0, ColourNameToRGB  "yellow")
+	else
+	 WindowText (settings_menu_win, font, "v0.0", 285, 290, 0, 0, ColourNameToRGB  "red")
+	end -- PLUGIN_VERSION
+
+	WindowText (settings_menu_win, font, "Server Version", 435, 270, 0, 0, ColourNameToRGB  "white")
+    WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 465, 290, 507, 307, 
+             miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+	if raw_version ~= nil then
+  if raw_version == PLUGIN_VERSION then
+   WindowText (settings_menu_win, font, "v" .. raw_version, 470, 290, 0, 0, ColourNameToRGB  "yellow")
+   WindowText (settings_menu_win, font, "You have the latest version!", 295, 345, 0, 0, ColourNameToRGB  "dodgerblue")
+  elseif raw_version > PLUGIN_VERSION then
+   WindowText (settings_menu_win, font, "v" .. raw_version, 470, 290, 0, 0, ColourNameToRGB  "green")
+   WindowText (settings_menu_win, font, "The server has a newer version!", 274, 345, 0, 0, ColourNameToRGB  "dodgerblue")
+	DrawThemed3DRect(settings_menu_win, 369, 375, 420, 390)
+	WindowText (settings_menu_win, infofont, "Update", 376, 375, 0, 0, ColourNameToRGB  "white")
+	  WindowAddHotspot (settings_menu_win, "update_button", 369, 375, 420, 390, 
+                    "mouseover_upB", -- MouseOver 
+                    "cancel_mouseover_upB", -- CancelMouseOver 
+                    "mousedown_upB", -- MouseDown 
+                    "cancel_mousedown_upB", -- CancelMouseDown 
+                    "mouseup_upB", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag	
+  elseif raw_version < PLUGIN_VERSION then
+   WindowText (settings_menu_win, font, "v" .. raw_version, 470, 290, 0, 0, ColourNameToRGB  "red")
+   WindowText (settings_menu_win, font, "Lucky you! You must be a bug tester!", 250, 345, 0, 0, ColourNameToRGB  "dodgerblue")
+  end -- if
+	else
+	 WindowText (settings_menu_win, font, "v0.0", 470, 290, 0, 0, ColourNameToRGB  "red")
+	end -- raw_version
+   end -- pageset
+ end -- pageset
+ if pageset ~= "sidebar_set" then
+  if sidebar_bgBar_prev ~= nil then
+   WindowShow (sidebar_bgBar_prev, false)
+   WindowShow (sidebar_bg_prev, false)
+  else
+   WindowShow ("sidebar_bgBar_prev", false)
+   WindowShow ("sidebar_bg_prev", false)
+  end -- sidebar_bg_prev
+ end -- pageset
+ WindowShow (settings_menu_win, true)
+end -- function settings_menu
+
+function drawText (which, colour)
+  Redraw ()
+  return WindowText (settings_menu_win, font, which.text, which.x, which.y, 0, 0, ColourNameToRGB  (colour))
+end -- drawText
+
+function mouseup_hyperlink (flags, hotspotid)
+
+end -- mouseup_hyperlink
+
+isdefault = true
+function mousedown_av (flags, hotspotid)
+ isdefault = true
+ SetVariable("avatar_checked", "one")
+ WindowLoadImage (avatar_window, "avatar", GetInfo (66) .. "Generic/avatars/Default.png")
+ WindowLoadImage (settings_menu_win, "avatar", GetInfo (66) .. "Generic/avatars/Default.png")
+ WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)
+ WindowDrawImage (settings_menu_win, "avatar", 35, 298, 167, 415, 2)  -- draw it
+ settings_menu ()
+end -- function mousedown_av
+function mouseover_av (flags, hotspotid)
+ WindowText (settings_menu_win, font, "Default Avatar", 245, 270, 0, 0, ColourNameToRGB  "gray")
+  WindowLoadImage (settings_menu_win, "avatar", GetInfo (66) .. "Generic/avatars/Default.png")
+  WindowDrawImage (settings_menu_win, "avatar", 35, 298, 167, 415, 2)  -- draw it
+ Redraw()
+end -- function mouseover_av
+function cancel_mouseover_av (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_av
+
+function mousedown_castle (flags, hotspotid)
+  filename = nil
+  DeleteVariable("bgColour")
+  SetVariable("castle_checked", "one")
+  SetBackgroundImage(GetInfo (66) .. "Generic/layout/outer_background.png", 0)
+ settings_menu ()
+end -- function mousedown_castle
+function mouseover_castle (flags, hotspotid)
+ WindowDrawImage (settings_menu_win, "setmenubg", 35, 298, 167, 415, 2)  -- draw it 
+ WindowText (settings_menu_win, font, "Castle 1", 245, 270, 0, 0, ColourNameToRGB  "gray")
+ Redraw()
+end -- function mouseover_castle
+function cancel_mouseover_castle (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_castle
+
+function mousedown_castlet (flags, hotspotid)
+  filename = nil
+  SetVariable("castle_checked", "two")
+  DeleteVariable("bgColour")
+  SetBackgroundImage(GetInfo (66) .. "Generic/layout/outer_background_two.png", 0)
+ settings_menu ()
+end -- function mousedown_castlet
+function mouseover_castlet (flags, hotspotid)
+ WindowDrawImage (settings_menu_win, "setmenubgtwo", 35, 298, 167, 415, 2)  -- draw it 
+ WindowText (settings_menu_win, font, "Castle 2", 245, 300, 0, 0, ColourNameToRGB  "gray")
+ Redraw()
+end -- function mouseover_castlet
+function cancel_mouseover_castlet (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_castlet
+
+function mousedown_castleth (flags, hotspotid)
+  filename = nil
+  SetVariable("castle_checked", "three")
+  DeleteVariable("bgColour")
+  print("Background Selected: Castle 3")
+  SetBackgroundImage(GetInfo (66) .. "Generic/layout/outer_background_three.png", 0)
+ settings_menu ()
+end -- function mousedown_castleth
+function mouseover_castleth (flags, hotspotid)
+ WindowDrawImage (settings_menu_win, "setmenubgthree", 35, 298, 167, 415, 2)  -- draw it 
+ WindowText (settings_menu_win, font, "Castle 3", 245, 330, 0, 0, ColourNameToRGB  "gray")
+ Redraw()
+end -- function mouseover_castleth
+function cancel_mouseover_castleth (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_castleth
+
+function mousedown_brbg (flags, hotspotid)
+  DeleteVariable("bgColour")
+  filter = {  bmp = "Bitmap files", png = "Image files" }
+  filename = utils.filepicker (title, name, extension, filter, save)
+  if filename == nil then
+  else
+   SetVariable("filename", filename)
+   SetVariable("castle_checked", "browse")
+   SetBackgroundImage(GetVariable("filename"), 0)
+  end -- filename
+ settings_menu ()
+end -- function mousedown_brbg
+function mouseover_brbg (flags, hotspotid)
+ WindowText (settings_menu_win, infofont, "Browse..", 248, 380, 0, 0, ColourNameToRGB  "gray")
+ Redraw()
+end -- function mouseover_brbg
+function cancel_mouseover_brbg (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_brbg
+
+function mousedown_br (flags, hotspotid)
+  isdefault = false
+  filter = {  bmp = "Bitmap files", png = "Image files" }
+  avatar_filename = utils.filepicker (title, name, extension, filter, save)
+  if avatar_filename == nil then
+  else
+   SetVariable("avatar_filename", avatar_filename)
+   SetVariable("avatar_checked", "browse")
+   WindowLoadImage (avatar_window, "avatar", avatar_filename)
+   WindowDrawImage (avatar_window, "avatar", 0, 0, 117, 117, 2)
+  end
+ settings_menu ()
+end -- function mousedown_br
+function mouseover_br (flags, hotspotid)
+ WindowText (settings_menu_win, infofont, "Browse..", 248, 320, 0, 0, ColourNameToRGB  "gray")
+ Redraw()
+end -- function mouseover_br
+function cancel_mouseover_br(flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_br
+
+function mousedown_cbg (flags, hotspotid)
+  bgColour = getColour(bgColour)
+  SetVariable("bgColour", bgColour) -- save it for next time they play
+  SetVariable("castle_checked", "none") -- so it doesnt mess with first time default 
+  filename = nil
+  SetBackgroundImage("", 0)
+  SetBackgroundColour(tonumber(GetVariable ("bgColour")))
+  main_text_area ()
+ settings_menu ()
+end -- function mousedown_cbg
+function mouseover_cbg (flags, hotspotid)
+ WindowText (settings_menu_win, infofont, "Select..", 248, 430, 0, 0, ColourNameToRGB  "gray")
+ Redraw()
+end -- function mouseover_cbg
+function cancel_mouseover_cbg (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_cbg
+
+sidebar_bg_prev = "sidebar_bg_prev"
+sidebar_bgBar_prev = "sidebar_bgBar_prev"
+function mousedown_sb_solid (flags, hotspotid)
+ SetVariable("cSelected", "solid")
+ SBsolid = getColour(SBsolid)
+ SetVariable("SBsolid", SBsolid)
+ SetVariable("cSelected", "solid")
+ DeleteVariable("SBtransparent")
+ sidebar_background ()
+ settings_menu ()
+end -- function mousedown_sb_solid
+
+sidebar_bgBar_prev = "sidebar_bgBar_prev"
+sidebar_bg_prev = "sidebar_bg_prev"
+function sb_prevB ()
+ sidebar_bgBar_prev = "sidebar_bgBar_prev"
+ WindowCreate (sidebar_bgBar_prev, settings_men_Lpos + 130, 395, 4, 115 , 7, 6, 0x000000)
+ WindowGradient (sidebar_bgBar_prev, 0, 0, 0, 50,
+                 GetVariable("SBbarC"),
+                 GetVariable("SBbarCe"), 
+                 1)
+ WindowGradient (sidebar_bgBar_prev, 0, 60, 0, 0,
+                 GetVariable("SBbarC"),
+                 GetVariable("SBbarCe"), 
+                 1)
+ WindowShow ("sidebar_bgBar_prev", true)
+end -- sb_prevB
+
+
+function mouseover_sb_solid (flags, hotspotid)
+ WindowText (settings_menu_win, font, "Solid Color:", 245, 270, 0, 0, ColourNameToRGB  "gray")
+ if GetVariable("SBsolid") ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 325, 272, 340, 286,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, SBsolid, 0, 0, 0, 0) 
+  WindowCreate (sidebar_bg_prev, settings_men_Lpos + 85, 395, 45, 115, 7, 2, 0x000000)
+  WindowGradient (sidebar_bg_prev, 0, 0, 0, 0,
+                 GetVariable("SBsolid"),
+                 GetVariable("SBsolid"), 
+                 1)
+  WindowShow ("sidebar_bg_prev", true)
+ else
+  WindowCircleOp (settings_menu_win, 4, 325, 272, 340, 286,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, GetVariable("SBsolid"), 0, 0, 0, 0)
+  WindowCreate (sidebar_bg_prev, settings_men_Lpos + 85, 395, 45, 115, 7, 2, 0x000000)
+  WindowGradient (sidebar_bg_prev, 0, 0, 0, 0,
+                 ColourNameToRGB("black"),
+                 ColourNameToRGB("black"), 
+                 1)
+  WindowShow ("sidebar_bg_prev", true)
+ end -- SBsolid
+ sb_prevB ()  -- redraw sidebar
+end -- function mouseover_sb_solid
+function cancel_mouseover_sb_solid (flags, hotspotid)
+ if SBsolid ~= nil then
+  WindowShow (sidebar_bgBar_prev, true)
+  WindowShow (sidebar_bg_prev, false)
+ else
+  WindowShow (sidebar_bg_prev, false)
+  WindowShow (sidebar_bgBar_prev, false)
+ end -- SBsolid
+ settings_menu ()
+end -- function cancel_mouseover_sb_solid
+
+function mousedown_sb_trans (flags, hotspotid)
+SetVariable("cSelected", "trans")
+if GetVariable("SBtransparent") == "true" then
+ SBtransparent = true
+else
+ SBtransparent = false
+end -- SBtransparent
+ SBtransparent = not SBtransparent
+ if SBtransparent == true then
+  WindowText (settings_menu_win, infofont, "X", 400, 272, 0, 0, ColourNameToRGB  "white")
+  SetVariable("SBtransparent", "true")
+  SetVariable("show_BGprev", "true")
+ else
+  DeleteVariable("show_BGprev")
+  WindowShow (sidebar_bgBar_prev, false)
+  SetVariable("SBtransparent", "false")
+ end -- SBtransparent
+ sidebar_background ()
+ settings_menu ()
+end -- function mousedown_sb_trans
+function mouseover_sb_trans (flags, hotspotid)
+ WindowText (settings_menu_win, font, "Transparent", 365, 270, 0, 0, ColourNameToRGB  "gray")
+ if SBtransparent == false or SBtransparent == nil then
+  
+ else
+  if GetVariable("SBsolid") ~= nil then
+   WindowCreate (sidebar_bg_prev, settings_men_Lpos + 85, 395, 45, 115, 7, 2, 0x000000)
+   WindowGradient (sidebar_bg_prev, 0, 0, 0, 0,
+                 GetVariable("SBsolid"),
+                 GetVariable("SBsolid"), 
+                 1)
+   WindowShow ("sidebar_bg_prev", true)
+  else
+   WindowCreate (sidebar_bg_prev, settings_men_Lpos + 85, 395, 45, 115, 7, 2, 0x000000)
+   WindowGradient (sidebar_bg_prev, 0, 0, 0, 0,
+                 ColourNameToRGB("black"),
+                 ColourNameToRGB("black"), 
+                 1)
+   WindowShow ("sidebar_bg_prev", true)
+  end -- SBsolid
+  sb_prevB ()  -- redraw sidebar
+ end -- SBtransparent
+ Redraw()
+end -- function mouseover_sb_trans
+function cancel_mouseover_sb_trans (flags, hotspotid)
+ WindowShow (sidebar_bg_prev, false)
+ settings_menu ()
+end -- function cancel_mouseover_sb_trans
+
+sidebar_bg_prev = "sidebar_bg_prev"
+----/  Gradient Bars  /----
+function mousedown_sb_grOne (flags, hotspotid)
+ SetVariable("SBtransparent", "false")
+ SetVariable("cSelected", "one")
+ sidebar_background ()
+ settings_menu ()
+end -- function mousedown_sb_grOne
+
+function mouseover_sb_grOne (flags, hotspotid)
+ WindowText (settings_menu_win, font, "1", 327, 300, 0, 0, ColourNameToRGB  "gray")
+ WindowCreate (sidebar_bg_prev, settings_men_Lpos + 85, 395, 45, 115, 7, 2, 0x000000)
+ if SBtopC ~= nil and SBbotC ~= nil then
+  WindowGradient (sidebar_bg_prev, 0, 0, 0, 0,  
+                 GetVariable("SBtopC"),
+				 GetVariable("SBbotC"),
+                 2)
+ end -- SBtopC
+ WindowShow (sidebar_bg_prev, true)
+ sb_prevB ()
+end -- function mouseover_sb_grOne
+function cancel_mouseover_sb_grOne (flags, hotspotid)
+ WindowShow (sidebar_bg_prev, false)
+ WindowRectOp (sidebar_bg_prev, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+ settings_menu ()
+end -- function cancel_mouseover_sb_grOne
+
+function mousedown_sb_grTwo (flags, hotspotid)
+ SetVariable("SBtransparent", "false")
+ SetVariable("cSelected", "two")
+ sidebar_background ()
+ settings_menu ()
+end -- function mousedown_sb_grTwo
+
+sidebar_bg_prev = "sidebar_bg_prev"
+function mouseover_sb_grTwo (flags, hotspotid)
+ WindowText (settings_menu_win, font, "2", 372, 300, 0, 0, ColourNameToRGB  "gray")
+ WindowCreate (sidebar_bg_prev, settings_men_Lpos + 85, 395, 45, 115, 7, 2, 0x000000)
+ if SBbotC ~=nil and SBtopC ~= nil then
+  WindowGradient (sidebar_bg_prev, 0, 0, 0, 40,  
+                 GetVariable("SBtopC"),
+				 GetVariable("SBbotC"),
+                 2)
+ end -- SBbotC and SBtopC
+ if GRthree ~= nil and GRfour ~= nil then
+  WindowGradient (sidebar_bg_prev, 0, 60, 0, 0,  
+                 GetVariable("GRthree"),
+				 GetVariable("GRfour"),
+                 2)
+ end -- GRthree and GRfour
+ WindowShow (sidebar_bg_prev, true)
+ sb_prevB ()
+end -- function mouseover_sb_grTwo
+function cancel_mouseover_sb_grTwo (flags, hotspotid)
+ WindowShow (sidebar_bg_prev, false)
+ WindowRectOp (sidebar_bg_prev, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+ settings_menu ()
+end -- function cancel_mouseover_sb_grTwo
+
+function mousedown_sb_grThree (flags, hotspotid)
+ SetVariable("SBtransparent", "false")
+ SetVariable("cSelected", "three")
+ sidebar_background ()
+ settings_menu ()
+end -- function mousedown_sb_grThree
+sidebar_bgBar_prev = "sidebar_bgBar_prev"
+sidebar_bg_prev = "sidebar_bg_prev"
+function mouseover_sb_grThree (flags, hotspotid)
+ WindowText (settings_menu_win, font, "3", 417, 300, 0, 0, ColourNameToRGB  "gray")
+ WindowCreate (sidebar_bg_prev, settings_men_Lpos + 85, 395, 45, 115, 7, 2, 0x000000)
+     if SBtopC ~= nil and SBbotC ~= nil then
+      WindowGradient (sidebar_bg_prev, 0, 0, 0, 16,  
+                 GetVariable("SBtopC"),
+				 GetVariable("SBbotC"),
+                 2)
+     end -- SBtopC and SBbotC
+     if GRthree ~= nil and GRfour ~= nil then
+      WindowGradient (sidebar_bg_prev, 0, 16, 0, 33,  
+                 GetVariable("GRthree"),
+				 GetVariable("GRfour"),
+                 2)
+     end -- GRthree and GRfour
+     if GRfive ~= nil and GRsix ~= nil then
+      WindowGradient (sidebar_bg_prev, 0, 45, 0, 0,  
+                 GetVariable("GRfive"),
+				 GetVariable("GRsix"),
+                 2)
+     end -- GRfive and GRsix
+ WindowShow (sidebar_bg_prev, true)
+ sb_prevB ()
+end -- function mouseover_sb_grThree
+function cancel_mouseover_sb_grThree (flags, hotspotid)
+ WindowShow (sidebar_bg_prev, false)
+ WindowRectOp (sidebar_bg_prev, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+ settings_menu ()
+end -- function cancel_mouseover_sb_grThree
+
+function mousedown_sb_grFour (flags, hotspotid)
+ SetVariable("SBtransparent", "false")
+ SetVariable("cSelected", "four")
+ sidebar_background ()
+ settings_menu ()
+end -- function mousedown_sb_grFour
+
+sidebar_bg_prev = "sidebar_bg_prev"
+function mouseover_sb_grFour (flags, hotspotid)
+ WindowText (settings_menu_win, font, "4", 462, 300, 0, 0, ColourNameToRGB  "gray")
+ WindowCreate (sidebar_bg_prev, settings_men_Lpos + 85, 395, 45, 115, 7, 2, 0x000000)
+ if SBtopC ~= nil and SBbotC ~= nil then
+  WindowGradient (sidebar_bg_prev, 0, 0, 0, 20,  
+                  GetVariable("SBtopC"),
+				  GetVariable("SBbotC"),
+                  2)
+ end -- SBtopC and SBbotC
+ if GRthree ~= nil and GRfour ~= nil then
+  WindowGradient (sidebar_bg_prev, 0, 20, 0, 33,  
+                  GetVariable("GRthree"),
+	 			  GetVariable("GRfour"),
+                  2)
+ end -- GRthree and GRfour
+ if GRfive ~= nil and GRsix ~= nil then
+  WindowGradient (sidebar_bg_prev, 0, 45, 0, 60,  
+                  GetVariable("GRfive"),
+	 			  GetVariable("GRsix"),
+                  2)
+ end -- GRfive and GRsix
+ if GRseven ~= nil and GReight ~= nil then
+  WindowGradient (sidebar_bg_prev, 0, 60, 0, 0,  
+                  GetVariable("GRseven"),
+   	   			  GetVariable("GReight"),
+                  2)
+ end -- GRseven and GReight
+ WindowShow (sidebar_bg_prev, true)
+ sb_prevB ()
+end -- function mouseover_sb_grFour
+function cancel_mouseover_sb_grFour (flags, hotspotid)
+ WindowShow (sidebar_bg_prev, false)
+ WindowRectOp (sidebar_bg_prev, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
+ settings_menu ()
+end -- function cancel_mouseover_sb_grFour
+
+----/  Gradient Colors  /----
+function mousedown_sb_grCa (flags, hotspotid)
+ SBtopC = getColour(SBtopC)
+ SetVariable("SBtopC", SBtopC)
+ sidebar_background ()
+ settings_menu ()
+end -- function mousedown_sb_grCa
+function mouseover_sb_grCa (flags, hotspotid)
+ if SBtopC ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 245, 350, 260, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, SBtopC, 0, 0, 0, 0)
+ else
+  WindowCircleOp (settings_menu_win, 4, 245, 350, 260, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+ end -- SBtopC
+ Redraw()
+end -- function mouseover_sb_grCa
+function cancel_mouseover_sb_grCa (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_sb_grCa
+
+function mousedown_sb_grCb (flags, hotspotid)
+ SBbotC = getColour(SBbotC)
+ SetVariable("SBbotC", SBbotC)
+ sidebar_background ()
+ settings_menu ()
+end -- function mousedown_sb_grCb
+function mouseover_sb_grCb (flags, hotspotid)
+ if SBbotC ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 265, 350, 280, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, SBbotC, 0, 0, 0, 0)
+ else
+  WindowCircleOp (settings_menu_win, 4, 265, 350, 280, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+ end -- SBbotC
+ Redraw()
+end -- function mouseover_sb_grCb
+function cancel_mouseover_sb_grCb (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_sb_grCb
+
+function mousedown_sb_grCc (flags, hotspotid)
+ GRthree = getColour(GRthree)
+ SetVariable("GRthree", GRthree)
+ sidebar_background ()
+ settings_menu ()
+end -- function mousedown_sb_grCc
+function mouseover_sb_grCc (flags, hotspotid)
+ if GRthree ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 315, 350, 330, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, GRthree, 0, 0, 0, 0)
+ else
+  WindowCircleOp (settings_menu_win, 4, 315, 350, 330, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+ end -- GRthree
+ Redraw()
+end -- function mouseover_sb_grCc
+function cancel_mouseover_sb_grCc (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_sb_grCc
+
+function mousedown_sb_grCd (flags, hotspotid)
+ GRfour = getColour(GRfour)
+ SetVariable("GRfour", GRfour)
+ sidebar_background ()
+ settings_menu ()
+end -- function mousedown_sb_grCd
+function mouseover_sb_grCd (flags, hotspotid)
+ if GRfour ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 335, 350, 350, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, GRfour, 0, 0, 0, 0)	
+ else
+  WindowCircleOp (settings_menu_win, 4, 335, 350, 350, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)	
+ end -- GRfour
+ Redraw()
+end -- function mouseover_sb_grCd
+function cancel_mouseover_sb_grCd (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_sb_grCd
+
+function mousedown_sb_grCe (flags, hotspotid)
+ GRfive = getColour(GRfive)
+ SetVariable("GRfive", GRfive)
+ sidebar_background ()
+ settings_menu ()
+end -- function mousedown_sb_grCe
+function mouseover_sb_grCe (flags, hotspotid)
+ if GRfive ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 385, 350, 400, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, GRfive, 0, 0, 0, 0)	
+ else
+  WindowCircleOp (settings_menu_win, 4, 385, 350, 400, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)	
+ end -- GRfive
+ Redraw()
+end -- function mouseover_sb_grCe
+function cancel_mouseover_sb_grCe (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_sb_grCe
+
+function mousedown_sb_grCf (flags, hotspotid)
+ GRsix = getColour(GRsix)
+ SetVariable("GRsix", GRsix)
+ sidebar_background ()
+ settings_menu ()
+end -- function mousedown_sb_grCf
+function mouseover_sb_grCf (flags, hotspotid)
+ if GRsix ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 405, 350, 420, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, GRsix, 0, 0, 0, 0)	
+ else
+  WindowCircleOp (settings_menu_win, 4, 405, 350, 420, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)	
+ end -- GRsix
+ Redraw()
+end -- function mouseover_sb_grCf
+function cancel_mouseover_sb_grCf (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_sb_grCf
+
+function mousedown_sb_grCg (flags, hotspotid)
+ GRseven = getColour(GRseven)
+ SetVariable("GRseven", GRseven)
+ sidebar_background ()
+ settings_menu ()
+end -- function mousedown_sb_grCg
+function mouseover_sb_grCg (flags, hotspotid)
+ if GRseven ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 455, 350, 470, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, GRseven, 0, 0, 0, 0)
+ else
+  WindowCircleOp (settings_menu_win, 4, 455, 350, 470, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+ end -- GRseven	 
+ Redraw()
+end -- function mouseover_sb_grCg
+function cancel_mouseover_sb_grCg (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_sb_grCg
+
+function mousedown_sb_grCh (flags, hotspotid)
+ GReight = getColour(GReight)
+ SetVariable("GReight", GReight)
+ sidebar_background ()
+ settings_menu ()
+end -- function mousedown_sb_grCh
+function mouseover_sb_grCh (flags, hotspotid)
+ if GReight ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 475, 350, 490, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, GReight, 0, 0, 0, 0)	
+ else
+  WindowCircleOp (settings_menu_win, 4, 475, 350, 490, 365,  -- round rectangle
+     ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)	
+ end -- GReight
+ Redraw()
+end -- function mouseover_sb_grCh
+function cancel_mouseover_sb_grCh (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_sb_grCh
+
+----/  Sidebar Background Border Colors  /----
+function mousedown_sb_brCa (flags, hotspotid)
+ -- sidebar background bar color
+  SBbarC = getColour(SBbarC)
+  SetVariable("SBbarC", SBbarC)
+  sidebar_background ()
+  build_chatLine ()
+  build_promptLine ()
+ settings_menu ()
+end -- function mousedown_sb_brCa
+function mouseover_sb_brCa (flags, hotspotid)
+if SBbarC ~= nil then
+ WindowCircleOp (settings_menu_win, 4, 385, 380, 400, 395,  -- round rectangle
+           ColourNameToRGB("red"), 0, 2, SBbarC, 0, 0, 0, 0)
+else
+ WindowCircleOp (settings_menu_win, 4, 385, 380, 400, 395,  -- round rectangle
+           ColourNameToRGB("red"), 0, 2, ColourNameToRGB("lime"), 0, 0, 0, 0)
+end -- SBbarC
+ Redraw()
+end -- function mouseover_sb_brCa
+function cancel_mouseover_sb_brCa (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_sb_brCa
+
+function mousedown_sb_brCb (flags, hotspotid)
+ -- sidebar background bar color
+  SBbarCe = getColour(SBbarCe)
+  SetVariable("SBbarCe", SBbarCe)
+  sidebar_background ()
+ settings_menu ()
+end -- function mousedown_sb_brCb
+function mouseover_sb_brCb (flags, hotspotid)
+if SBbarCe ~= nil then
+ WindowCircleOp (settings_menu_win, 4, 405, 380, 420, 395,  -- round rectangle
+          ColourNameToRGB("red"), 0, 2, SBbarCe, 0, 0, 0, 0)
+else
+ WindowCircleOp (settings_menu_win, 4, 405, 380, 420, 395,  -- round rectangle
+          ColourNameToRGB("red"), 0, 2, ColourNameToRGB("black"), 0, 0, 0, 0)
+end -- SBbarCe
+ Redraw()
+end -- function mouseover_sb_brCb
+function cancel_mouseover_sb_brCb (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_sb_brCb
+
+----/  Prompt Bar Settings Mouseovers /----
+function mousedown_prompt_set (flags, hotspotid)
+ if GetVariable("PB_SET") == "true" then
+  PB_SET = true
+ else
+  PB_SET = false
+ end -- PB_SET
+ PB_SET = not PB_SET
+ if PB_SET == true then
+  SetVariable("prompt_checked", "default")
+  DeleteVariable("prompt_checked_custom")
+  DeleteVariable("health_color")
+  DeleteVariable("health_colorB")
+  DeleteVariable("mana_color")
+  DeleteVariable("mana_colorB")
+  DeleteVariable("move_color")
+  DeleteVariable("move_colorB")
+  DeleteVariable("enemy_color")
+  DeleteVariable("enemy_colorB")
+  DeleteVariable("bar_text_color")
+  SetVariable("custom_bar_color_highlight_top", ColourNameToRGB("#000000"))
+  SetVariable("custom_bar_color_highlight_bottom", ColourNameToRGB("#000000"))
+ end -- PB_SET
+ draw_energy_bars ()
+ settings_menu ()
+end -- function mousedown_prompt_set
+function mouseover_prompt_set (flags, hotspotid)
+ WindowText (settings_menu_win, font, "Default colors:", 245, 270, 0, 0, ColourNameToRGB  "darkgray")
+ Redraw()
+end -- function mouseover_prompt_set
+function cancel_mouseover_prompt_set (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_prompt_set
+
+-- ADD FUNCTIONALITY SOMETIME TO PROMPT MOUSEOVERS BELOW
+function mousedown_prompt_ft (flags, hotspotid)
+  SetVariable("prompt_checked", "blahblah")
+  bar_text_color = getColour(bar_text_color)
+  SetVariable("bar_text_color", bar_text_color)
+  draw_energy_bars ()
+ settings_menu ()
+end -- function mousedown_prompt_ft
+function mouseover_prompt_ft (flags, hotspotid)
+ if bar_text_color ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 325, 300, 340, 315,  -- round rectangle
+          ColourNameToRGB("red"), 0, 2, bar_text_color, 0, 0, 0, 0)
+ else
+  WindowCircleOp (settings_menu_win, 4, 325, 300, 340, 315,  -- round rectangle
+          ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+ end -- bar_text_color
+ Redraw()
+end -- function mouseover_prompt_ft
+function cancel_mouseover_prompt_ft (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_prompt_ft
+
+-- Top edge color
+function mousedown_prompt_edgO (flags, hotspotid)
+  SetVariable("prompt_checked", "customTop")
+  customBar_top_color = getColour(customBar_top_color)
+  SetVariable("custom_bar_color_highlight_top", customBar_top_color)
+  draw_energy_bars ()
+ settings_menu ()
+end -- function mousedown_prompt_edgO
+function mouseover_prompt_edgO (flags, hotspotid)
+ if custom_bar_color_highlight_top ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 465, 300, 480, 315,  -- round rectangle
+          ColourNameToRGB("red"), 0, 2, custom_bar_color_highlight_top, 0, 0, 0, 0)
+ else
+  WindowCircleOp (settings_menu_win, 4, 465, 300, 480, 315,  -- round rectangle
+          ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+ end -- custom_bar_color_highlight_top
+ Redraw()
+end -- function mouseover_prompt_edgO
+function cancel_mouseover_prompt_edgO (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_prompt_edgO
+
+-- Bottom edge color
+function mousedown_prompt_edgT (flags, hotspotid)
+  SetVariable("prompt_checked_custom", "customBottom")
+  if GetVariable("prompt_checked") ~= "customTop" then
+   SetVariable("prompt_checked", "blahblah")
+  end -- quick fix so I dont have to rewrite code cause im lazy lol
+  customBar_bottom_color = getColour(customBar_bottom_color)
+  SetVariable("custom_bar_color_highlight_bottom", customBar_bottom_color)
+  draw_energy_bars ()	
+ settings_menu ()
+end -- function mousedown_prompt_edgT
+function mouseover_prompt_edgT (flags, hotspotid)
+ if custom_bar_color_highlight_bottom ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 485, 300, 500, 315,  -- round rectangle
+          ColourNameToRGB("red"), 0, 2, custom_bar_color_highlight_bottom, 0, 0, 0, 0)
+ else
+  WindowCircleOp (settings_menu_win, 4, 485, 300, 500, 315,  -- round rectangle
+          ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+ end -- custom_bar_color_highlight_bottom
+ Redraw()
+end -- function mouseover_prompt_edgT
+function cancel_mouseover_prompt_edgT (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_prompt_edgT
+
+-- Enemy bar full
+function mousedown_prompt_EbarF (flags, hotspotid)
+  SetVariable("prompt_checked", "blahblah")
+  enemy_color = getColour(enemy_color)
+  SetVariable("enemy_color", enemy_color)
+  draw_energy_bars ()
+ settings_menu ()
+end -- function mousedown_prompt_EbarF
+function mouseover_prompt_EbarF (flags, hotspotid)
+ if enemy_color ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 350, 370, 365, 385,  -- round rectangle
+          ColourNameToRGB("red"), 0, 2, enemy_color, 0, 0, 0, 0)
+ else
+  WindowCircleOp (settings_menu_win, 4, 350, 370, 365, 385,  -- round rectangle
+          ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+ end -- enemy_color
+ Redraw()
+end -- function mouseover_prompt_EbarF
+function cancel_mouseover_prompt_EbarF (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_prompt_EbarF
+
+-- Enemy bar empty
+function mousedown_prompt_EbarE (flags, hotspotid)
+  SetVariable("prompt_checked", "blahblah")
+  enemy_colorB = getColour(enemy_colorB)
+  SetVariable("enemy_colorB", enemy_colorB)
+  draw_energy_bars ()
+ settings_menu ()
+end -- function mousedown_prompt_EbarE
+function mouseover_prompt_EbarE (flags, hotspotid)
+ if enemy_colorB ~= nil then
+   WindowCircleOp (settings_menu_win, 4, 395, 370, 410, 385,  -- round rectangle
+         ColourNameToRGB("red"), 0, 2, enemy_colorB, 0, 0, 0, 0)
+ else
+  WindowCircleOp (settings_menu_win, 4, 395, 370, 410, 385,  -- round rectangle
+         ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+ end -- enemy_colorB
+ Redraw()
+end -- function mouseover_prompt_EbarE
+function cancel_mouseover_prompt_EbarE (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_prompt_EbarE
+
+-- Health bar full
+function mousedown_prompt_HbarF (flags, hotspotid)
+  SetVariable("prompt_checked", "blahblah")
+  health_color = getColour(health_color)
+  SetVariable("health_color", health_color)
+  draw_energy_bars ()
+ settings_menu ()
+end -- function mousedown_prompt_HbarF
+function mouseover_prompt_HbarF (flags, hotspotid)
+ if health_color ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 350, 385, 365, 400,  -- round rectangle
+         ColourNameToRGB("red"), 0, 2, health_color, 0, 0, 0, 0)
+ else
+  WindowCircleOp (settings_menu_win, 4, 350, 385, 365, 400,  -- round rectangle
+         ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+ end -- health_color
+ Redraw()
+end -- function mouseover_prompt_HbarF
+function cancel_mouseover_prompt_HbarF (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_prompt_HbarF
+
+-- Health bar empty
+function mousedown_prompt_HbarE (flags, hotspotid)
+  SetVariable("prompt_checked", "blahblah")
+  health_colorB = getColour(health_colorB)
+  SetVariable("health_colorB", health_colorB)
+  draw_energy_bars ()
+ settings_menu ()
+end -- function mousedown_prompt_HbarE
+function mouseover_prompt_HbarE (flags, hotspotid)
+ if health_colorB ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 395, 385, 410, 400,  -- round rectangle
+         ColourNameToRGB("red"), 0, 2, health_colorB, 0, 0, 0, 0)
+ else
+  WindowCircleOp (settings_menu_win, 4, 395, 385, 410, 400,  -- round rectangle
+         ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+ end -- health_colorB
+ Redraw()
+end -- function mouseover_prompt_HbarE
+function cancel_mouseover_prompt_HbarE (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_prompt_HbarE
+
+-- Mana bar full
+function mousedown_prompt_MbarF (flags, hotspotid)
+  SetVariable("prompt_checked", "blahblah")
+  mana_color = getColour(mana_color)
+  SetVariable("mana_color", mana_color)
+  draw_energy_bars ()
+ settings_menu ()
+end -- function mousedown_prompt_MbarF
+function mouseover_prompt_MbarF (flags, hotspotid)
+ if mana_color ~= nil then
+   WindowCircleOp (settings_menu_win, 4, 350, 400, 365, 415,  -- round rectangle
+          ColourNameToRGB("red"), 0, 2, mana_color, 0, 0, 0, 0) 
+ else
+  WindowCircleOp (settings_menu_win, 4, 350, 400, 365, 415,  -- round rectangle
+          ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0) 
+ end -- mana_color
+ Redraw()
+end -- function mouseover_prompt_MbarF
+function cancel_mouseover_prompt_MbarF (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_prompt_MbarF
+
+-- Mana bar empty
+function mousedown_prompt_MbarE (flags, hotspotid)
+  SetVariable("prompt_checked", "blahblah")
+  mana_colorB = getColour(mana_colorB)
+  SetVariable("mana_colorB", mana_colorB)
+  draw_energy_bars ()
+ settings_menu ()
+end -- function mousedown_prompt_MbarE
+function mouseover_prompt_MbarE (flags, hotspotid)
+ if mana_colorB ~= nil then
+  WindowCircleOp (settings_menu_win, 4, 395, 400, 410, 415,  -- round rectangle
+            ColourNameToRGB("red"), 0, 2, mana_colorB, 0, 0, 0, 0)
+ else
+  WindowCircleOp (settings_menu_win, 4, 395, 400, 410, 415,  -- round rectangle
+            ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+ end -- mana_colorB
+ Redraw()
+end -- function mouseover_prompt_MbarE
+function cancel_mouseover_prompt_MbarE (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_prompt_MbarE
+
+-- Movement bar full
+function mousedown_prompt_movebarF (flags, hotspotid)
+  SetVariable("prompt_checked", "blahblah")
+  move_color = getColour(move_color)
+  SetVariable("move_color", move_color)
+  draw_energy_bars ()
+ settings_menu ()
+end -- function mousedown_prompt_movebarF
+function mouseover_prompt_movebarF (flags, hotspotid)
+ if move_color ~= nil then
+   WindowCircleOp (settings_menu_win, 4, 350, 415, 365, 430,  -- round rectangle
+           ColourNameToRGB("red"), 0, 2, move_color, 0, 0, 0, 0) 
+ else
+  WindowCircleOp (settings_menu_win, 4, 350, 415, 365, 430,  -- round rectangle
+           ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0) 
+ end -- move_color
+ Redraw()
+end -- function mouseover_prompt_movebarF
+function cancel_mouseover_prompt_movebarF (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_prompt_movebarF
+
+-- Movement bar empty
+function mousedown_prompt_movebarE (flags, hotspotid)
+  SetVariable("prompt_checked", "blahblah")
+  move_colorB = getColour(move_colorB)
+  SetVariable("move_colorB", move_colorB)
+  draw_energy_bars ()
+ settings_menu ()
+end -- function mousedown_prompt_movebarE
+function mouseover_prompt_movebarE (flags, hotspotid)
+ if move_colorB ~= nil then
+   WindowCircleOp (settings_menu_win, 4, 395, 415, 410, 430,  -- round rectangle
+           ColourNameToRGB("red"), 0, 2, move_colorB, 0, 0, 0, 0)
+ else
+  WindowCircleOp (settings_menu_win, 4, 395, 415, 410, 430,  -- round rectangle
+           ColourNameToRGB("red"), 0, 2, ColourNameToRGB("dodgerblue"), 0, 0, 0, 0)
+ end -- move_colorB
+ Redraw()
+end -- function mouseover_prompt_movebarE
+function cancel_mouseover_prompt_movebarE (flags, hotspotid)
+ settings_menu ()
+end -- function cancel_mouseover_prompt_movebarE
+
+----/  Star Logger Control mouseovers  /----
+function mousedown_starL (flags, hotspotid)
+  if GetVariable("starLog_isRec") == nil then
+   starLog_isRec = false
+   SetVariable("starLog_isRec", "false")
+  end -- starLog_isRec  
+  starLog_isRec = not starLog_isRec  
+  if starLog_isRec then
+   SetVariable("starLog_isRec", "true")
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Activated")
+   if GetVariable("starLog_recPrev") == "true" then
+    starLog_prev ()
+   end -- starLog_recPrev  
+   EnableTrigger("starlogger", true)
+  else
+   EnableTrigger("starlogger", false)
+   ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "red", "", "Deactivated")
+   if GetVariable("starlog_folder") ~= nil then
+    if GetVariable("starLog_fnTs") ~= nil then
+     SaveNotepad ("Star_Log_Test", GetVariable("starlog_folder") .. "\\" .. os.date(GetVariable("starLog_fnTs")) .. ".txt")
+     CloseNotepad ("Star_Log_Test", 0)
+     ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Log file saved to ", "red", "", GetVariable("starlog_folder") .. "\\" .. os.date(GetVariable("starLog_fnTs")) .. ".txt")	 
+    else
+     SaveNotepad ("Star_Log_Test", GetVariable("starlog_folder") .. "\\" .. os.date("%b %d %Y [%I_%M_%S%p]") .. ".txt")
+     CloseNotepad ("Star_Log_Test", 0)
+     ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "silver", "", "Filename has not been set, saving file with default format name.")
+     ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Log file saved to ", "red", "", GetVariable("starlog_folder") .. "\\" .. os.date("%b %d %Y [%I_%M_%S%p]") .. ".txt")
+    end -- starlog_folder
+   else
+    SaveNotepad ("Star_Log_Test", GetInfo (58) .. "\\" .. os.date("%b %d %Y [%I_%M_%S%p]") .. ".txt")
+    CloseNotepad ("Star_Log_Test", 0)
+    ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "silver", "", "Folder and Filename has not been set, saving file at default location with default name.")
+    ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "green", "", "Log file saved to ", "red", "", GetInfo (58) .. "\\" .. os.date("%b %d %Y [%I_%M_%S%p]") .. ".txt")
+   end -- starlog_folder
+   SetVariable("starLog_isRec", "false")
+  end -- starLog_isRec
+end -- function mousedown_starL
+function mouseover_starL (flags, hotspotid)
+  if GetVariable("starLog_isRec") == nil then
+   starLog_isRec = false
+   SetVariable("starLog_isRec", "false")
+  end -- starLog_isRec  
+  if starLog_isRec then
+   WindowCircleOp (sidebar_bg, 4, 63, 222, 80, 239,  -- round rectangle
+          ColourNameToRGB("red"), 0, 2, ColourNameToRGB("lime"), 0, 0, 0, 0)
+  else
+   WindowCircleOp (sidebar_bg, 4, 63, 222, 80, 239,  -- round rectangle
+          ColourNameToRGB("lime"), 0, 2, ColourNameToRGB("red"), 0, 0, 0, 0)
+  end -- starLog_isRec
+ Redraw()
+end -- function mouseover_starL
+function cancel_mouseover_starL (flags, hotspotid)
+ sidebar_background ()
+end -- function cancel_mouseover_starL
+
+function mousedown_starL_ali (flags, hotspotid)
+  WindowRectOp(sidebar_bg, miniwin.rect_draw_edge, 100, 225, 140, 239, 
+    miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+ Redraw()
+ DoAfterSpecial (0.1, 'DrawThemed3DRect(sidebar_bg, 100, 225, 140, 239)', sendto.script)
+ DoAfterSpecial (0.1, 'outlined_text (colourWhite, sidebar_bg, "Aliases", 5, 104, 227, 0)', sendto.script)
+ DoAfterSpecial (0.1, 'Redraw()', sendto.script)
+ ColourNote ("yellow", "", "St", "goldenrod", "", "ar ", "silver", "", "Logger: ", "dodgerblue", "", "ALIASES")
+ ColourNote ("red", "", "star logger rec ", "silver", "", "- start/stop logging")
+ ColourNote ("red", "", "star logger set folder ", "silver", "", "- specify a folder to place the logs in")
+ ColourNote ("red", "", "star logger set filename ", "silver", "", "- set a custom file name for logs")
+ ColourNote ("red", "", "star logger prev lines ", "silver", "", "- toggle logging all previous lines")
+ ColourNote ("red", "", "star logger open folder ", "silver", "", "- opens your current/default logs folder")
+ ColourNote ("silver", "", "For more options, see the settings menu")
+end -- function mousedown_starL_ali
+function mouseover_starL_ali (flags, hotspotid)
+end -- function mouseover_starL_ali
+function cancel_mouseover_starL_ali (flags, hotspotid)
+ sidebar_background ()
+end -- function cancel_mouseover_starL_ali
+
+----/  Mouseover check update button  /----
+function mousedown_upC (flags, hotspotid)
+ WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 369, 295, 420, 310, 
+    miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+ WindowText (settings_menu_win, infofont, "Check..", 376, 295, 0, 0, colourTFC)
+ WindowText (settings_menu_win, font, "Connecting to the server..", 299, 345, 0, 0, ColourNameToRGB  "white")
+ Redraw()
+end -- function mousedown_upC
+function mouseup_upC (flags, hotspotid)
+ SetVariable("plugin_updating", "check")
+ update_plugin()
+end -- function mouseup_upC
+function mouseover_upC (flags, hotspotid)
+end -- function mouseover_upC
+function cancel_mouseover_upC (flags, hotspotid)
+end -- function cancel_mouseover_upC
+
+function mousedown_upB (flags, hotspotid)
+  WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 369, 375, 420, 390, 
+    miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
+  WindowText (settings_menu_win, infofont, "Update", 376, 375, 0, 0, colourTFC)
+  Redraw()
+end -- function mousedown_upB
+function mouseup_upB (flags, hotspotid)
+  SetVariable("plugin_updating", "true")
+  local file = io.open(GetPluginInfo(GetPluginID(), 6), "w")
+  file:write(GetVariable("lat_page"))
+  file:close()
+  raw_version = nil
+ if "" == GetAlphaOption("script_prefix") then
+  SetAlphaOption("script_prefix", "\\\\\\")
+ end
+ if GetVariable("plugin_updating") == "true" then
+  Execute(GetAlphaOption("script_prefix") .. "DoAfterSpecial(1, \"ReloadPlugin('" .. GetPluginID() .. "')\", sendto.script)")
+  WindowText (settings_menu_win, font, "Plugin Updated! Reload world please.", 239, 345, 0, 0, ColourNameToRGB  "white")
+  Redraw()
+  SetVariable("plugin_updating", "false")
+ end 
+end -- function mouseup_upB
+function mouseover_upC (flags, hotspotid)
+
+end -- function mouseover_upB
+function cancel_mouseover_upB (flags, hotspotid)
+
+end -- function cancel_mouseover_upB
+
+function mouseover_hyperlink (flags, hotspotid)
+  drawText (links [tonumber (hotspotid)], "blue")
+  page = (links [tonumber (hotspotid)].page)
+  if page == "avatar_set" then
+   WindowText (settings_menu_win, font, "Avatar Settings", 340, 150, 0, 0, ColourNameToRGB  "white")
+   WindowLine (settings_menu_win, 250, 168, 540, 168, colourWhite, miniwin.pen_solid, 1)
+   WindowText (settings_menu_win, infofont, "Select your own custom avatar!", 318, 175, 0, 0, ColourNameToRGB  "white")
+  elseif page == "background_set" then
+   WindowText (settings_menu_win, font, "Background Settings", 325, 150, 0, 0, ColourNameToRGB  "white")
+   WindowLine (settings_menu_win, 250, 168, 540, 168, colourWhite, miniwin.pen_solid, 1)
+   WindowText (settings_menu_win, infofont, "Select a custom background image or color.", 290, 175, 0, 0, ColourNameToRGB  "white")  
+  elseif page == "sidebar_set" then
+   WindowText (settings_menu_win, font, "Sidebar Background Settings", 300, 150, 0, 0, ColourNameToRGB  "white")
+   WindowLine (settings_menu_win, 250, 168, 540, 168, colourWhite, miniwin.pen_solid, 1)
+   WindowText (settings_menu_win, infofont, "Select the border colors for the menu sidebar.", 290, 175, 0, 0, ColourNameToRGB  "white")  
+  elseif page == "promptbar_set" then
+   WindowText (settings_menu_win, font, "Prompt Bars Settings", 320, 150, 0, 0, ColourNameToRGB  "white")
+   WindowLine (settings_menu_win, 250, 168, 540, 168, colourWhite, miniwin.pen_solid, 1)
+   WindowText (settings_menu_win, infofont, "Customize the prompt bar colors.", 315, 175, 0, 0, ColourNameToRGB  "white")  
+  elseif page == "compass_set" then
+   WindowText (settings_menu_win, font, "Compass Settings", 330, 150, 0, 0, ColourNameToRGB  "white")
+   WindowLine (settings_menu_win, 250, 168, 540, 168, colourWhite, miniwin.pen_solid, 1)
+   WindowText (settings_menu_win, infofont, "Customize the compass colors.", 318, 175, 0, 0, ColourNameToRGB  "white") 
+  elseif page == "starlogger_set" then
+   WindowText (settings_menu_win, font, "Star Logger Settings", 315, 150, 0, 0, ColourNameToRGB  "white")
+   WindowLine (settings_menu_win, 250, 168, 540, 168, colourWhite, miniwin.pen_solid, 1)
+   WindowText (settings_menu_win, infofont, "Remove your prompt from logs.", 314, 175, 0, 0, ColourNameToRGB  "white") 
+   WindowText (settings_menu_win, infofont, "Log all previous lines before recording.", 300, 190, 0, 0, ColourNameToRGB  "white") 
+   WindowText (settings_menu_win, infofont, "Select custom log file names.", 319, 205, 0, 0, ColourNameToRGB  "white") 
+   WindowText (settings_menu_win, infofont, "Add date and time stamps.", 325, 220, 0, 0, ColourNameToRGB  "white") 
+  elseif page == "reportissue_set" then
+   WindowText (settings_menu_win, font, "Report an Issue", 337, 150, 0, 0, ColourNameToRGB  "white")
+   WindowLine (settings_menu_win, 250, 168, 540, 168, colourWhite, miniwin.pen_solid, 1)
+   WindowText (settings_menu_win, infofont, "Report any problems with the plugin.", 312, 175, 0, 0, ColourNameToRGB  "white")   
+  elseif page == "pluginupdate_set" then
+   WindowText (settings_menu_win, font, "Check and Update Plugin", 305, 150, 0, 0, ColourNameToRGB  "white")
+   WindowLine (settings_menu_win, 250, 168, 540, 168, colourWhite, miniwin.pen_solid, 1)
+   WindowText (settings_menu_win, infofont, "Check to see if a new version is available.", 290, 175, 0, 0, ColourNameToRGB  "white")   
+  end -- page
+end -- mouseover_hyperlink
+
+function cancel_mouseover_hyperlink (flags, hotspotid)
+  settings_menu ()
+end -- cancel_mouseover_hyperlink
+
+function mousedown_hyperlink (flags, hotspotid)
+  pageset = (links [tonumber (hotspotid)].page)
+   settings_menu ()
+end -- mousedown_hyperlink
+
+function cancel_mousedown_hyperlink (flags, hotspotid)
+  drawText (links [tonumber (hotspotid)], "dimgray")
+end -- cancel_mousedown_hyperlink
+
+function MakeHyperlink (item, which)
+  -- remember current x and y in the links table
+  which.x = x
+  which.y = y
+  width = drawText (which, "white")
+  WindowAddHotspot (settings_menu_win, item, which.x, which.y, which.x + width, which.y + font_height, 
+                    "mouseover_hyperlink", -- MouseOver 
+                    "cancel_mouseover_hyperlink", -- CancelMouseOver 
+                    "mousedown_hyperlink", -- MouseDown 
+                    "cancel_mousedown_hyperlink", -- CancelMouseDown 
+                    "mouseup_hyperlink", -- MouseUp 
+                    which.tip, 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+  y = y + font_height
+end -- MakeHyperlink
+
+function mouseup_close (flags, hotspotid)
+  WindowText (settings_menu_win, font, "[X]", 573, 20, 0, 0, ColourNameToRGB  "gray")
+  close_settings ()
+end -- mouseup_close
+
+function mouseover_close (flags, hotspotid)
+  WindowText (settings_menu_win, font, "[X]", 573, 20, 0, 0, ColourNameToRGB  "green")
+  Redraw ()
+end -- mouseover_close
+
+function cancel_mouseover_close (flags, hotspotid)
+  WindowText (settings_menu_win, font, "[X]", 573, 20, 0, 0, ColourNameToRGB  "red")
+  Redraw ()
+end -- cancel_mouseover_close
+
+function mousedown_close (flags, hotspotid)
+  WindowText (settings_menu_win, font, "[X]", 573, 20, 0, 0, ColourNameToRGB  "gray")
+  Redraw ()
+end -- mouseover_close
+
+function cancel_mousedown_close (flags, hotspotid)
+  WindowText (settings_menu_win, font, "[X]", 573, 20, 0, 0, ColourNameToRGB  "red")
+  Redraw ()
+end -- cancel_mouseover_close
+
+function close_settings ()
+ SetVariable("plugin_updating", "false")
+ if pageset == "sidebar_set" then
+  if sidebar_bgBar_prev ~= nil then
+   WindowShow (sidebar_bgBar_prev, false)
+   WindowShow (sidebar_bg_prev, false)
+  else
+   WindowShow ("sidebar_bgBar_prev", false)
+   WindowShow ("sidebar_bg_prev", false)
+  end -- sidebar_bg_prev
+ end -- pageset
+ WindowShow (settings_menu_win, false)
+end -- function close_settings
+
+function msdp_test ()
+REPORT = msdp["REPORT"]
+CHARACTER_NAME = msdp["CHARACTER_NAME"]
+SERVER_ID = msdp["SERVER_ID"]
+SERVER_TIME = msdp["SERVER_TIME"]
+SNIPPET_VERSION = msdp["SNIPPET_VERSION"]
+AFFECTS = msdp["AFFECTS"]
+ALIGNMENT = msdp["ALIGNMENT"]
+EXPERIENCE = msdp["EXPERIENCE"]
+EXPERIENCE_TNL = msdp["EXPERIENCE_TNL"]
+HEALTH = msdp["HEALTH"]
+HEALTH_MAX = msdp["HEALTH_MAX"]
+LEVEL = msdp["LEVEL"]
+RACE = msdp["RACE"]
+CLASS = msdp["CLASS"]
+CLASS2 = msdp["CLASS2"]
+CLASS3 = msdp["CLASS3"]
+MANA = msdp["MANA"]
+MANA_MAX = msdp["MANA_MAX"]
+WIMPY = msdp["WIMPY"]
+PRACTICE = msdp["PRACTICE"]
+MONEY = msdp["MONEY"]
+MOVEMENT = msdp["MOVEMENT"]
+MOVEMENT_MAX = msdp["MOVEMENT_MAX"]
+OPPONENT_HEALTH = msdp["OPPONENT_HEALTH"]
+OPPONENT_HEALTH_MAX = msdp["OPPONENT_HEALTH_MAX"]
+OPPONENT_LEVEL = msdp["OPPONENT_LEVEL"]
+OPPONENT_NAME = msdp["OPPONENT_NAME"]
+AREA_NAME = msdp["AREA_NAME"]
+ROOM_EXITS = msdp["ROOM_EXITS"]
+ROOM_NAME = msdp["ROOM_NAME"]
+ROOM_VNUM = msdp["ROOM_VNUM"]
+WORLD_TIME = msdp["WORLD_TIME"]
+print("CHARACTER_NAME:", CHARACTER_NAME)
+print("SERVER_ID:", SERVER_ID)
+print("SERVER_TIME:", SERVER_TIME)
+print("SNIPPET_VERSION:", SNIPPET_VERSION)
+print("AFFECTS:", AFFECTS)
+print("ALIGNMENT:", ALIGNMENT)
+print("EXPERIENCE:", EXPERIENCE)
+print("EXPERIENCE_TNL:", EXPERIENCE_TNL)
+print("HEALTH:", HEALTH)
+print("HEALTH_MAX:", HEALTH_MAX)
+print("LEVEL:", LEVEL)
+print("RACE:", RACE)
+print("CLASS:", CLASS)
+print("CLASS2:", CLASS2)
+print("CLASS3:", CLASS3)
+print("MANA:", MANA)
+print("MANA_MAX:", MANA_MAX)
+print("WIMPY:", WIMPY)
+print("PRACTICE:", PRACTICE)
+print("MONEY:", MONEY)
+print("MOVEMENT:", MOVEMENT)
+print("MOVEMENT_MAX:", MOVEMENT_MAX)
+print("AREA_NAME:", AREA_NAME)
+print("ROOM_EXITS:", ROOM_EXITS)
+print("ROOM_NAME:", ROOM_NAME)
+print("ROOM_VNUM:", ROOM_VNUM)
+print("WORLD_TIME:", WORLD_TIME)
+print(REPORT)
+end -- function msdp_test
 ]]>
 </script>
 </muclient>
