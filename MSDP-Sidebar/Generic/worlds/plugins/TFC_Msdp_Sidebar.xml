@@ -9,7 +9,7 @@
    purpose="A graphical user interface sidebar for The Final Challenge MUD"
    date_written="2016-05-15 00:49:31"
    requires="4.51"
-   version="2.6"
+   version="2.5"
    save_state="y"
    >
 <description trim="y">
@@ -1403,7 +1403,6 @@ SPELLS_TOP_POSITION = GetInfo(280) - 150
   build_promptLine ()
   sidebar_background ()
   init(true)
-  window_seperator_button ()
  else
   BG_COLOR_HEIGHT, BG_COLOR_WIDTH = GetInfo(263), GetInfo(264)
   WINDOW_WIDTH = GetInfo (281) - 173
@@ -1445,7 +1444,6 @@ SPELLS_TOP_POSITION = GetInfo(280) - 150
   build_promptLine ()
   sidebar_background ()
   init(true)
-  window_seperator_button ()
  end -- SIDEBAR_STATUS
 
  ----/ Set the background /----
@@ -3030,8 +3028,6 @@ function MouseUp_sidebar_button(flags, hotspot_id)
    SetVariable("sepW", sepW)
    SetVariable("SIDEBAR_STATUS", "closed")
   else
-   buildChat_left = buildChat_left - 10
-   window_seperator_button ()
    AVATAR_LEFT_POSITION = AVATAR_LEFT_POSITION - 10
    build_avatar_window ()
    SIDEBAR_LEFT_POSITION = SIDEBAR_LEFT_POSITION - 10
@@ -3077,8 +3073,6 @@ function MouseUp_sidebar_button_op(flags, hotspot_id)
    SetVariable("SIDEBAR_STATUS", "opened")
    create_sidebar_button ()
   else
-   buildChat_left = buildChat_left + 10
-   window_seperator_button ()
    AVATAR_LEFT_POSITION = AVATAR_LEFT_POSITION + 10
    build_avatar_window ()
    SIDEBAR_LEFT_POSITION = SIDEBAR_LEFT_POSITION + 10
@@ -3725,7 +3719,7 @@ function settings_menu ()
  end -- castle_checked
  WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 10, 115, 200, 250, 
              miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
- WindowRectOp (settings_menu_win, 4, 0, 0, 0, 0, GetVariable("SBbarCe"), GetVariable("SBbarCe"))
+ WindowRectOp (settings_menu_win, 4, 0, 0, 0, 0, ColourNameToRGB("white"), ColourNameToRGB("white"))
  links = {
  { text = "Avatar", tip = "", page = "avatar_set" },
  { text = "Background", tip = "", page = "background_set" },
@@ -5806,127 +5800,6 @@ print("ROOM_VNUM:", ROOM_VNUM)
 print("WORLD_TIME:", WORLD_TIME)
 print(REPORT)
 end -- function msdp_test
-
-
-----/ Window Button Chat horizontal resizer (experimental) /----
-  WINDOW_SEPERATOR_TOP = 76
-  WINDOW_SEPERATOR_WIDTH = 1010
-  WINDOW_SEPERATOR_HEIGHT = 1
-  WINDOW_SEPERATOR_LEFT = 551
-  buildChat_left = 175
-function window_seperator_button ()
- chat_border_button = "chat_border_button"
- WindowCreate (chat_border_button,   -- window ID
-    buildChat_left,         -- left
-    sepOne_top - 29,      -- top
-    15,        -- width
-    100,        -- depth
-    12,         -- center it (ignored anyway) 
-    6,          -- draw underneath (1) + absolute location (2)
-    0x000000)  -- background colour
-	WINDOW_BORDER_Y = 1
- DrawThemed3DRect(chat_border_button, 0, WINDOW_BORDER_Y + 30, 15, WINDOW_BORDER_Y + 15 + 30)
- points_sep = string.format ("%i,%i,%i,%i,%i,%i", 3, WINDOW_BORDER_Y + 5 + 30, 7, WINDOW_BORDER_Y + 9 + 30, 11, WINDOW_BORDER_Y + 5 + 30)
- WindowPolygon (chat_border_button, points_sep,
-    theme.DETAIL, miniwin.pen_solid, 1,   -- pen (solid, width 1)
-    theme.DETAIL, miniwin.brush_solid, --brush (solid)
-    true, --close
-    false) --alt fill 	   
- WindowAddHotspot(chat_border_button, "seperator", 0, WINDOW_BORDER_Y + 30, 15, WINDOW_BORDER_Y + 16 + 30, "MouseOver_sep", "CancelMouseOver_sep", "MouseDown_sep", "CancelMouseDown_sep", "MouseUp_sep", "", 9, 0)
- WindowDragHandler (chat_border_button, "seperator", "drag_resize", "drag_resize_stop", 0)
- WindowShow(chat_border_button, true)
-end -- function window_seperator_button
-
-function MouseDown_sep(flags, hotspot_id)
-  button_y_original = GetInfo(284)
-end -- function MouseDown_sep
-
-function CancelMouseDown_sep(flags, hotspot_id)
- if delta_y == nil then
-  delta_y = WINDOW_BORDER_Y
- else
-  WINDOW_BORDER_Y = delta_y + 1
-  WINDOW_HEIGHT = delta_y + 93
- end -- delta_y
- init(true) -- rebuild chat window	   
- top = delta_y + 73
- main_text_area ()  -- rebuild main text area
- -- in case they let go of the mouse away from window so slider track disappears
- WindowRectOp (chat_border_button, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
- DrawThemed3DRect(chat_border_button, 0, WINDOW_BORDER_Y + 30, 15, WINDOW_BORDER_Y + 15 + 30)
- points_sep = string.format ("%i,%i,%i,%i,%i,%i", 3, WINDOW_BORDER_Y + 5 + 30, 7, WINDOW_BORDER_Y + 9 + 30, 11, WINDOW_BORDER_Y + 5 + 30)
- WindowPolygon (chat_border_button, points_sep,
-    theme.DETAIL, miniwin.pen_solid, 1,   -- pen (solid, width 1)
-    theme.DETAIL, miniwin.brush_solid, --brush (solid)
-    true, --close
-    false) --alt fill
- Redraw()
-end -- function CancelMouseDown_sep
-
-function MouseUp_sep(flags, hotspot_id)
- if delta_y == nil then
-  delta_y = WINDOW_BORDER_Y
- else
-  WINDOW_BORDER_Y = delta_y + 1
-  WINDOW_HEIGHT = delta_y + 93
- end -- delta_y check
- init(true) -- rebuild chat window
- top = delta_y + 73
- main_text_area ()  -- rebuild main text area
-end -- function MouseUp_sep
-
-function drag_resize(flags, hotspot_id)
- button_y_current = GetInfo(284)
- delta_y = button_y_current-button_y_original+WINDOW_BORDER_Y
- -- keep it from going past the track
- if delta_y > 55 then
-  delta_y = 55
- elseif delta_y < -30 then
-  delta_y = -30
- end
- WindowRectOp (chat_border_button, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
- DrawThemed3DRect(chat_border_button, 5, 0, 10, 100)
- DrawThemed3DRect(chat_border_button, 0, delta_y + 31, 15, delta_y + 15 + 31)
- points_sep = string.format ("%i,%i,%i,%i,%i,%i", 3, delta_y + 5 + 31, 7, delta_y + 9 + 31, 11, delta_y + 5 + 31)
- WindowPolygon (chat_border_button, points_sep,
-    theme.DETAIL, miniwin.pen_solid, 1,   -- pen (solid, width 1)
-    theme.DETAIL, miniwin.brush_solid, --brush (solid)
-    true, --close
-    false) --alt fill
- WindowMoveHotspot(chat_border_button, "seperator", 0, delta_y + 30, 15, delta_y + 16 + 30)	
- sepOne_top = delta_y + 76
- build_chatLine ()	
- Redraw()
-end -- function drag_resize
-
-function drag_resize_stop(flags, hotspot_id)
- -- maybe add something here in the future
-end -- function drag_resize_stop
-
-function MouseOver_sep(flags, hotspot_id)
- DrawThemed3DRect(chat_border_button, 5, 0, 10, 100)
- DrawThemed3DRect(chat_border_button, 0, WINDOW_BORDER_Y + 30, 15, WINDOW_BORDER_Y + 15 + 30)
- points_sep = string.format ("%i,%i,%i,%i,%i,%i", 3, WINDOW_BORDER_Y + 5 + 30, 7, WINDOW_BORDER_Y + 9 + 30, 11, WINDOW_BORDER_Y + 5 + 30)
- WindowPolygon (chat_border_button, points_sep,
-    theme.DETAIL, miniwin.pen_solid, 1,   -- pen (solid, width 1)
-    theme.DETAIL, miniwin.brush_solid, --brush (solid)
-    true, --close
-    false) --alt fill
- Redraw()
-end  -- function MouseOver_sep
-
-function CancelMouseOver_sep(flags, hotspot_id)
- WindowRectOp (chat_border_button, 2, 0, 0, 0, 0, ColourNameToRGB("black"))
- DrawThemed3DRect(chat_border_button, 0, WINDOW_BORDER_Y + 30, 15, WINDOW_BORDER_Y + 15 + 30)
- points_sep = string.format ("%i,%i,%i,%i,%i,%i", 3, WINDOW_BORDER_Y + 5 + 30, 7, WINDOW_BORDER_Y + 9 + 30, 11, WINDOW_BORDER_Y + 5 + 30)
- WindowPolygon (chat_border_button, points_sep,
-    theme.DETAIL, miniwin.pen_solid, 1,   -- pen (solid, width 1)
-    theme.DETAIL, miniwin.brush_solid, --brush (solid)
-    true, --close
-    false) --alt fill
- Redraw()
-end  -- function CancelMouseOver_sep
-
 ]]>
 </script>
 </muclient>
