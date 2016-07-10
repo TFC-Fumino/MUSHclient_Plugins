@@ -9,7 +9,7 @@
    purpose="A graphical user interface sidebar for The Final Challenge MUD"
    date_written="2016-05-15 00:49:31"
    requires="4.51"
-   version="2.5"
+   version="2.6"
    save_state="y"
    >
 <description trim="y">
@@ -507,6 +507,13 @@
  <alias
   script="msdp_test"
   match="msdp test"
+  enabled="y"
+  sequence="100">
+ </alias>
+ 
+  <alias
+  script="stat_win"
+  match="stat win"
   enabled="y"
   sequence="100">
  </alias>
@@ -3237,7 +3244,7 @@ function OnPluginTelnetRequest (type_msdp, data)
   return true
  elseif type_msdp == MSDP and data == "SENT_DO" then
   -- IAC SB MSDP response IAC SE 
-  SendPkt ("\255\250\69\1REPORT\2AREA_NAME\2PRACTICE\2MONEY\2SERVER_TIME\2SNIPPET_VERSION\2SERVER_ID\2CHARACTER_NAME\2RACE\2CLASS\2CLASS2\2CLASS3\2HEALTH_MAX\2HEALTH\2MANA_MAX\2MANA\2MOVEMENT_MAX\2MOVEMENT\2EXPERIENCE\2EXPERIENCE_TNL\2LEVEL\2ALIGNMENT\2AFFECTS\2WIMPY\2OPPONENT_HEALTH_MAX\2OPPONENT_HEALTH\2OPPONENT_LEVEL\2OPPONENT_NAME\2ROOM_EXITS\2ROOM_NAME\2ROOM_VNUM\2WORLD_TIME\2\255\240")
+  SendPkt ("\255\250\69\1REPORT\2AREA_NAME\2PRACTICE\2MONEY\2SERVER_TIME\2SNIPPET_VERSION\2SERVER_ID\2CHARACTER_NAME\2RACE\2CLASS\2CLASS2\2CLASS3\2HEALTH_MAX\2HEALTH\2MANA_MAX\2MANA\2MOVEMENT_MAX\2MOVEMENT\2EXPERIENCE\2EXPERIENCE_TNL\2LEVEL\2ALIGNMENT\2AFFECTS\2WIMPY\2OPPONENT_HEALTH_MAX\2OPPONENT_HEALTH\2OPPONENT_LEVEL\2OPPONENT_NAME\2ROOM_EXITS\2ROOM_NAME\2ROOM_VNUM\2WORLD_TIME\2SERVER_TIME\2\255\240")
   return true
  else -- another protocol
   return false
@@ -3345,6 +3352,9 @@ function dc_log (name, line, wildcards, styles)
  if GetVariable("starLog_tsType") ~= nil then
   if GetVariable("starLog_remPrompt") == "true" then
    if string.find(line, "<") and string.find(line, ">") then
+    fooR = string.match (line, ".->(.*)")
+    AppendToNotepad ("Star_Log_Test", os.date(GetVariable("starLog_tsType")) .. fooR)
+	AppendToNotepad ("Star_Log_Test", "\r\n")
    else
     AppendToNotepad ("Star_Log_Test", os.date(GetVariable("starLog_tsType")) .. line)
 	AppendToNotepad ("Star_Log_Test", "\r\n")
@@ -3654,10 +3664,12 @@ elseif GetVariable("cSelected") == "four" then
           ColourNameToRGB("yellow"), 0, 2, ColourNameToRGB("lime"), 0, 0, 0, 0)
   end -- starLog_recPrev 
  
- MONEY = msdp["MONEY"] or "0"
- WindowFont (sidebar_bg, font, "BolsterBold", 10)  
- WindowText (sidebar_bg, font, "Gold: " .. MONEY, 30, 335, 0, 0, ColourNameToRGB  "goldenrod")
- 
+ WORLD_TIME = msdp["WORLD_TIME"]
+ if WORLD_TIME == nil then
+  WORLD_TIME = "0"
+ end -- WORLD_TIME  
+ outlined_text (GetVariable("SBbarC"), sidebar_bg, "World Hour:", 10, 31, 354, 0)
+ outlined_text (GetVariable("SBbarC"), sidebar_bg, WORLD_TIME, 10, 120, 354, 0)
  WindowSetZOrder (sidebar_bg, -1)
  WindowSetZOrder (sidebar_bgBar, -1)
  WindowShow(sidebar_bg, true)
@@ -3719,7 +3731,7 @@ function settings_menu ()
  end -- castle_checked
  WindowRectOp(settings_menu_win, miniwin.rect_draw_edge, 10, 115, 200, 250, 
              miniwin.rect_edge_sunken,  miniwin.rect_edge_at_all)
- WindowRectOp (settings_menu_win, 4, 0, 0, 0, 0, ColourNameToRGB("white"), ColourNameToRGB("white"))
+ WindowRectOp (settings_menu_win, 4, 0, 0, 0, 0, GetVariable("SBbarCe"), GetVariable("SBbarCe"))
  links = {
  { text = "Avatar", tip = "", page = "avatar_set" },
  { text = "Background", tip = "", page = "background_set" },
@@ -5187,10 +5199,16 @@ function mousedown_sb_brCa (flags, hotspotid)
  -- sidebar background bar color
   SBbarC = getColour(SBbarC)
   SetVariable("SBbarC", SBbarC)
+  theme.HIGHLIGHT = SBbarC
+  theme.DETAIL = SBbarC
+  theme.OUTERSHADOW = SBbarC
   sidebar_background ()
+  create_titlebar ()
   build_chatLine ()
   build_promptLine ()
- settings_menu ()
+  settings_menu ()
+  -- stat_win ()
+  init(true)
 end -- function mousedown_sb_brCa
 function mouseover_sb_brCa (flags, hotspotid)
 if SBbarC ~= nil then
@@ -5771,6 +5789,7 @@ ROOM_EXITS = msdp["ROOM_EXITS"]
 ROOM_NAME = msdp["ROOM_NAME"]
 ROOM_VNUM = msdp["ROOM_VNUM"]
 WORLD_TIME = msdp["WORLD_TIME"]
+SERVER_TIME = msdp["SERVER_TIME"]
 print("CHARACTER_NAME:", CHARACTER_NAME)
 print("SERVER_ID:", SERVER_ID)
 print("SERVER_TIME:", SERVER_TIME)
@@ -5798,8 +5817,325 @@ print("ROOM_EXITS:", ROOM_EXITS)
 print("ROOM_NAME:", ROOM_NAME)
 print("ROOM_VNUM:", ROOM_VNUM)
 print("WORLD_TIME:", WORLD_TIME)
+print("SERVER_TIME:", SERVER_TIME)
 print(REPORT)
 end -- function msdp_test
 ]]>
+
+function stat_win ()
+ status_win = "status_win"
+ sLeft = GetInfo(264) - 235
+ sTop = GetInfo(263) / 2 - 200
+ WindowCreate (status_win, sLeft, sTop, 235, 400, 7, 2, 0x000000)
+ WindowCircleOp (status_win, 3, 0, 0, 235, 400,  -- round rectangle
+        GetVariable("SBbarC"), 0, 2, GetVariable("SBbarCe"), 10, 25, 25)
+ WindowLoadImage (status_win, "setmenubg", GetInfo (66) .. "Generic/layout/outer_background.png")
+ WindowLoadImage (status_win, "setmenubgtwo", GetInfo (66) .. "Generic/layout/outer_background_two.png")
+ WindowLoadImage (status_win, "setmenubgthree", GetInfo (66) .. "Generic/layout/outer_background_three.png")
+ WindowFont (status_win, font, "Times New Roman", 10)
+ WindowFont (status_win, "fontthree", "BolsterBold", 14)
+ WindowFont (status_win, "fonttwo", "BolsterBold", 9) 
+ if GetVariable("castle_checked") == "browse" then
+  WindowLoadImage (status_win, "setmenubgbrowse", GetVariable("filename"))
+ end -- castle_checked
+ -- WindowRectOp (status_win, 2, 0, 0, 0, 0, GetVariable("SBbarC"))
+ if GetVariable("castle_checked") == "one" then	
+  WindowImageOp (status_win, 3, 1, 10, 234, 390,    -- round rectangle
+              GetVariable("SBbarC"), 0, 0, 
+              ColourNameToRGB("cyan"), "setmenubg", 
+              20, 20)	  
+ end -- castle_checked
+ if GetVariable("castle_checked") == "two" then
+  WindowImageOp (status_win, 3, 1, 10, 234, 390,    -- round rectangle
+              GetVariable("SBbarC"), 0, 0, 
+              ColourNameToRGB("cyan"), "setmenubgtwo", 
+              20, 20)
+ end -- castle_checked
+ if GetVariable("castle_checked") == "three" then
+  WindowImageOp (status_win, 3, 1, 10, 234, 390,    -- round rectangle
+              GetVariable("SBbarC"), 0, 0, 
+              ColourNameToRGB("cyan"), "setmenubgthree", 
+              20, 20)
+ end -- castle_checked
+ if GetVariable("castle_checked") == "browse" then
+  WindowImageOp (status_win, 3, 1, 10, 234, 390,    -- round rectangle
+              GetVariable("SBbarC"), 0, 0, 
+              ColourNameToRGB("cyan"), "setmenubgbrowse", 
+              20, 20) 
+ end -- castle_checked
+ if GetVariable("stat_page") == nil then
+  SetVariable("stat_page", "maps")
+ end -- stat_page
+ WindowCircleOp (status_win, 3, 4, 12, 60, 30,  -- round rectangle
+        ColourNameToRGB("red"), 0, 1, ColourNameToRGB("red"), 5, 15, 15) 
+ if GetVariable("stat_page") == "maps" then
+  WindowText (status_win, "fonttwo", "Maps", 12, 13, 0, 0, ColourNameToRGB("white"))
+ else
+  WindowText (status_win, "fonttwo", "Maps", 12, 13, 0, 0, ColourNameToRGB("black"))
+ end -- stat_page
+  WindowAddHotspot (status_win, "stat_map", 4, 12, 50, 30, 
+                    "mouseover_statMap", -- MouseOver 
+                    "cancel_mouseover_statMap", -- CancelMouseOver 
+                    "mousedown_statMap", -- MouseDown 
+                    "cancel_mousedown_statMap", -- CancelMouseDown 
+                    "mouseup_statMap", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag				
+ WindowCircleOp (status_win, 3, 50, 12, 110, 30,  -- round rectangle
+        ColourNameToRGB("green"), 0, 0, ColourNameToRGB("green"), 5, 15, 15)
+ if GetVariable("stat_page") == "stats" then
+  WindowText (status_win, "fonttwo", "Stats", 58, 13, 0, 0, ColourNameToRGB("white"))
+ else
+  WindowText (status_win, "fonttwo", "Stats", 58, 13, 0, 0, ColourNameToRGB("black"))
+ end -- stat_page
+  WindowAddHotspot (status_win, "stat_stat", 50, 12, 100, 30, 
+                    "mouseover_statStat", -- MouseOver 
+                    "cancel_mouseover_statStat", -- CancelMouseOver 
+                    "mousedown_statStat", -- MouseDown 
+                    "cancel_mousedown_statStat", -- CancelMouseDown 
+                    "mouseup_statStat", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+ WindowCircleOp (status_win, 3, 100, 12, 180, 30,  -- round rectangle
+        ColourNameToRGB("blue"), 0, 0, ColourNameToRGB("blue"), 5, 15, 15)
+ if GetVariable("stat_page") == "inventory" then
+  WindowText (status_win, "fonttwo", "Inventory", 108, 13, 0, 0, ColourNameToRGB("white"))
+ else
+  WindowText (status_win, "fonttwo", "Inventory", 108, 13, 0, 0, ColourNameToRGB("black"))
+ end -- page_stat
+  WindowAddHotspot (status_win, "stat_inv", 100, 12, 151, 30, 
+                    "mouseover_statInv", -- MouseOver 
+                    "cancel_mouseover_statInv", -- CancelMouseOver 
+                    "mousedown_statInv", -- MouseDown 
+                    "cancel_mousedown_statInv", -- CancelMouseDown 
+                    "mouseup_statInv", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag						
+ WindowCircleOp (status_win, 3, 150, 12, 230, 30,  -- round rectangle
+        ColourNameToRGB("orange"), 0, 0, ColourNameToRGB("orange"), 5, 15, 15)
+ if GetVariable("stat_page") == "who" then
+  WindowText (status_win, "fonttwo", "Who List", 158, 13, 0, 0, ColourNameToRGB("white"))
+ else
+  WindowText (status_win, "fonttwo", "Who List", 158, 13, 0, 0, ColourNameToRGB("black"))
+ end -- stat_page
+  WindowAddHotspot (status_win, "stat_who", 150, 12, 230, 30, 
+                    "mouseover_statWho", -- MouseOver 
+                    "cancel_mouseover_statWho", -- CancelMouseOver 
+                    "mousedown_statWho", -- MouseDown 
+                    "cancel_mousedown_statWho", -- CancelMouseDown 
+                    "mouseup_statWho", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+ if GetVariable("stat_page") == "maps" then
+  WindowRectOp (status_win, 2, 0, 31, 229, 60, GetVariable("SBbarC"))  
+  WindowText (status_win, "fontthree", "Maps", 85, 33, 0, 0, GetVariable("SBbarCe")) 
+  links_stat = {
+   { text = "Map One", pageStat = "" },
+   { text = "Map Two", pageStat = "" },
+   { text = "Map Three", pageStat = "" },
+   { text = "Map Four", pageStat = "" },
+   { text = "Map Five", pageStat = "" },
+   { text = "Map Six", pageStat = "" }, 
+   { text = "Map Seven", pageStat = "" },
+   { text = "Map Eight", pageStat = "" },
+   { text = "Map Nine", pageStat = "" },
+   { text = "Map Ten", pageStat = "" },
+   { text = "Map Eleven", pageStat = "" },
+   { text = "Map Twelve", pageStat = "" },
+   { text = "Map Thirteen", pageStat = "" },
+   { text = "Map Fourteen", pageStat = "" },
+   { text = "Map Fifteen", pageStat = "" },
+   { text = "Map Sixteen", pageStat = "" },
+   { text = "Map Seventeen", pageStat = "" },
+   { text = "Map Eightteen", pageStat = "" },
+   { text = "Map Nineteen", pageStat = "" },
+   { text = "Map Twenty", pageStat = "" }
+  } -- end of links_stat table
+  -- position for first hyperlink  
+  x = 15    -- all text indented this far in
+  y = 90    -- first hyperlink this far down              
+  maxTextWidth = 0
+  for k, v in ipairs (links_stat) do
+    maxTextWidth = math.max (maxTextWidth, WindowTextWidth(status_win, font, v.text))
+  end -- for
+   for k, v in ipairs (links_stat) do
+    MakeHyperlink_stat (k, v)
+  end -- for
+  DrawThemed3DRect(status_win, 73, 66, 147, 80)
+  WindowText (status_win, "fonttwo", "Auto-locate", 75, 65, 0, 0, ColourNameToRGB  "white")
+ elseif GetVariable("stat_page") == "stats" then
+  WindowRectOp (status_win, 2, 0, 31, 229, 60, GetVariable("SBbarC"))  
+  WindowText (status_win, "fontthree", "Statistics", 65, 33, 0, 0, GetVariable("SBbarCe")) 
+  MONEY = msdp["MONEY"] or "0"
+  -- WindowText (status_win, font, "Gold: " .. MONEY, 15, 30, 0, 0, ColourNameToRGB  "red")  
+ elseif GetVariable("stat_page") == "inventory" then
+  WindowRectOp (status_win, 2, 0, 31, 229, 60, GetVariable("SBbarC"))  
+  WindowText (status_win, "fontthree", "Inventory", 65, 33, 0, 0, GetVariable("SBbarCe")) 
+ elseif GetVariable("stat_page") == "who" then
+  WindowRectOp (status_win, 2, 0, 31, 229, 60, GetVariable("SBbarC"))  
+  WindowText (status_win, "fontthree", "Who List", 65, 33, 0, 0, GetVariable("SBbarCe")) 
+ end -- stat_page
+ WindowShow(status_win, true)
+end -- stat_win
+
+function drawText_stat (which, colour)
+  Redraw ()
+  return WindowText (status_win, font, which.text, which.x, which.y, 0, 0, ColourNameToRGB  (colour))
+end -- drawText_stat
+
+function mouseover_statlink (flags, hotspotid)
+  drawText_stat (links_stat [tonumber (hotspotid)], "blue")
+  pageStat = (links_stat [tonumber (hotspotid)].page)
+  -- delete below, simply open browser with links in .pageStat
+  if pageStat == "avatar_set" then
+  elseif pageStat == "background_set" then
+  elseif pageStat == "sidebar_set" then
+  elseif pageStat == "promptbar_set" then
+  elseif page == "compass_set" then
+  elseif pageStat == "starlogger_set" then
+  elseif pageStat == "reportissue_set" then
+  elseif pageStat == "pluginupdate_set" then
+  end -- pageStat
+end -- mouseover_statlink
+
+function cancel_mouseover_statlink (flags, hotspotid)
+ drawText_stat (links_stat [tonumber (hotspotid)], "white")
+  -- stat_win ()
+  Redraw()
+end -- cancel_mouseover_statlink
+
+function mousedown_statlink (flags, hotspotid)
+  pageset_stat = (links_stat [tonumber (hotspotid)].page)
+  stat_win ()
+end -- mousedown_statlink
+
+function cancel_mousedown_statlink (flags, hotspotid)
+  drawText_stat (links [tonumber (hotspotid)], "dimgray")
+end -- cancel_mousedown_statlink
+
+function MakeHyperlink_stat (item, which)
+  -- remember current x and y in the links table
+  which.x = x
+  which.y = y
+  width = drawText_stat (which, "white")
+  WindowAddHotspot (status_win, item, which.x, which.y, which.x + width, which.y + font_height, 
+                    "mouseover_statlink", -- MouseOver 
+                    "cancel_mouseover_statlink", -- CancelMouseOver 
+                    "mousedown_statlink", -- MouseDown 
+                    "cancel_mousedown_statlink", -- CancelMouseDown 
+                    "mouseup_statlink", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag
+  y = y + font_height
+end -- MakeHyperlink_stat
+
+----/  Maps mouse events  /----
+function mousedown_statMap (flags, hotspotid)
+ SetVariable("stat_page", "maps")
+ stat_win ()
+end -- function mousedown_statMap
+function mouseup_statMap (flags, hotspotid)
+end -- function mouseup_statMap
+function mouseover_statMap (flags, hotspotid)
+ WindowCircleOp (status_win, 3, 4, 12, 60, 30,  -- round rectangle
+        ColourNameToRGB("red"), 0, 1, ColourNameToRGB("red"), 5, 15, 15)
+ WindowText (status_win, "fonttwo", "Maps", 12, 13, 0, 0, ColourNameToRGB("white"))
+	  WindowAddHotspot (status_win, "stat_map", 4, 12, 60, 30, 
+                    "mouseover_statMap", -- MouseOver 
+                    "cancel_mouseover_statMap", -- CancelMouseOver 
+                    "mousedown_statMap", -- MouseDown 
+                    "cancel_mousedown_statMap", -- CancelMouseDown 
+                    "mouseup_statMap", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag	
+ Redraw()
+end -- function mouseover_statMap
+function cancel_mouseover_statMap (flags, hotspotid)
+ stat_win ()
+end -- function cancel_mouseover_statMap
+
+----/  Stats mouse events  /----
+function mousedown_statStat (flags, hotspotid)
+ SetVariable("stat_page", "stats")
+ stat_win ()
+end -- function mousedown_statStat
+function mouseup_statStat (flags, hotspotid)
+end -- function mouseup_statStat
+function mouseover_statStat (flags, hotspotid)
+  WindowCircleOp (status_win, 3, 50, 12, 110, 30,  -- round rectangle
+        ColourNameToRGB("green"), 0, 0, ColourNameToRGB("green"), 5, 15, 15)
+ WindowText (status_win, "fonttwo", "Stats", 58, 13, 0, 0, ColourNameToRGB("white"))
+	  WindowAddHotspot (status_win, "stat_stat", 50, 12, 110, 30, 
+                    "mouseover_statStat", -- MouseOver 
+                    "cancel_mouseover_statStat", -- CancelMouseOver 
+                    "mousedown_statStat", -- MouseDown 
+                    "cancel_mousedown_statStat", -- CancelMouseDown 
+                    "mouseup_statStat", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag	
+ Redraw()
+end -- function mouseover_statStat
+function cancel_mouseover_statStat (flags, hotspotid)
+ stat_win ()
+end -- function cancel_mouseover_statStat
+
+----/  Inventory mouse events  /----
+function mousedown_statInv (flags, hotspotid)
+ SetVariable("stat_page", "inventory")
+ stat_win ()
+end -- function mousedown_statInv
+function mouseup_statInv (flags, hotspotid)
+end -- function mouseup_statInv
+function mouseover_statInv (flags, hotspotid)
+  WindowCircleOp (status_win, 3, 100, 12, 180, 30,  -- round rectangle
+        ColourNameToRGB("blue"), 0, 0, ColourNameToRGB("blue"), 5, 15, 15)
+ WindowText (status_win, "fonttwo", "Inventory", 108, 13, 0, 0, ColourNameToRGB("white"))
+	  WindowAddHotspot (status_win, "stat_inv", 100, 12, 180, 30, 
+                    "mouseover_statInv", -- MouseOver 
+                    "cancel_mouseover_statInv", -- CancelMouseOver 
+                    "mousedown_statInv", -- MouseDown 
+                    "cancel_mousedown_statInv", -- CancelMouseDown 
+                    "mouseup_statInv", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag	
+ Redraw()
+end -- function mouseover_statInv
+function cancel_mouseover_statInv (flags, hotspotid)
+ stat_win ()
+end -- function cancel_mouseover_statInv
+
+----/  Who List mouse events  /----
+function mousedown_statWho (flags, hotspotid)
+ SetVariable("stat_page", "who")
+ stat_win ()
+end -- function mousedown_statWho
+function mouseup_statWho (flags, hotspotid)
+end -- function mouseup_statWho
+function mouseover_statWho (flags, hotspotid)
+  WindowCircleOp (status_win, 3, 150, 12, 230, 30,  -- round rectangle
+        ColourNameToRGB("orange"), 0, 0, ColourNameToRGB("orange"), 5, 15, 15)
+ WindowText (status_win, "fonttwo", "Who List", 158, 13, 0, 0, ColourNameToRGB("white"))
+	  WindowAddHotspot (status_win, "stat_who", 150, 12, 230, 30, 
+                    "mouseover_statWho", -- MouseOver 
+                    "cancel_mouseover_statWho", -- CancelMouseOver 
+                    "mousedown_statWho", -- MouseDown 
+                    "cancel_mousedown_statWho", -- CancelMouseDown 
+                    "mouseup_statWho", -- MouseUp 
+                    "", 
+                    miniwin.cursor_hand,
+                    0) --  Flag	
+ Redraw()
+end -- function mouseover_statWho
+function cancel_mouseover_statWho (flags, hotspotid)
+ stat_win ()
+end -- function cancel_mouseover_statWho
 </script>
 </muclient>
