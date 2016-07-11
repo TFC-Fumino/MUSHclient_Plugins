@@ -9,7 +9,7 @@
    purpose="A graphical user interface sidebar for The Final Challenge MUD"
    date_written="2016-05-15 00:49:31"
    requires="4.51"
-   version="2.6"
+   version="2.7"
    save_state="y"
    >
 <description trim="y">
@@ -3664,12 +3664,42 @@ elseif GetVariable("cSelected") == "four" then
           ColourNameToRGB("yellow"), 0, 2, ColourNameToRGB("lime"), 0, 0, 0, 0)
   end -- starLog_recPrev 
  
- WORLD_TIME = msdp["WORLD_TIME"]
- if WORLD_TIME == nil then
-  WORLD_TIME = "0"
- end -- WORLD_TIME  
- outlined_text (GetVariable("SBbarC"), sidebar_bg, "World Hour:", 10, 31, 354, 0)
- outlined_text (GetVariable("SBbarC"), sidebar_bg, WORLD_TIME, 10, 120, 354, 0)
+WORLD_TIME = msdp["WORLD_TIME"]
+if WORLD_TIME ~= nil then
+ if WORLD_TIME == "0" then
+  WORLD_TIME = "12 PM"
+ elseif WORLD_TIME == "13" then
+  WORLD_TIME = "1 PM"
+ elseif WORLD_TIME == "14" then
+  WORLD_TIME = "2 PM"
+ elseif WORLD_TIME == "15" then
+  WORLD_TIME = "3 PM"
+ elseif WORLD_TIME == "16" then
+  WORLD_TIME = "4 PM"
+ elseif WORLD_TIME == "17" then
+  WORLD_TIME = "5 PM"
+ elseif WORLD_TIME == "18" then
+  WORLD_TIME = "6 PM"
+ elseif WORLD_TIME == "19" then
+  WORLD_TIME = "7 PM"
+ elseif WORLD_TIME == "20" then
+  WORLD_TIME = "8 PM"
+ elseif WORLD_TIME == "21" then
+  WORLD_TIME = "9 PM"
+ elseif WORLD_TIME == "22" then
+  WORLD_TIME = "10 PM"
+ elseif WORLD_TIME == "23" then
+  WORLD_TIME = "11 PM"
+ elseif WORLD_TIME == "24" then
+  WORLD_TIME = "12 AM"
+ else
+  WORLD_TIME = WORLD_TIME .. " AM"
+ end 
+else
+ WORLD_TIME = "0 AM"
+end -- WORLD_TIME 
+ outlined_text (GetVariable("SBbarC"), sidebar_bg, "Server Time: " .. WORLD_TIME, 10, 11, 354, 0)
+ -- outlined_text (GetVariable("SBbarC"), sidebar_bg, WORLD_TIME, 10, 120, 354, 0)
  WindowSetZOrder (sidebar_bg, -1)
  WindowSetZOrder (sidebar_bgBar, -1)
  WindowShow(sidebar_bg, true)
